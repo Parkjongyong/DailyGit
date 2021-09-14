@@ -1,0 +1,605 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.Role">
+
+	<select id="selectRoleList" parameterType="Map" resultType="Map">
+	--RoleMapper.selectRoleList
+	SELECT	  COUNT(*) OVER() AS TOT_CNT
+	        , ROLE_CD
+			, '1' AS ROLE_MENU
+			, '1' AS ROLE_USER
+			, '1' AS ROLE_DEPT
+			, ROLE_NAME
+			, MODULE_TYPE
+			, INS_ID
+			,(SELECT USER_NM FROM SYS_USER WHERE USER_ID = R.INS_ID)    AS	REG_NM
+			, INS_DT							                        AS	REG_DT
+			, 'R'														AS	FLAG
+			, ROLE_CD													AS	PRE_ROLE_CD
+	FROM	SYS_ROLE R
+ 	WHERE	1=1
+		AND	USG_YN	= 'Y'
+		<if test="MODULE_TYPE != null and MODULE_TYPE != ''">
+		    AND MODULE_TYPE = #{MODULE_TYPE}
+		</if>
+		
+		<if test="S_ROLE_CD != null and S_ROLE_CD != ''">
+			AND	UPPER(ROLE_CD) LIKE  '%' || REPLACE(UPPER(#{S_ROLE_CD}),' ','') || '%'
+		</if>
+		<if test="S_ROLE_NM != null and S_ROLE_NM != ''">
+			AND	UPPER(ROLE_NAME) LIKE  '%' || REPLACE(UPPER(#{S_ROLE_NM}),' ','') ||  '%'
+		</if>
+	ORDER BY  ROLE_CD ASC 
+			, ROLE_NAME ASC
+	</select>
+	
+	<select id="selectRoleDetailList" parameterType="Map" resultType= "Map">
+	--RoleMapper.selectRoleDetailList
+	SELECT	 CONCAT(CONCAT(LPAD(' ',M2.LVL-1,'-'),' '), MENU_NM)			AS	MENU_NM
+	FROM
+	(
+     SELECT MENU_CD
+           ,LEVEL LVL
+     	FROM  SYS_MENU M1
+    	WHERE	M1.MODULE_TYPE = #{MODULE_TYPE}
+        START WITH MENU_CD = 'ROOT'
+        CONNECT BY PRIOR MENU_CD = UP_MENU_CD
+	) M2
+	INNER JOIN	SYS_MENU M1	
+	ON 	M1.MENU_CD  = M2.MENU_CD 
+	INNER JOIN  SYS_ROLE_MENU M3 
+	ON 	M1.MENU_CD = M3.MENU_CD
+	AND M3.ROLE_CD = #{ROLE_CD}	 
+	AND M1.MODULE_TYPE = #{MODULE_TYPE}	
+	WHERE	1=1
+	ORDER BY M1.MENU_CD, M1.ORD_NO	
+	</select>
+	
+	<delete id="deleteRoleMenuList" parameterType="Map">
+	--RoleMapper.deleteRoleMenuList
+
+	DELETE	FROM	SYS_ROLE_MENU
+	WHERE	MENU_CD	IN		(	
+								SELECT	ROLE.MENU_CD
+								FROM
+								(
+									SELECT	  B.MENU_CD
+									FROM	  SYS_ROLE_MENU A
+									INNER JOIN SYS_MENU B ON A.MENU_CD = B.MENU_CD
+														AND	B.MODULE_TYPE = #{MODULE_TYPE}
+														AND A.ROLE_CD = #{ROLE_CD}
+								) ROLE
+							)
+		AND	ROLE_CD = #{ROLE_CD}
+	</delete>
+	
+	<insert id="insertRoleMenuList" parameterType="Map">
+	--RoleMapper.insertRoleMenuList
+
+	INSERT INTO	SYS_ROLE_MENU
+	(
+		  ROLE_CD
+		, MENU_CD
+		, INS_ID
+		, INS_DT
+	)
+	VALUES
+	(
+		  #{ROLE_CD}
+		, #{MENU_CD}
+		, #{REG_ID}
+		, SYSDATE
+	)
+	</insert>
+	
+	<update id="deleteRoleList" parameterType="Map">
+	--RoleMapper.deleteRoleList
+
+	UPDATE	SYS_ROLE
+		SET	USG_YN = 'N'
+		  , MOD_ID = #{MOD_ID}
+	WHERE	ROLE_CD = #{ROLE_CD}
+	</update>
+	
+	<update id="updateRoleList" parameterType="Map">
+	--RoleMapper.updateRoleList
+	UPDATE	SYS_ROLE
+		SET	  ROLE_CD   = #{ROLE_CD}
+			, ROLE_NAME = #{ROLE_NAME}
+			, MODULE_TYPE = #{MODULE_TYPE}
+			, MOD_ID = #{MOD_ID}
+			, MOD_DT = SYSDATE
+	WHERE	ROLE_CD = #{PRE_ROLE_CD}
+	</update>
+	
+	<insert id="insertRoleList" parameterType="Map">
+	--RoleMapper.insertRoleList
+
+		INSERT INTO SYS_ROLE
+		(
+			  ROLE_CD
+			, ROLE_NAME
+			, MODULE_TYPE
+			, INS_ID
+			, INS_DT
+			, MOD_ID
+			, MOD_DT
+			, USG_YN
+		)
+		VALUES
+		(
+			  #{ROLE_CD}
+			, #{ROLE_NAME}
+			, #{MODULE_TYPE}
+			, #{INS_ID}
+			, SYSDATE
+			, #{MOD_ID}
+			, SYSDATE
+			, 'Y'
+		)
+	</insert>
+	
+	<select id="selectRoleAssignmentUserList" parameterType="map" resultType="map">
+	--RoleMapper.selectRoleAssignmentUserList 
+	SELECT	USR.*
+	FROM
+	(	
+		SELECT	  A.DEPT_CD													AS	DEPT_CD
+				, FUNC_GET_DEPT_NAME(A.COMP_CD, A.DEPT_CD, '')              AS  DEPT_NAME 
+				, A.USER_NM 												AS	USER_NAME
+				, A.USER_ID													AS	USER_ID
+		FROM	SYS_USER A
+		LEFT OUTER JOIN 
+		 SYS_USER_ROLE B 
+		ON A.USER_ID = B.USER_ID
+		WHERE	1=1
+			AND	B.ROLE_CD = #{ROLE_CD}
+			AND A.DEL_YN = 'N'
+			AND A.DEPT_CD  !='V0000001'
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+			AND	A.COMP_CD = #{SB_COMP_CD}
+		</if>
+	) USR
+	ORDER BY USR.DEPT_NAME, USR.USER_NAME
+	</select>
+	
+	<select id="selectRoleUnassignedUserList" parameterType="map" resultType="map">
+	--RoleMapper.selectRoleUnassignedUserList
+
+	SELECT	  REQ.*
+	FROM
+	(
+		SELECT	  USR.DEPT_CD													AS	DEPT_CD
+				, FUNC_GET_DEPT_NAME(USR.COMP_CD, USR.DEPT_CD, '')              AS  DEPT_NAME 
+				, USR.USER_NM													AS	USER_NAME
+				, USR.USER_ID													AS	USER_ID
+		FROM	SYS_USER USR 
+		WHERE	USR.USG_YN = 'Y'
+			AND	USR.DEL_YN = 'N'
+			AND USR.DEPT_CD  !='V0000001'
+			AND	NOT EXISTS (
+							SELECT	USER_ID
+							FROM	SYS_USER_ROLE
+							WHERE	USER_ID = USR.USER_ID
+								AND	ROLE_CD = #{ROLE_CD}
+							)
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+			AND	USR.COMP_CD = #{SB_COMP_CD}
+		</if>
+		) REQ
+	WHERE	1 = 1
+		<if test="S_USER_NM != null and S_USER_NM != ''">
+			AND	UPPER(REQ.USER_NAME) LIKE  '%' ||  REPLACE(UPPER(#{S_USER_NM}),' ','') ||  '%'
+		</if>
+		
+		<if test="S_USER_ID != null and S_USER_ID != ''">
+            AND UPPER(REQ.USER_ID) LIKE  '%' ||  REPLACE(UPPER(#{S_USER_ID}),' ','') ||  '%'
+        </if>
+	ORDER	BY REQ.DEPT_NAME,REQ.USER_NAME
+	</select>
+	
+	<delete id="deleteRoleUser" parameterType="map">
+	--RoleMapper.deleteRoleUser
+
+	DELETE FROM SYS_USER_ROLE
+	WHERE ROLE_CD = #{ROLE_CD}
+	</delete>
+	
+	<insert id="insertRoleUser" parameterType="map">
+	--RoleMapper.insertRoleUser
+	INSERT INTO SYS_USER_ROLE
+	(
+		  USER_ID
+		, ROLE_CD
+		, INS_ID
+		, INS_DT
+	)
+	VALUES
+	(
+		  #{USER_ID}
+		, #{ROLE_CD}
+		, #{INS_ID}
+		, SYSDATE 
+	)
+	</insert>
+	
+	<select id="selectRoleUnassignedDeptList" parameterType="Map" resultType="Map">
+	--RoleMapper.selectRoleUnassignedDeptList
+	SELECT DEPT_CD
+         , DEPT_NM
+      FROM DEPT
+     WHERE DEPT_CD IN ( SELECT DISTINCT DEPT_CD FROM SYS_USER )
+       AND DEPT_CD != 'V0000001'
+       AND DEPT_CD NOT IN ( SELECT DEPT_CD FROM SYS_DEPT_ROLE WHERE ROLE_CD = #{ROLE_CD} )
+	<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		AND	COMP_CD = #{SB_COMP_CD}
+	</if>
+	<if test="S_DEPT_NM != null and S_DEPT_NM != ''">
+		AND UPPER(DEPT_NM) LIKE '%' ||  REPLACE(UPPER(#{S_DEPT_NM}),' ','') ||  '%'
+	</if>
+	
+	</select>
+	
+	<select id="selectRoleAssignmentDeptList" parameterType="Map" resultType="Map">
+	--RoleMapper.selectRoleAssignmentDeptList
+        SELECT A.DEPT_CD
+             , A.DEPT_NM
+             , B.ROLE_CD
+          FROM DEPT A 
+           INNER JOIN 
+          SYS_DEPT_ROLE B 
+          ON   B.DEPT_CD = A.DEPT_CD
+            AND B.ROLE_CD = #{ROLE_CD}
+         WHERE 1=1
+	<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		AND	A.COMP_CD = #{SB_COMP_CD}
+	</if>
+         
+	</select>
+	
+	<delete id="deleteRoleDept" parameterType="map">
+	--RoleMapper.deleteRoleDept
+
+	DELETE	FROM SYS_DEPT_ROLE
+	WHERE	ROLE_CD = #{ROLE_CD}
+	</delete>
+	
+	<insert id="insertRoleDept" parameterType="map">
+	--RoleMapper.insertRoleDept
+
+	INSERT INTO SYS_DEPT_ROLE
+	(
+		  DEPT_CD
+		, ROLE_CD
+		, INS_ID
+		, INS_DT
+	)
+	VALUES
+	(
+		  #{DEPT_CD}
+		, #{ROLE_CD}
+		, #{REG_ID}
+		, SYSDATE 
+	)
+	</insert>
+	
+	<select id="selectUnassignedRoleList" parameterType="Map" resultType="Map">
+	--RoleMapper.selectUnassignedRoleList
+
+	SELECT	  ROLE_CD
+			, ROLE_NAME
+	FROM	SYS_ROLE 
+	WHERE	USG_YN = 'Y'
+	    AND MODULE_TYPE = #{MODULE_TYPE}
+		AND ROLE_CD NOT IN (	
+							SELECT	ROLE_CD
+							FROM	SYS_USER_ROLE
+							WHERE	USER_ID = #{S_USER_ID}
+							)
+		<if test = "S_ROLE_NM != null and S_ROLE_NM != ''">
+			AND UPPER(ROLE_NAME) LIKE '%' || REPLACE(UPPER(#{S_ROLE_NM}),' ','') || '%'
+		</if>
+	</select>
+	
+	
+	<select id="selectAssignedRoleList" parameterType="Map" resultType="Map">
+	--RoleMapper.selectAssignedRoleList
+
+	SELECT	  A.ROLE_CD
+			, B.ROLE_NAME
+	FROM	SYS_USER_ROLE A
+	INNER JOIN SYS_ROLE B ON A.ROLE_CD = B.ROLE_CD
+	WHERE	A.USER_ID = #{S_USER_ID}
+		
+	</select>
+	
+	<delete id="deleteUserRole" parameterType="Map">
+	--RoleMapper.deleteUserRole
+
+	DELETE FROM SYS_USER_ROLE
+	WHERE	USER_ID = #{S_USER_ID}
+	</delete>
+	
+	<insert id="insertUserRole" parameterType="Map">
+	--RoleMapper.insertUserRole
+	INSERT INTO SYS_USER_ROLE
+	(
+	 	  USER_ID
+		, ROLE_CD
+		, INS_ID
+		, INS_DT
+	)
+	VALUES
+	(
+		  #{USER_ID}
+		, #{ROLE_CD}
+		, #{INS_ID}
+		, SYSDATE
+	)
+	</insert>
+	
+	<select id="selectUnassignedDeptRoleList" parameterType="Map" resultType="Map">
+	--RoleMapper.selectUnassignedDeptRoleList
+
+	SELECT	  ROLE_CD
+			, ROLE_NAME
+	FROM	SYS_ROLE 
+	WHERE	USG_YN = 'Y'
+	    AND MODULE_TYPE = #{MODULE_TYPE}
+		AND ROLE_CD NOT IN (	
+							SELECT	ROLE_CD
+							FROM	SYS_DEPT_ROLE
+							WHERE	DEPT_CD = #{S_DEPT_CD}
+							)
+		<if test = "S_ROLE_NM != null and S_ROLE_NM != ''">
+			AND UPPER(ROLE_NAME) LIKE '%' || REPLACE(UPPER(#{S_ROLE_NM}),' ','') || '%'
+		</if>
+	</select>
+	
+	<select id="selectAssignedDeptRoleList" parameterType="Map" resultType="Map">
+	--RoleMapper.selectAssignedDeptRoleList
+
+	SELECT	  A.ROLE_CD 
+            , B.ROLE_NAME
+	FROM	SYS_DEPT_ROLE A
+	INNER JOIN SYS_ROLE B ON A.ROLE_CD = B.ROLE_CD 
+	WHERE A.DEPT_CD	  = #{S_DEPT_CD}
+
+	</select>
+	
+	<delete id="deleteDeptRole" parameterType="Map">
+	--RoleMapper.deleteDeptRole
+
+	DELETE FROM SYS_DEPT_ROLE
+	WHERE	DEPT_CD = #{S_DEPT_CD}
+	</delete>
+	
+	<insert id="insertDeptRole" parameterType="Map">
+	--RoleMapper.insertDeptRole
+
+	INSERT INTO SYS_DEPT_ROLE
+	(
+          DEPT_CD
+		, ROLE_CD
+		, INS_ID
+		, INS_DT
+	)
+	VALUES
+	(
+		  #{DEPT_CD}
+		, #{ROLE_CD}
+		, #{INS_ID}
+		, SYSDATE
+	)
+	</insert>
+	
+	<select id="selectCheckRoleCdExist" parameterType="Map" resultType="int">
+    --RoleMapper.selectCheckRoleCdExist
+    SELECT COUNT(1) AS CNT
+      FROM SYS_ROLE
+     WHERE 1=1
+     AND ROLE_CD = #{ROLE_CD} 
+    </select>	
+    
+    
+    <!-- 부서 검색  팝업 -->
+    <select id="selectDeptList" parameterType="Map" resultType="Map">
+        --com.cmn.CostCenterMapper.selectDeptList
+            SELECT DEPT_CD
+			      ,DEPT_NM
+			      ,LPAD(' ',LVL*3) || DEPT_NM DEPT_NM_LVL
+			      ,TREE_ORD_NO
+			      ,LVL
+			      ,LEAF                                           
+			 FROM (                                           
+				    SELECT A.*                                         
+				          ,LEVEL LVL                                   
+				          ,SYS_CONNECT_BY_PATH(DEPT_CD,'.') TREE_ORD_NO
+				          ,CONNECT_BY_ISLEAF LEAF                      
+				     FROM (                                            
+					       SELECT D.DEPT_CD                                   
+					             ,NVL((SELECT DEPT_CD                         
+					                     FROM DEPT I01                            
+					                    WHERE I01.DEPT_CD = D.UP_DEPT_CD              
+					               ),'ROOT') UP_DEPT_CD   -- 부모가 없는 경우 부모가 ROOT                       
+					             ,D.DEPT_NM                                   
+					         FROM DEPT D                                      
+					        WHERE 1 = 1                                       
+					          AND DEL_YN = 'N'                                
+					          AND DEPT_CD NOT LIKE 'P%'                       
+			               )A                                               
+			         START WITH UP_DEPT_CD = 'ROOT'                    
+			       CONNECT BY PRIOR DEPT_CD = UP_DEPT_CD              
+			       )                                                  
+			WHERE 1 = 1
+			  AND UPPER(DEPT_NM) LIKE  '%' || REPLACE(UPPER(#{S_DEPT_NM}),' ','') ||  '%'
+			--  AND LEAF = 1                                     
+		 ORDER BY TREE_ORD_NO    
+    </select>
+    
+    <select id="selectUserViewList" parameterType="Map" resultType="Map">
+    --com.sys.SysRoleMapper.selectUserViewList
+    SELECT  A.TREE               TREE
+           ,A.TREE_ORD_NO        TREE_ORD_NO
+           ,A.MENU_CD            MENU_CD
+           ,A.MENU_NM            MENU_NM
+           ,A.MENU_NM_EN         MENU_NM_EN
+           ,A.LINK_URL           LINK_URL
+           ,A.LINK_TARGET        LINK_TARGET
+           ,A.LVL                LVL
+           ,A.UP_MENU_CD         UP_MENU_CD
+           ,A.UP_MENU_NM         UP_MENU_NM
+           ,A.ORD_NO             ORD_NO
+           ,A.IS_ROLE_MAPPING    IS_ROLE_MAPPING
+           ,A.USG_YN             USG_YN
+           ,A.MODULE_YN          MODULE_YN
+           ,A.DISPLAY_YN         DISPLAY_YN
+           ,A.HAS_CHILD_YN       HAS_CHILD_YN
+           ,A.MODULE_TYPE        MODULE_TYPE
+           ,B.MENU_USE_YN        MENU_USE_YN
+      FROM (
+             SELECT SYS_CONNECT_BY_PATH(MENU_CD, '.') TREE
+                  , SYS_CONNECT_BY_PATH(LPAD(ORD_NO,10,'0'), '.') TREE_ORD_NO
+                  , M1.MENU_CD
+                  , M1.MENU_NM
+                  , M1.MENU_NM_EN
+                  , M1.LINK_URL
+                  , M1.LINK_TARGET
+                  , LEVEL-1 LVL
+                  , M1.UP_MENU_CD
+                  , (SELECT MENU_NM
+                       FROM SYS_MENU I01
+                      WHERE M1.MODULE_TYPE = I01.MODULE_TYPE
+                        AND M1.UP_MENU_CD  = I01.MENU_CD
+                    ) UP_MENU_NM
+                  , M1.ORD_NO
+                  , DECODE( (SELECT COUNT(1) FROM SYS_ROLE_MENU WHERE ROLE_CD = #{ROLE_CD} AND MENU_CD = M1.MENU_CD), 0, '0', '1') AS IS_ROLE_MAPPING
+                , M1.USG_YN
+                , M1.MODULE_YN
+                , M1.DISPLAY_YN
+                , CASE WHEN CONNECT_BY_ISLEAF = 1 THEN 'N'
+                    ELSE 'Y' END  AS    HAS_CHILD_YN
+                  , M1.MODULE_TYPE
+              FROM SYS_MENU M1
+             WHERE M1.MODULE_TYPE =  DECODE(#{MODULE_TYPE}, NULL, 'B', #{MODULE_TYPE})
+      START WITH MENU_CD = 'ROOT'
+    CONNECT BY PRIOR MENU_CD = UP_MENU_CD
+           ) A
+           LEFT OUTER JOIN
+            SYS_USER_MENU B
+           ON    B.MENU_CD = A.MENU_CD
+             AND B.USER_ID = #{S_USER_ID}
+     WHERE A.MENU_CD != 'ROOT'
+     ORDER BY TREE_ORD_NO
+    </select>
+    
+    <select id="selectDeptViewList" parameterType="Map" resultType="Map">
+    --com.sys.SysRoleMapper.selectDeptViewList
+    SELECT  A.TREE               TREE
+           ,A.TREE_ORD_NO        TREE_ORD_NO
+           ,A.MENU_CD            MENU_CD
+           ,A.MENU_NM            MENU_NM
+           ,A.MENU_NM_EN         MENU_NM_EN
+           ,A.LINK_URL           LINK_URL
+           ,A.LINK_TARGET        LINK_TARGET
+           ,A.LVL                LVL
+           ,A.UP_MENU_CD         UP_MENU_CD
+           ,A.UP_MENU_NM         UP_MENU_NM
+           ,A.ORD_NO             ORD_NO
+           ,A.IS_ROLE_MAPPING    IS_ROLE_MAPPING
+           ,A.USG_YN             USG_YN
+           ,A.MODULE_YN          MODULE_YN
+           ,A.DISPLAY_YN         DISPLAY_YN
+           ,A.HAS_CHILD_YN       HAS_CHILD_YN
+           ,A.MODULE_TYPE        MODULE_TYPE
+           ,CASE WHEN B.MENU_CD IS NOT NULL THEN 'Y'
+                 ELSE 'N'
+            END                  MENU_USE_YN
+      FROM (
+		             SELECT SYS_CONNECT_BY_PATH(MENU_CD, '.') TREE
+		                  , SYS_CONNECT_BY_PATH(LPAD(ORD_NO,10,'0'), '.') TREE_ORD_NO
+		                  , M1.MENU_CD
+		                  , M1.MENU_NM
+		                  , M1.MENU_NM_EN
+		                  , M1.LINK_URL
+		                  , M1.LINK_TARGET
+		                  , LEVEL-1 LVL
+		                  , M1.UP_MENU_CD
+		                  , (SELECT MENU_NM
+		                       FROM SYS_MENU I01
+		                      WHERE M1.MODULE_TYPE = I01.MODULE_TYPE
+		                        AND M1.UP_MENU_CD  = I01.MENU_CD
+		                    ) UP_MENU_NM
+		                  , M1.ORD_NO
+		                  , DECODE( (SELECT COUNT(1) FROM SYS_ROLE_MENU WHERE ROLE_CD = #{ROLE_CD} AND MENU_CD = M1.MENU_CD), 0, '0', '1') AS IS_ROLE_MAPPING
+		                , M1.USG_YN
+		                , M1.MODULE_YN
+		                , M1.DISPLAY_YN
+		                , CASE WHEN CONNECT_BY_ISLEAF = 1 THEN 'N'
+		                    ELSE 'Y' END  AS    HAS_CHILD_YN
+		                  , M1.MODULE_TYPE
+		              FROM SYS_MENU M1
+		             WHERE M1.MODULE_TYPE =  DECODE(#{MODULE_TYPE}, NULL, 'B', #{MODULE_TYPE})
+		      START WITH MENU_CD = 'ROOT'
+		    CONNECT BY PRIOR MENU_CD = UP_MENU_CD
+           ) A
+          LEFT OUTER JOIN
+           (
+            SELECT DISTINCT MENU_CD
+              FROM (
+                    SELECT ROLE_CD
+                      FROM SYS_DEPT_ROLE
+                     WHERE 1 = 1
+                       AND DEPT_CD = #{DEPT_CD}
+                    UNION 
+                    SELECT ROLE_CD
+                      FROM SYS_USER_ROLE
+                     WHERE 1 = 1
+                       AND USER_ID = #{USER_ID}
+                   ) A
+                  LEFT OUTER JOIN
+                   SYS_ROLE_MENU B
+                  ON B.ROLE_CD = A.ROLE_CD         
+           ) B
+          ON B.MENU_CD = A.MENU_CD
+     WHERE A.MENU_CD != 'ROOT'
+     ORDER BY TREE_ORD_NO
+    </select>
+    
+    <insert id="updateUserMenuList" parameterType="Map">
+		MERGE INTO SYS_USER_MENU A
+		USING DUAL
+		ON (    A.USER_ID = #{USER_ID}
+		    AND A.MENU_CD = #{MENU_CD}
+		   )
+		WHEN MATCHED THEN
+		 UPDATE 
+		    SET MENU_USE_YN = #{MENU_USE_YN}
+		WHEN NOT MATCHED THEN
+		 INSERT 
+		 ( USER_ID
+		  ,MENU_CD
+		  ,MENU_USE_YN
+		  ,INS_ID
+		  ,INS_DT
+		 ) VALUES (
+		           #{USER_ID}
+		          ,#{MENU_CD}
+		          ,#{MENU_USE_YN}
+		          ,#{INS_ID}
+		          ,SYSDATE
+		          )    
+    </insert>
+    
+    <delete id="resetUserMenuList" parameterType="Map">
+    	DELETE FROM SYS_USER_MENU
+    	 WHERE USER_ID =  #{USER_ID}
+    </delete>
+    
+    <select id="userMenuCnt" parameterType="Map" resultType="Map">
+    --com.sys.SysRoleMapper.xmluserMenuCnt
+    	SELECT COUNT(0) CNT
+    	  FROM SYS_USER_MENU
+    	 WHERE USER_ID =  #{USER_ID}
+    </select>
+</mapper>

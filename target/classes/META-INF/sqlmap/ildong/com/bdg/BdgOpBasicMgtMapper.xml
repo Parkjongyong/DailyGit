@@ -1,0 +1,903 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.OpBasicMgt">
+	<select id="selectOpBasicMgtList" parameterType="Map" resultType="Map">
+		--com.bdg.OpBasicMgt.selectOpBasicMgtList
+		SELECT A.COMP_CD                                                   AS COMP_CD         --회사코드               
+		      ,A.CRTN_YY                                                   AS CRTN_YY         --기준년도              
+		      ,A.BELONG_CCTR_CD                                            AS BELONG_CCTR_CD  --귀속코스트 
+		      ,FUNC_GET_COST_NAME(A.COMP_CD, A.BELONG_CCTR_CD, A.CRE_DATE) AS BELONG_CCTR_NM --귀속코스트명  
+		      ,A.CLAUSE_CD                                                 AS CLAUSE_CD       --항목                  
+		      ,A.LEVEL_CD                                                  AS LEVEL_CD        --레벨                  
+		      ,A.ITEM_CD                                                   AS ITEM_CD         --품목코드              
+		      ,A.ITEM_DESC                                                 AS ITEM_DESC       --품목명
+		      ,'1'                                                         AS CODEMAPPING1    --품목팝업용               
+		      ,A.DISTRIB_CD                                                AS DISTRIB_CD      --유통코드              
+		      ,A.ACCOUNT_NO                                                AS ACCOUNT_NO      --계정코드
+		      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                         AS ACCOUNT_DESC    --계정명(FUNCTION이 있다면 대체 필요!)
+		      ,A.CCTR_CD                                                   AS CCTR_CD         --관리코스트코드
+		      ,FUNC_GET_COST_NAME(A.COMP_CD, A.CCTR_CD, A.CRE_DATE)        AS CCTR_NM         --관리코스트명
+		      ,'1'                                                         AS CODEMAPPING2    -- 관리부서팝업용 
+		      ,A.PROJECT_CD                                                AS PROJECT_CD      --프로젝트코드(내부오더)
+		      ,A.STATUS                                                    AS STATUS          --상태코드
+		      ,FUNC_GET_CODE_NAME('YS007', A.STATUS)                       AS STATUS_NM       --상태명             
+		      ,A.WK_M01                                                    AS WK_M01          --1월                   
+		      ,A.WK_M02                                                    AS WK_M02          --2월                   
+		      ,A.WK_M03                                                    AS WK_M03          --3월                   
+		      ,A.WK_M04                                                    AS WK_M04          --4월                   
+		      ,A.WK_M05                                                    AS WK_M05          --5월                   
+		      ,A.WK_M06                                                    AS WK_M06          --6월                   
+		      ,A.WK_M07                                                    AS WK_M07          --7월                   
+		      ,A.WK_M08                                                    AS WK_M08          --8월                   
+		      ,A.WK_M09                                                    AS WK_M09          --9월                   
+		      ,A.WK_M10                                                    AS WK_M10          --10월                  
+		      ,A.WK_M11                                                    AS WK_M11          --11월                  
+		      ,A.WK_M12                                                    AS WK_M12          --12월
+		      ,(
+		        SELECT SUM( NVL(WK_M01, 0)
+		                   +NVL(WK_M02, 0)
+		                   +NVL(WK_M03, 0)
+		                   +NVL(WK_M04, 0)
+		                   +NVL(WK_M05, 0)
+		                   +NVL(WK_M06, 0)
+		                   +NVL(WK_M07, 0)
+		                   +NVL(WK_M08, 0)
+		                   +NVL(WK_M09, 0)
+		                   +NVL(WK_M10, 0)
+		                   +NVL(WK_M11, 0)
+		                   +NVL(WK_M12, 0))
+		         FROM CO_BUGT_BASIC_MGMT B
+		        WHERE 1 = 1
+		          AND B.COMP_CD        = A.COMP_CD      
+		          AND B.CRTN_YY        = A.CRTN_YY      
+		          AND B.BELONG_CCTR_CD = A.BELONG_CCTR_CD
+		          AND B.CLAUSE_CD      = A.CLAUSE_CD    
+		          AND B.LEVEL_CD       = A.LEVEL_CD     
+		          AND B.ITEM_CD        = A.ITEM_CD      
+		          AND B.ITEM_DESC      = A.ITEM_DESC    
+		          AND B.DISTRIB_CD     = A.DISTRIB_CD   
+		          AND B.ACCOUNT_NO     = A.ACCOUNT_NO
+		       ) AS TOTAL
+		      ,A.CRE_DATE                 AS CRE_DATE       --등록일자              
+		      ,A.CRE_USER                 AS CRE_USER       --등록자ID              
+		      ,A.MOD_DATE                 AS MOD_DATE       --수정일자              
+		      ,A.MOD_USER                 AS MOD_USER       --수정자ID
+		      ,'R'                        AS CRUD           --행구분 
+		  FROM CO_BUGT_BASIC_MGMT A
+		 WHERE 1 = 1
+		  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND A.COMP_CD = #{SB_COMP_CD}
+		  </if>
+		  <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+		   AND A.CRTN_YY = #{TB_CRTN_YY}
+		  </if>
+		  <if test="SB_BELONG_CCTR_CD != null and SB_BELONG_CCTR_CD != ''">
+		   AND A.BELONG_CCTR_CD = #{SB_BELONG_CCTR_CD}
+		  </if>
+		  <if test="SB_CLAUSE_CD != null and SB_CLAUSE_CD != ''">
+		   AND A.CLAUSE_CD = #{SB_CLAUSE_CD}
+		  </if>
+		 <if test="SB_STATUS_CD != null and SB_STATUS_CD != ''">
+		   AND A.STATUS  = #{SB_STATUS_CD}
+		 </if>   
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YY
+		        ,A.BELONG_CCTR_CD
+		        ,A.CLAUSE_CD
+	</select>
+
+	<select id="selectFlagYn" parameterType="Map" resultType="Map">
+		--com.bdg.OpBasicMgt.selectFlagYn
+		SELECT A.FLAG_YN AS FLAG_YN
+		  FROM (
+		        SELECT ROW_NUMBER() OVER(ORDER BY FLAG_YN) AS RNUM
+		              ,A.FLAG_YN
+		          FROM (
+		                SELECT CASE WHEN #{GUBN} IN ('SA','DE') THEN CASE -- 저장,삭제는 작성중상태만 가능
+		                                                               WHEN B.STATUS = '1' THEN 'Y'
+		                                                               ELSE 'N'
+		                                                             END
+									WHEN #{GUBN} IN ('SC') THEN CASE -- 확정은 작성중상태만 가능
+		                                                          WHEN B.STATUS IN ('1', '2') THEN 'Y'
+		                                                          ELSE 'N'
+		                                                        END		                                                             
+		                            WHEN #{GUBN} = 'CO' THEN CASE -- 확정 작성중상태만 가능
+		                                                       WHEN B.STATUS = '1' THEN 'Y'
+		                                                       ELSE 'N'
+		                                                     END
+		                            WHEN #{GUBN} IN ('CC','SD') THEN CASE -- 확정취소, 전송은 확정상태만 가능
+		                                                      WHEN B.STATUS = '2' THEN 'Y'
+		                                                      ELSE 'N'
+		                                                    END  
+		                            WHEN #{GUBN} = 'SC' THEN CASE -- 전송취소는 전송상태만 가능
+		                                                      WHEN B.STATUS = '3' THEN 'Y'
+		                                                      ELSE 'N'
+		                                                    END                                                                                                                                   
+		                            ELSE 'N'
+		                       END AS FLAG_YN
+		                  FROM (
+		                        SELECT MAX(STATUS) STATUS
+		                          FROM CO_BUGT_BASIC_MGMT
+		                         WHERE 1 = 1
+		                           AND COMP_CD = #{COMP_CD}
+		                           AND CRTN_YY = #{CRTN_YY}
+		                           AND BELONG_CCTR_CD = #{BELONG_CCTR_CD}
+		                        ) B
+		                  WHERE 1 = 1
+		               UNION ALL
+		                SELECT 'Y' AS FLAG_YN
+		                  FROM DUAL
+		               ) A
+		        ) A
+		 WHERE 1 = 1
+		   AND RNUM = 1
+	</select>
+	
+    <insert id="saveOpBugtBasicMgmt" parameterType="Map">
+		--com.bdg.OpBasicMgt.saveOpBugtBasicMgmt
+		MERGE INTO CO_BUGT_BASIC_MGMT A
+		    USING (
+		           SELECT #{COMP_CD}                                                                AS COMP_CD      
+		                 ,#{CRTN_YY}                                                                AS CRTN_YY      
+		                 ,#{BELONG_CCTR_CD}                                                         AS BELONG_CCTR_CD
+		                 ,#{CLAUSE_CD}                                                              AS CLAUSE_CD    
+		                 ,#{LEVEL_CD}                                                               AS LEVEL_CD     
+		                 ,#{ITEM_CD}                                                                AS ITEM_CD      
+		                 ,#{ITEM_DESC}                                                              AS ITEM_DESC    
+		                 ,#{DISTRIB_CD}                                                             AS DISTRIB_CD   
+		                 ,#{ACCOUNT_NO}                                                             AS ACCOUNT_NO   
+		                 ,#{CCTR_CD}                                                                AS CCTR_CD       
+		                 ,FUNC_GET_PROJECT_CD(#{COMP_CD}, #{CLAUSE_CD}, #{ACCOUNT_NO}, FUNC_GET_PRIOR_ORG_CODE(#{COMP_CD}, #{CCTR_CD}, '')) AS PROJECT_CD   
+		                 ,#{STATUS}                                                                 AS STATUS       
+		                 ,#{WK_M01}                                                                 AS WK_M01       
+		                 ,#{WK_M02}                                                                 AS WK_M02       
+		                 ,#{WK_M03}                                                                 AS WK_M03       
+		                 ,#{WK_M04}                                                                 AS WK_M04       
+		                 ,#{WK_M05}                                                                 AS WK_M05       
+		                 ,#{WK_M06}                                                                 AS WK_M06       
+		                 ,#{WK_M07}                                                                 AS WK_M07       
+		                 ,#{WK_M08}                                                                 AS WK_M08       
+		                 ,#{WK_M09}                                                                 AS WK_M09       
+		                 ,#{WK_M10}                                                                 AS WK_M10       
+		                 ,#{WK_M11}                                                                 AS WK_M11       
+		                 ,#{WK_M12}                                                                 AS WK_M12       
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')                                              AS CRE_DATE     
+		                 ,#{CRE_USER}                                                               AS CRE_USER     
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')                                              AS MOD_DATE     
+		                 ,#{MOD_USER}                                                               AS MOD_USER     
+		             FROM DUAL A
+		          ) B
+		       ON (    A.COMP_CD        = B.COMP_CD       
+		           AND A.CRTN_YY        = B.CRTN_YY      
+		           AND A.BELONG_CCTR_CD = B.BELONG_CCTR_CD
+		           AND A.CLAUSE_CD      = B.CLAUSE_CD    
+		           AND A.LEVEL_CD       = B.LEVEL_CD     
+		           AND A.ITEM_CD        = B.ITEM_CD      
+		           AND A.ITEM_DESC      = B.ITEM_DESC    
+		           AND A.DISTRIB_CD     = B.DISTRIB_CD   
+		           AND A.ACCOUNT_NO     = B.ACCOUNT_NO   
+		           AND A.CCTR_CD        = B.CCTR_CD       
+		          )
+		           
+		    WHEN MATCHED THEN
+		           
+		        UPDATE 
+		           SET A.PROJECT_CD = B.PROJECT_CD
+		              ,A.STATUS     = B.STATUS    
+		              ,A.WK_M01     = B.WK_M01    
+		              ,A.WK_M02     = B.WK_M02    
+		              ,A.WK_M03     = B.WK_M03    
+		              ,A.WK_M04     = B.WK_M04    
+		              ,A.WK_M05     = B.WK_M05    
+		              ,A.WK_M06     = B.WK_M06    
+		              ,A.WK_M07     = B.WK_M07    
+		              ,A.WK_M08     = B.WK_M08    
+		              ,A.WK_M09     = B.WK_M09    
+		              ,A.WK_M10     = B.WK_M10    
+		              ,A.WK_M11     = B.WK_M11    
+		              ,A.WK_M12     = B.WK_M12    
+		              ,A.MOD_DATE   = B.MOD_DATE
+		              ,A.MOD_USER   = B.MOD_USER
+		    WHEN NOT MATCHED THEN
+		                     
+		        INSERT (
+		                A.COMP_CD
+		               ,A.CRTN_YY
+		               ,A.BELONG_CCTR_CD
+		               ,A.CLAUSE_CD
+		               ,A.LEVEL_CD
+		               ,A.ITEM_CD
+		               ,A.ITEM_DESC
+		               ,A.DISTRIB_CD
+		               ,A.ACCOUNT_NO
+		               ,A.CCTR_CD
+		               ,A.PROJECT_CD
+		               ,A.STATUS
+		               ,A.WK_M01
+		               ,A.WK_M02
+		               ,A.WK_M03
+		               ,A.WK_M04
+		               ,A.WK_M05
+		               ,A.WK_M06
+		               ,A.WK_M07
+		               ,A.WK_M08
+		               ,A.WK_M09
+		               ,A.WK_M10
+		               ,A.WK_M11
+		               ,A.WK_M12
+		               ,A.CRE_DATE
+		               ,A.CRE_USER
+		               ,A.MOD_DATE
+		               ,A.MOD_USER
+		               ) VALUES ( B.COMP_CD
+		                         ,B.CRTN_YY
+		                         ,B.BELONG_CCTR_CD
+		                         ,B.CLAUSE_CD
+		                         ,B.LEVEL_CD
+		                         ,B.ITEM_CD
+		                         ,B.ITEM_DESC
+		                         ,B.DISTRIB_CD
+		                         ,B.ACCOUNT_NO
+		                         ,B.CCTR_CD
+		                         ,B.PROJECT_CD
+		                         ,B.STATUS
+		                         ,B.WK_M01
+		                         ,B.WK_M02
+		                         ,B.WK_M03
+		                         ,B.WK_M04
+		                         ,B.WK_M05
+		                         ,B.WK_M06
+		                         ,B.WK_M07
+		                         ,B.WK_M08
+		                         ,B.WK_M09
+		                         ,B.WK_M10
+		                         ,B.WK_M11
+		                         ,B.WK_M12
+		                         ,B.CRE_DATE
+		                         ,B.CRE_USER
+		                         ,B.MOD_DATE
+		                         ,B.MOD_USER
+		                         )             
+
+    </insert>
+    
+    <delete id="deleteOpBugtBasicMgmt" parameterType="Map">
+		--com.bdg.OpBasicMgt.deleteOpBugtBasicMgmt
+		DELETE FROM CO_BUGT_BASIC_MGMT
+		 WHERE 1 = 1
+		   AND COMP_CD        = #{COMP_CD}      
+		   AND CRTN_YY        = #{CRTN_YY}      
+		   AND BELONG_CCTR_CD = #{BELONG_CCTR_CD}
+		   AND CLAUSE_CD      = #{CLAUSE_CD}    
+		   AND LEVEL_CD       = #{LEVEL_CD}     
+		   AND ITEM_CD        = #{ITEM_CD}      
+		   AND ITEM_DESC      = #{ITEM_DESC}    
+		   AND DISTRIB_CD     = #{DISTRIB_CD}   
+		   AND ACCOUNT_NO     = #{ACCOUNT_NO}      
+    </delete>
+    
+    <update id="updateOpBasicMgtStatus" parameterType="Map">
+		--com.bdg.OpBasicMgt.updateOpBasicMgtStatus
+		UPDATE CO_BUGT_BASIC_MGMT
+		   SET STATUS = #{STATUS}
+		      ,MOD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,MOD_USER = #{MOD_USER}
+		 WHERE 1 = 1
+		   AND COMP_CD        = #{SB_COMP_CD}      
+		   AND CRTN_YY        = REPLACE(#{TB_CRTN_YY},'-','')      
+		   AND BELONG_CCTR_CD = #{SB_BELONG_CCTR_CD}
+    </update>
+    
+    <update id="cancelOpBasicMgt" parameterType="Map">
+		--com.bdg.OpBasicMgt.cancelOpBasicMgt
+		UPDATE CO_BUGT_BASIC_MGMT
+		   SET STATUS = #{STATUS}
+		      ,MOD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,MOD_USER = #{MOD_USER}
+		 WHERE 1 = 1
+		   AND COMP_CD        = #{SB_COMP_CD}      
+		   AND CRTN_YY        = REPLACE(#{TB_CRTN_YY},'-','')      
+		   AND BELONG_CCTR_CD = #{SB_BELONG_CCTR_CD}
+    </update>
+    
+    <update id="updateOpBasicMgtStatus2" parameterType="Map">
+		--com.bdg.OpBasicMgt.updateOpBasicMgtStatus2(전송/전송취소)
+		UPDATE CO_BUGT_BASIC_MGMT
+		   SET STATUS = #{STATUS_NEW}
+		      ,MOD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,MOD_USER = #{MOD_USER}
+		 WHERE 1 = 1
+		   AND COMP_CD = #{SB_COMP_CD}      
+		   AND CRTN_YY = #{TB_CRTN_YY}      
+		   AND STATUS  = #{STATUS_OLD}     
+    </update>
+    
+	<select id="selectBugtDataCount" parameterType="Map" resultType="Map">
+		--com.bdg.OpBasicMgt.selectBugtDataCount
+		SELECT COUNT(*) CNT
+		  FROM CO_BUGT_BASIC_HEAD
+		 WHERE 1 = 1
+		   AND COMP_CD = #{SB_COMP_CD}
+	       AND CRTN_YY = #{TB_CRTN_YY}
+	       AND PROCESS_TYPE = '2' 		  
+	</select>    
+    
+    <delete id="deleteOpBugtBasicgHead" parameterType="Map">
+		--com.bdg.OpBasicMgt.deleteOpBugtBasicgHead
+		DELETE FROM CO_BUGT_BASIC_HEAD A
+		 WHERE 1 = 1
+		   AND A.COMP_CD = #{SB_COMP_CD}
+	       AND A.CRTN_YY = #{TB_CRTN_YY}
+	       AND A.PROCESS_TYPE = '2'
+    </delete>
+    
+    <delete id="deleteOpBugtBasicgDetail" parameterType="Map">
+		--com.bdg.OpBasicMgt.deleteOpBugtBasicgDetail
+		DELETE FROM CO_BUGT_BASIC_DETAIL A
+		 WHERE 1 = 1
+		   AND A.COMP_CD = #{SB_COMP_CD}
+	       AND A.CRTN_YY = #{TB_CRTN_YY}
+	       AND A.PROCESS_TYPE = '2'
+    </delete>
+    
+    <insert id="insertOpBugtBasicgHead" parameterType="Map">
+		--com.bdg.OpBasicMgt.insertOpBugtBasicgHead
+	    INSERT INTO CO_BUGT_BASIC_HEAD
+	    (
+	      COMP_CD
+	     ,CRTN_YY
+	     ,CCTR_CD
+	     ,ACCOUNT_NO
+	     ,PROCESS_TYPE
+	     ,STATUS
+	     ,DISTR_TYPE
+	     ,WK_M01
+	     ,WK_M02
+	     ,WK_M03
+	     ,WK_M04
+	     ,WK_M05
+	     ,WK_M06
+	     ,WK_M07
+	     ,WK_M08
+	     ,WK_M09
+	     ,WK_M10
+	     ,WK_M11
+	     ,WK_M12
+	     ,CRE_DATE
+	     ,CRE_USER
+	     ,MOD_DATE
+	     ,MOD_USER
+	    )
+	    SELECT A.COMP_CD
+	          ,A.CRTN_YY
+	          ,A.CCTR_CD
+	          ,A.ACCOUNT_NO
+	          ,'2'
+	          ,NVL((SELECT MAX(STATUS)
+	                  FROM CO_BUGT_BASIC_HEAD B
+	                 WHERE 1 = 1
+	                   AND B.COMP_CD = A.COMP_CD
+	                   AND B.CRTN_YY = A.CRTN_YY
+	                   AND B.CCTR_CD = A.CCTR_CD
+	                   AND B.PROCESS_TYPE = '1'
+	               ), '1'
+	              ) AS  STATUS
+	          ,SUBSTR(PROJECT_CD,4,2)  AS DISTR_TYPE -- 유통판촉비 종류가 정해지면 변경처리 필요!!!! 
+	          ,A.WK_M01
+	          ,A.WK_M02
+	          ,A.WK_M03
+	          ,A.WK_M04
+	          ,A.WK_M05
+	          ,A.WK_M06
+	          ,A.WK_M07
+	          ,A.WK_M08
+	          ,A.WK_M09
+	          ,A.WK_M10
+	          ,A.WK_M11
+	          ,A.WK_M12
+	          ,TO_CHAR(SYSDATE, 'YYYYMMDD')   AS CRE_DATE
+	          ,#{CRE_USER}                    AS CRE_USER
+	          ,TO_CHAR(SYSDATE, 'YYYYMMDD')   AS MOD_DATE
+	          ,#{MOD_USER}                    AS MOD_USER
+	      FROM (            
+	            SELECT COMP_CD        AS COMP_CD
+	                  ,CRTN_YY        AS CRTN_YY
+	                  ,CCTR_CD        AS CCTR_CD
+	                  ,ACCOUNT_NO     AS ACCOUNT_NO
+	                  ,PROJECT_CD     AS PROJECT_CD
+	                  ,SUM(WK_M01)    AS WK_M01
+	                  ,SUM(WK_M02)    AS WK_M02
+	                  ,SUM(WK_M03)    AS WK_M03
+	                  ,SUM(WK_M04)    AS WK_M04
+	                  ,SUM(WK_M05)    AS WK_M05
+	                  ,SUM(WK_M06)    AS WK_M06
+	                  ,SUM(WK_M07)    AS WK_M07
+	                  ,SUM(WK_M08)    AS WK_M08
+	                  ,SUM(WK_M09)    AS WK_M09
+	                  ,SUM(WK_M10)    AS WK_M10
+	                  ,SUM(WK_M11)    AS WK_M11
+	                  ,SUM(WK_M12)    AS WK_M12
+	              FROM CO_BUGT_BASIC_MGMT
+	             WHERE 1 = 1
+	               AND COMP_CD       = #{SB_COMP_CD}
+	               AND CRTN_YY       = #{TB_CRTN_YY}
+	               AND STATUS        = '2'
+	             GROUP BY COMP_CD
+	                     ,CRTN_YY
+	                     ,CCTR_CD
+	                     ,ACCOUNT_NO
+	                     ,PROJECT_CD
+	            ) A	
+	</insert>
+	           
+    <insert id="insertOpBugtBasicgDetail" parameterType="Map">
+		--com.bdg.OpBasicMgt.insertOpBugtBasicgDetail
+	    INSERT INTO CO_BUGT_BASIC_DETAIL
+	    (
+	      COMP_CD
+         ,CRTN_YY
+         ,CCTR_CD
+         ,ACCOUNT_NO
+         ,PROCESS_TYPE
+         ,SEQ_NO
+         ,DETAIL_DESC
+         ,BELONG_CCTR_CD
+         ,PROJECT_CD
+         ,UNIT_PRICE
+         ,UNIT_QTY
+         ,WK_M01
+         ,WK_M02
+         ,WK_M03
+         ,WK_M04
+         ,WK_M05
+         ,WK_M06
+         ,WK_M07
+         ,WK_M08
+         ,WK_M09
+         ,WK_M10
+         ,WK_M11
+         ,WK_M12
+         ,CRE_DATE
+         ,CRE_USER
+         ,MOD_DATE
+         ,MOD_USER
+	    )
+	    SELECT A.COMP_CD
+	          ,A.CRTN_YY
+	          ,A.CCTR_CD
+	          ,A.ACCOUNT_NO
+	          ,'2'  AS PROCESS_TYPE
+	          ,1    AS SEQ_NO
+	          ,''   AS DETAIL_DESC
+	          ,A.BELONG_CCTR_CD
+	          ,A.PROJECT_CD
+	          ,NULL AS UNIT_PRICE
+	          ,NULL AS UNIT_QTY
+	          ,A.WK_M01
+	          ,A.WK_M02
+	          ,A.WK_M03
+	          ,A.WK_M04
+	          ,A.WK_M05
+	          ,A.WK_M06
+	          ,A.WK_M07
+	          ,A.WK_M08
+	          ,A.WK_M09
+	          ,A.WK_M10
+	          ,A.WK_M11
+	          ,A.WK_M12
+	          ,TO_CHAR(SYSDATE, 'YYYYMMDD')   AS CRE_DATE
+	          ,#{CRE_USER}                    AS CRE_USER
+	          ,TO_CHAR(SYSDATE, 'YYYYMMDD')   AS MOD_DATE
+	          ,#{MOD_USER}                    AS MOD_USER
+	      FROM (            
+	            SELECT COMP_CD             AS COMP_CD
+	                  ,CRTN_YY             AS CRTN_YY
+	                  ,CCTR_CD             AS CCTR_CD
+	                  ,ACCOUNT_NO          AS ACCOUNT_NO
+	                  ,MAX(BELONG_CCTR_CD) AS BELONG_CCTR_CD
+	                  ,MAX(PROJECT_CD)     AS PROJECT_CD
+	                  ,SUM(WK_M01)         AS WK_M01
+	                  ,SUM(WK_M02)         AS WK_M02
+	                  ,SUM(WK_M03)         AS WK_M03
+	                  ,SUM(WK_M04)         AS WK_M04
+	                  ,SUM(WK_M05)         AS WK_M05
+	                  ,SUM(WK_M06)         AS WK_M06
+	                  ,SUM(WK_M07)         AS WK_M07
+	                  ,SUM(WK_M08)         AS WK_M08
+	                  ,SUM(WK_M09)         AS WK_M09
+	                  ,SUM(WK_M10)         AS WK_M10
+	                  ,SUM(WK_M11)         AS WK_M11
+	                  ,SUM(WK_M12)         AS WK_M12
+	              FROM CO_BUGT_BASIC_MGMT
+	             WHERE 1 = 1
+	               AND COMP_CD       = #{SB_COMP_CD}
+	               AND CRTN_YY       = #{TB_CRTN_YY}
+	               AND STATUS        = '2'
+	             GROUP BY COMP_CD
+	                     ,CRTN_YY
+	                     ,CCTR_CD
+	                     ,ACCOUNT_NO
+	            ) A	
+
+    </insert>
+
+	<select id="selectStatusHeader" parameterType="Map" resultType="Map">
+	    --com.bdg.OpModifyMgt.selectStatusHeader
+		SELECT MAX(STATUS) STATUS
+		  FROM CO_BUGT_BASIC_MGMT
+		 WHERE 1 = 1
+		   AND COMP_CD        = #{SB_COMP_CD}
+	       AND CRTN_YY        = REPLACE(#{TB_CRTN_YY},'-','')
+	       AND BELONG_CCTR_CD = #{SB_BELONG_CCTR_CD}		
+	</select> 	
+
+	<select id="selectOpBasicMgtCode1" parameterType="Map" resultType="Map">
+	    --com.bdg.OpModifyMgt.selectOpBasicMgtCode1
+SELECT ITEM_CD
+      ,ITEM_DESC
+  FROM CO_BUGT_ITEM_MGMT 
+	</select> 	
+
+	<select id="selectOpBasicMgtCode2" parameterType="Map" resultType="Map">
+	    --com.bdg.OpModifyMgt.selectOpBasicMgtCode2
+ SELECT CODE
+       ,CODE_NM
+   FROM COM_CODE
+  WHERE CODE_GRP = 'YS008'
+	</select> 	
+
+	<select id="selectOpBasicMgtCode3" parameterType="Map" resultType="Map">
+	    --com.bdg.OpModifyMgt.selectOpBasicMgtCode3
+SELECT ACCOUNT_NO                             CODE
+      ,FUNC_GET_ACCOUNT_DESC(ACCOUNT_NO)      CODE_NM
+      ,FUNC_GET_CODE_NAME('YS006', CLAUSE_CD) CLAUSE_NM     -- 항목명
+  FROM CO_ACCOUNT_MGMT
+ ORDER BY COMP_CD
+         ,CLAUSE_CD
+         ,ACCOUNT_NO
+	</select> 	
+
+	<select id="selectOpBasicMgtCode4" parameterType="Map" resultType="Map">
+	    --com.bdg.OpModifyMgt.selectOpBasicMgtCode4
+     <![CDATA[
+ SELECT A.COST_CD  CCTR_CD
+       ,A.COST_NM  CCTR_NM
+   FROM DEPT A
+  WHERE 1=1
+    AND A.SDATE    = (
+                      SELECT MAX(SDATE)
+                        FROM DEPT B
+                       WHERE B.COMP_CD = A.COMP_CD
+                         AND B.DEPT_CD = A.DEPT_CD
+                         AND B.SDATE    <= TO_CHAR(SYSDATE,'YYYYMMDD')
+      
+                     )
+   AND COST_CD IS NOT NULL
+UNION
+SELECT CCTR_CD
+      ,CCTR_NM
+  FROM CO_CCTR_MGMT
+   ]]>
+	</select> 	
+
+	<select id="selectOpBasicMgtData" parameterType="Map" resultType="Map">
+	    --com.bdg.OpModifyMgt.selectOpBasicMgtData
+     <![CDATA[
+SELECT '(EX)A0025B0223'    ITEM_CD
+      ,'(EX)10'            DISTRIB_CD
+      ,'(EX)0055014010'    ACCOUNT_NO
+      ,'(EX)2500020'       CCTR_CD
+      ,TO_NUMBER('10000')  WK_M01
+      ,TO_NUMBER('20000')  WK_M02
+      ,TO_NUMBER('30000')  WK_M03
+      ,TO_NUMBER('40000')  WK_M04
+      ,TO_NUMBER('50000')  WK_M05
+      ,TO_NUMBER('60000')  WK_M06
+      ,TO_NUMBER('70000')  WK_M07
+      ,TO_NUMBER('80000')  WK_M08
+      ,TO_NUMBER('90000')  WK_M09
+      ,TO_NUMBER('10000')  WK_M10
+      ,TO_NUMBER('20000')  WK_M11
+      ,TO_NUMBER('30000')  WK_M12
+  FROM DUAL
+   ]]>
+	</select> 	
+
+    <insert id="insertOpBasicMgtExcel" parameterType="Map">
+		--com.bdg.OpBasicMgt.insertOpBasicMgtExcel
+INSERT INTO CO_BUGT_BASIC_MGMT_TEMP
+(
+  COMP_CD
+ ,CRTN_YY
+ ,BELONG_CCTR_CD
+ ,CRE_USER
+ ,SEQ
+ ,CLAUSE_CD
+ ,LEVEL_CD
+ ,ITEM_CD
+ ,ITEM_DESC
+ ,DISTRIB_CD
+ ,ACCOUNT_NO
+ ,CCTR_CD
+ ,PROJECT_CD
+ ,STATUS
+ ,WK_M01
+ ,WK_M02
+ ,WK_M03
+ ,WK_M04
+ ,WK_M05
+ ,WK_M06
+ ,WK_M07
+ ,WK_M08
+ ,WK_M09
+ ,WK_M10
+ ,WK_M11
+ ,WK_M12
+ ,ERROR_YN
+ ,REMARK
+) VALUES (
+           #{SB_COMP_CD}
+          ,#{TB_CRTN_YY}
+          ,#{SB_BELONG_CCTR_CD}
+          ,#{CRE_USER}
+          ,#{SEQ}
+          ,(
+            SELECT CLAUSE_CD
+              FROM CO_ACCOUNT_MGMT
+             WHERE COMP_CD    = #{SB_COMP_CD}
+               AND ACCOUNT_NO = #{ACCOUNT_NO}
+           )                                              -- 항목
+          ,(
+            SELECT LVL
+              FROM CO_BUGT_ITEM_MGMT
+             WHERE ITEM_CD = #{ITEM_CD} 
+           )                                              -- 레벨
+          ,#{ITEM_CD}                                     -- 품목코드
+          ,(
+            SELECT ITEM_DESC
+              FROM CO_BUGT_ITEM_MGMT
+             WHERE ITEM_CD = #{ITEM_CD} 
+           )                                              -- 품목명
+          ,#{DISTRIB_CD} -- 유통코드
+          ,#{ACCOUNT_NO} -- 계정코드
+          ,#{CCTR_CD}
+          ,NULL
+          ,'1'
+          ,#{WK_M01}
+          ,#{WK_M02}
+          ,#{WK_M03}
+          ,#{WK_M04}
+          ,#{WK_M05}
+          ,#{WK_M06}
+          ,#{WK_M07}
+          ,#{WK_M08}
+          ,#{WK_M09}
+          ,#{WK_M10}
+          ,#{WK_M11}
+          ,#{WK_M12}
+          ,CASE WHEN (
+                     SELECT COUNT(0)
+                       FROM CO_ACCOUNT_MGMT
+                      WHERE COMP_CD    = #{SB_COMP_CD}
+                        AND ACCOUNT_NO = #{ACCOUNT_NO}
+                     ) = 0                              THEN 'Y'
+                WHEN (
+                      SELECT COUNT(0)
+                        FROM CO_BUGT_ITEM_MGMT
+                       WHERE ITEM_CD = #{ITEM_CD} 
+                     ) = 0                              THEN 'Y'
+                WHEN (
+                      SELECT COUNT(0)
+                        FROM COM_CODE
+                       WHERE CODE_GRP  = 'YS008'
+                         AND CODE      = #{DISTRIB_CD}
+                     ) = 0                              THEN 'Y'
+                WHEN (
+                      SELECT COUNT(0)
+                        FROM CO_ACCOUNT_MGMT
+                       WHERE COMP_CD    = #{SB_COMP_CD}
+                         AND ACCOUNT_NO = #{ACCOUNT_NO}
+                     ) = 0                              THEN 'Y'
+                WHEN (
+                      SELECT COUNT(0)
+                        FROM (
+                              SELECT A.COST_CD  CCTR_CD
+                                    ,A.COST_NM  CCTR_NM
+                                FROM DEPT A
+                               WHERE 1=1
+                                 AND A.SDATE    = (
+                                                   SELECT MAX(SDATE)
+                                                     FROM DEPT B
+                                                    WHERE B.COMP_CD = A.COMP_CD
+                                                      AND B.DEPT_CD = A.DEPT_CD
+<![CDATA[
+                                                      AND B.SDATE    <= TO_CHAR(SYSDATE,'YYYYMMDD')
+                                                  )
+                                AND COST_CD IS NOT NULL
+                             UNION
+                             SELECT CCTR_CD
+                                   ,CCTR_NM
+                               FROM CO_CCTR_MGMT
+                             )
+                       WHERE CCTR_CD = #{CCTR_CD} 
+                     ) = 0                              THEN 'Y'
+                WHEN (
+                      SELECT COUNT(0)
+                        FROM CO_BUGT_BASIC_MGMT_TEMP
+                       WHERE COMP_CD        = #{SB_COMP_CD}
+                         AND CRTN_YY        = #{TB_CRTN_YY}
+                         AND BELONG_CCTR_CD = #{SB_BELONG_CCTR_CD}
+                         AND CLAUSE_CD      = (
+                                               SELECT CLAUSE_CD
+                                                 FROM CO_ACCOUNT_MGMT
+                                                WHERE COMP_CD    = #{SB_COMP_CD}
+                                                  AND ACCOUNT_NO = #{ACCOUNT_NO}
+                                              )                                              -- 항목
+                         AND LEVEL_CD       = (
+                                               SELECT LVL
+                                                 FROM CO_BUGT_ITEM_MGMT
+                                                WHERE ITEM_CD = #{ITEM_CD} 
+                                              )                                              -- 레벨
+                         AND ITEM_CD        = #{ITEM_CD}
+                         AND ITEM_DESC      = (
+                                               SELECT ITEM_DESC
+                                                 FROM CO_BUGT_ITEM_MGMT
+                                                WHERE ITEM_CD = #{ITEM_CD} 
+                                              )                                              -- 품목명
+                         AND DISTRIB_CD     = #{DISTRIB_CD}
+                         AND ACCOUNT_NO     = #{ACCOUNT_NO}
+                         AND CCTR_CD        = #{CCTR_CD}
+                     ) >= 1                              THEN 'Y'
+                ELSE                                          'N'
+           END
+          ,CASE WHEN (
+                     SELECT COUNT(0)
+                       FROM CO_ACCOUNT_MGMT
+                      WHERE COMP_CD    = #{SB_COMP_CD}
+                        AND ACCOUNT_NO = #{ACCOUNT_NO}
+                     ) = 0                              THEN '항목정보가 존재하지 않습니다.'
+                WHEN (
+                      SELECT COUNT(0)
+                        FROM CO_BUGT_ITEM_MGMT
+                       WHERE ITEM_CD = #{ITEM_CD} 
+                     ) = 0                              THEN '품목정보가 존재하지 않습니다.'
+                WHEN (
+                      SELECT COUNT(0)
+                        FROM COM_CODE
+                       WHERE CODE_GRP  = 'YS008'
+                         AND CODE      = #{DISTRIB_CD}
+                     ) = 0                              THEN '유통정보가 존재하지 않습니다.'
+                WHEN (
+                      SELECT COUNT(0)
+                        FROM CO_ACCOUNT_MGMT
+                       WHERE COMP_CD    = #{SB_COMP_CD}
+                         AND ACCOUNT_NO = #{ACCOUNT_NO}
+                     ) = 0                              THEN '계정정보가 존재하지 않습니다.'
+                WHEN (
+                      SELECT COUNT(0)
+                        FROM (
+                              SELECT A.COST_CD  CCTR_CD
+                                    ,A.COST_NM  CCTR_NM
+                                FROM DEPT A
+                               WHERE 1=1
+                                 AND A.SDATE    = (
+                                                   SELECT MAX(SDATE)
+                                                     FROM DEPT B
+                                                    WHERE B.COMP_CD = A.COMP_CD
+                                                      AND B.DEPT_CD = A.DEPT_CD
+                                                      AND B.SDATE    <= TO_CHAR(SYSDATE,'YYYYMMDD')
+                                   
+                                                  )
+                                AND COST_CD IS NOT NULL
+                             UNION
+                             SELECT CCTR_CD
+                                   ,CCTR_NM
+                               FROM CO_CCTR_MGMT
+                             )
+                       WHERE CCTR_CD = #{CCTR_CD} 
+                     ) = 0                              THEN '관리코스트센터 정보가 존재하지 않습니다.'
+                WHEN (
+                      SELECT COUNT(0)
+                        FROM CO_BUGT_BASIC_MGMT_TEMP
+                       WHERE COMP_CD        = #{SB_COMP_CD}
+                         AND CRTN_YY        = #{TB_CRTN_YY}
+                         AND BELONG_CCTR_CD = #{SB_BELONG_CCTR_CD}
+                         AND CLAUSE_CD      = (
+                                               SELECT CLAUSE_CD
+                                                 FROM CO_ACCOUNT_MGMT
+                                                WHERE COMP_CD    = #{SB_COMP_CD}
+                                                  AND ACCOUNT_NO = #{ACCOUNT_NO}
+                                              )                                              -- 항목
+                         AND LEVEL_CD       = (
+                                               SELECT LVL
+                                                 FROM CO_BUGT_ITEM_MGMT
+                                                WHERE ITEM_CD = #{ITEM_CD} 
+                                              )                                              -- 레벨
+                         AND ITEM_CD        = #{ITEM_CD}
+                         AND ITEM_DESC      = (
+                                               SELECT ITEM_DESC
+                                                 FROM CO_BUGT_ITEM_MGMT
+                                                WHERE ITEM_CD = #{ITEM_CD} 
+                                              )                                              -- 품목명
+                         AND DISTRIB_CD     = #{DISTRIB_CD}
+                         AND ACCOUNT_NO     = #{ACCOUNT_NO}
+                         AND CCTR_CD        = #{CCTR_CD}
+                     ) >= 1                              THEN '증복 데이터가 존재합니다.'
+                ELSE                                         NULL
+           END
+          )
+]]>
+	</insert>
+	
+    <delete id="deleteOpBasicMgtExcel" parameterType="Map">
+		--com.bdg.OpBasicMgt.deleteOpBasicMgtExcel
+DELETE FROM CO_BUGT_BASIC_MGMT_TEMP
+ WHERE COMP_CD        = #{SB_COMP_CD}
+   AND CRTN_YY        = #{TB_CRTN_YY}
+   AND BELONG_CCTR_CD = #{SB_BELONG_CCTR_CD}
+   AND CRE_USER       = #{CRE_USER}
+	</delete>
+	
+	<select id="selectOpBasicMgtExcel" parameterType="Map" resultType="Map">
+	    --com.bdg.OpModifyMgt.selectOpBasicMgtExcel
+SELECT COMP_CD
+      ,CRTN_YY
+      ,BELONG_CCTR_CD
+      ,CRE_USER
+      ,SEQ
+      ,CLAUSE_CD
+      ,LEVEL_CD
+      ,ITEM_CD
+      ,ITEM_DESC
+      ,DISTRIB_CD
+      ,ACCOUNT_NO
+      ,CCTR_CD
+      ,PROJECT_CD
+      ,STATUS
+      ,WK_M01
+      ,WK_M02
+      ,WK_M03
+      ,WK_M04
+      ,WK_M05
+      ,WK_M06
+      ,WK_M07
+      ,WK_M08
+      ,WK_M09
+      ,WK_M10
+      ,WK_M11
+      ,WK_M12
+      ,(
+         NVL(WK_M01,0) 
+       + NVL(WK_M02,0) 
+       + NVL(WK_M03,0) 
+       + NVL(WK_M04,0) 
+       + NVL(WK_M05,0) 
+       + NVL(WK_M06,0) 
+       + NVL(WK_M07,0) 
+       + NVL(WK_M08,0) 
+       + NVL(WK_M09,0) 
+       + NVL(WK_M10,0) 
+       + NVL(WK_M11,0) 
+       + NVL(WK_M12,0)
+       ) TOTAL 
+      ,ERROR_YN
+      ,REMARK
+  FROM CO_BUGT_BASIC_MGMT_TEMP
+ WHERE COMP_CD        = #{SB_COMP_CD}
+   AND CRTN_YY        = #{TB_CRTN_YY}
+   AND BELONG_CCTR_CD = #{SB_BELONG_CCTR_CD}
+   AND CRE_USER       = #{CRE_USER}
+ ORDER BY COMP_CD
+         ,CRTN_YY
+         ,BELONG_CCTR_CD
+         ,CLAUSE_CD
+         ,LEVEL_CD
+         ,ITEM_CD
+         ,ITEM_DESC
+         ,DISTRIB_CD
+         ,ACCOUNT_NO
+         ,CCTR_CD
+	</select>
+
+</mapper>
+

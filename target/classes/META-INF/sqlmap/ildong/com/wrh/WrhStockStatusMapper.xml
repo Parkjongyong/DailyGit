@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.StockStatus">
+
+	<select id="selectStockStatusList" parameterType="Map" resultType="Map">
+		--com.wrh.StockStatus.selectStockStatusList(입고현황)
+		SELECT A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY A.PO_NUMBER, A.PO_SEQ, A.GR_YEAR, A.GR_DATE, A.GR_NUMBER, A.GR_SEQ) AS RNUM
+				      ,COUNT(A.GR_NUMBER) OVER() AS TOT_CNT
+		              ,A.PO_NUMBER
+				      ,A.PO_SEQ
+				      ,A.MAT_NUMBER
+				      ,A.MAT_DESC
+				      ,A.VENDOR_CD
+  				      ,(SELECT AA.VENDOR_NM FROM VENDOR_INFO AA WHERE A.VENDOR_CD = AA.VENDOR_CD) VENDOR_NM
+  				      ,A.PLANT_CODE
+  				      ,FUNC_GET_PLANT_NAME((SELECT AA.COMP_CD FROM PLANT_INFO AA WHERE AA.PLANT_CD = A.PLANT_CODE), A.PLANT_CODE) PLANT_NAME
+				      ,FUNC_GET_CODE_NAME('SYS001', (SELECT AA.COMP_CD FROM PLANT_INFO AA WHERE AA.PLANT_CD = A.PLANT_CODE)) COMP_NM         -- 회사명
+				      ,A.MV_GUBUN
+				      ,A.MV_TXT
+				      ,A.GR_YEAR
+				      ,A.GR_DATE AS GR_DATE_GRID
+				      ,TO_CHAR(TO_DATE(A.GR_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') GR_DATE
+				      ,A.GR_NUMBER
+				      ,A.GR_SEQ
+				      ,A.CURR_CD
+				      ,A.DC_INDICATOR
+				      ,CASE WHEN A.DC_INDICATOR = 'H' THEN (-1 * TO_NUMBER(A.ITEM_QTY))
+				            ELSE TO_NUMBER(A.ITEM_QTY)
+				       END AS ITEM_QTY
+				      ,CASE WHEN A.DC_INDICATOR = 'H' THEN (-1 * TO_NUMBER(A.GR_AMT))
+				            ELSE TO_NUMBER(A.GR_AMT)
+				       END AS GR_AMT
+				      ,A.UNIT_MEASURE
+				      ,A.BFR_GR_YY
+		              ,A.BFR_GR_NUMBER
+		              ,A.BFR_GR_SEQ
+		              ,A.LOCATION
+		              ,A.LOCATION_TXT
+		              ,A.BATCH_NO
+		              ,C.PO_DATE
+		              ,C.PO_CHANGE_FLAG  
+                      ,C.CONFIRM_DATE    
+                      ,C.PO_CHANGE_DATE  
+                      ,C.PO_CREATE_DATE  
+                      ,C.COMP_CD         
+                      ,C.PO_ORG          
+                      ,C.PO_ORG_NM       
+                      ,C.ERP_ADD_USER_ID 
+                      ,C.ERP_ADD_USER_NAME
+                      ,C.PAY_COND        
+                      ,C.PAY_COND_NM
+				      ,TO_CHAR(A.ITEM_QTY, 'FM9,999,999,999') H_ITEM_QTY
+				      ,TO_CHAR(A.GR_AMT, 'FM9,999,999,999')   H_GR_AMT
+				      ,CASE WHEN NVL(B.DEL_FLAG, ' ') = 'L' THEN '삭제'
+				            ELSE  ''
+				       END DEL_FLAG_NM
+				  FROM GR_ITEM A
+				      LEFT OUTER JOIN
+				       PO_ITEM B
+				      ON     B.PO_NUMBER = A.PO_NUMBER  
+		                 AND B.PO_SEQ    = A.PO_SEQ
+		              LEFT OUTER JOIN
+		               PO_HEADER C
+		              ON     C.COMP_CD   = B.COMP_CD
+		                 AND C.PO_NUMBER = B.PO_NUMBER
+		         WHERE 1 = 1
+				<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		    	   AND B.COMP_CD   = #{SB_COMP_CD}
+		        </if>
+				<if test="SB_PLANT_CD != null and SB_PLANT_CD != ''">
+		    	   AND A.PLANT_CODE   = #{SB_PLANT_CD}
+		        </if>
+				<if test="SB_STORAGE_CD != null and SB_STORAGE_CD != ''">
+		    	   AND A.LOCATION     = #{SB_STORAGE_CD}
+		        </if>
+		        <if test="TB_VENDOR_CD != null and TB_VENDOR_CD != ''">
+		           AND A.VENDOR_CD LIKE '%'|| #{TB_VENDOR_CD} || '%'
+		        </if>
+		        <if test="TB_VENDOR_NM != null and TB_VENDOR_NM != ''">
+		           AND C.VENDOR_NM LIKE '%'|| #{TB_VENDOR_NM} || '%'
+		        </if>
+		        <if test="TB_START_DT != null and TB_START_DT != ''">
+					<choose>
+					    <when test="SB_COND_01=='PD'">
+					   		<![CDATA[AND C.PO_DATE   >= REPLACE(#{TB_START_DT}, '-', '')]]>
+					   	</when>
+					    <when test="SB_COND_01=='GD'">
+					   		<![CDATA[AND A.GR_DATE   >= REPLACE(#{TB_START_DT}, '-', '')]]>
+					   	</when>			   	
+					</choose>        
+		  		</if>
+		        <if test="TB_END_DT != null and TB_END_DT != ''">
+					<choose>
+					    <when test="SB_COND_01=='PD'">
+					   		<![CDATA[AND C.PO_DATE   <= REPLACE(#{TB_END_DT}, '-', '')]]>
+					   	</when>
+					    <when test="SB_COND_01=='GD'">
+					   		<![CDATA[AND A.GR_DATE   <= REPLACE(#{TB_END_DT}, '-', '')]]>
+					   	</when>			   	
+					</choose>       
+		  		</if>
+		        <if test="TB_START_NO != null and TB_START_NO != ''">
+					<choose>
+					    <when test="SB_COND_02=='PN'">
+					   		<![CDATA[AND TO_NUMBER(C.PO_NUMBER)   >= #{TB_START_NO}]]>
+					   	</when>
+					    <when test="SB_COND_02=='GN'">
+					   		<![CDATA[AND TO_NUMBER(A.GR_NUMBER)   >= #{TB_START_NO}]]>
+					   	</when>			   	
+					</choose>        
+		  		</if>
+		        <if test="TB_END_NO != null and TB_END_NO != ''">
+					<choose>
+					    <when test="SB_COND_02=='PN'">
+					   		<![CDATA[AND TO_NUMBER(C.PO_NUMBER)   <= #{TB_END_NO}]]>
+					   	</when>
+					    <when test="SB_COND_02=='GN'">
+					   		<![CDATA[AND TO_NUMBER(A.GR_NUMBER)   <= #{TB_END_NO}]]>
+					   	</when>			   	
+					</choose>       
+		  		</if>
+		        <if test="TB_MAT_NUMBER != null and TB_MAT_NUMBER != ''">
+					<![CDATA[AND A.MAT_NUMBER LIKE #{TB_MAT_NUMBER} || '%']]>
+		  		</if>
+		        <if test="SB_PO_ORG != null and SB_PO_ORG != ''">
+		        	AND PO_ORG   = #{SB_PO_ORG}
+		        </if>
+			   ) A
+		<![CDATA[WHERE A.RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 50)]]>
+	</select>
+	
+	<select id="selectTotalGrAmt" parameterType="Map" resultType="Map">
+		--com.wrh.StockStatus.selectTotalGrAmt(입고금액)
+		SELECT TO_CHAR(SUM(CASE WHEN A.DC_INDICATOR = 'H' THEN (-1 * TO_NUMBER(A.GR_AMT))
+		                ELSE TO_NUMBER(A.GR_AMT)
+		           END
+		       ),'FM9,999,999,999,999') AS TOT_GR_AMT
+		  FROM GR_ITEM A
+		      LEFT OUTER JOIN
+		       PO_ITEM B
+		      ON     B.PO_NUMBER = A.PO_NUMBER  
+                 AND B.PO_SEQ    = A.PO_SEQ
+              LEFT OUTER JOIN
+               PO_HEADER C
+              ON     C.COMP_CD   = B.COMP_CD
+                 AND C.PO_NUMBER = B.PO_NUMBER
+         WHERE 1 = 1
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+    	   AND B.COMP_CD   = #{SB_COMP_CD}
+        </if>
+		<if test="SB_PLANT_CD != null and SB_PLANT_CD != ''">
+    	   AND A.PLANT_CODE   = #{SB_PLANT_CD}
+        </if>
+		<if test="SB_STORAGE_CD != null and SB_STORAGE_CD != ''">
+    	   AND A.LOCATION     = #{SB_STORAGE_CD}
+        </if>
+        <if test="TB_VENDOR_CD != null and TB_VENDOR_CD != ''">
+           AND A.VENDOR_CD LIKE '%'|| #{TB_VENDOR_CD} || '%'
+        </if>
+        <if test="TB_VENDOR_NM != null and TB_VENDOR_NM != ''">
+           AND C.VENDOR_NM LIKE '%'|| #{TB_VENDOR_NM} || '%'
+        </if>
+        <if test="TB_START_DT != null and TB_START_DT != ''">
+			<choose>
+			    <when test="SB_COND_01=='PD'">
+			   		<![CDATA[AND C.PO_DATE   >= REPLACE(#{TB_START_DT}, '-', '')]]>
+			   	</when>
+			    <when test="SB_COND_01=='GD'">
+			   		<![CDATA[AND A.GR_DATE   >= REPLACE(#{TB_START_DT}, '-', '')]]>
+			   	</when>			   	
+			</choose>        
+  		</if>
+        <if test="TB_END_DT != null and TB_END_DT != ''">
+			<choose>
+			    <when test="SB_COND_01=='PD'">
+			   		<![CDATA[AND C.PO_DATE   <= REPLACE(#{TB_END_DT}, '-', '')]]>
+			   	</when>
+			    <when test="SB_COND_01=='GD'">
+			   		<![CDATA[AND A.GR_DATE   <= REPLACE(#{TB_END_DT}, '-', '')]]>
+			   	</when>			   	
+			</choose>       
+  		</if>
+        <if test="TB_START_NO != null and TB_START_NO != ''">
+			<choose>
+			    <when test="SB_COND_02=='PN'">
+			   		<![CDATA[AND TO_NUMBER(C.PO_NUMBER)   >= #{TB_START_NO}]]>
+			   	</when>
+			    <when test="SB_COND_02=='GN'">
+			   		<![CDATA[AND TO_NUMBER(A.GR_NUMBER)   >= #{TB_START_NO}]]>
+			   	</when>			   	
+			</choose>        
+  		</if>
+        <if test="TB_END_NO != null and TB_END_NO != ''">
+			<choose>
+			    <when test="SB_COND_02=='PN'">
+			   		<![CDATA[AND TO_NUMBER(C.PO_NUMBER)   <= #{TB_END_NO}]]>
+			   	</when>
+			    <when test="SB_COND_02=='GN'">
+			   		<![CDATA[AND TO_NUMBER(A.GR_NUMBER)   <= #{TB_END_NO}]]>
+			   	</when>			   	
+			</choose>       
+  		</if>
+        <if test="TB_MAT_NUMBER != null and TB_MAT_NUMBER != ''">
+			<![CDATA[AND A.MAT_NUMBER LIKE #{TB_MAT_NUMBER} || '%']]>
+  		</if>
+        <if test="SB_PO_ORG != null and SB_PO_ORG != ''">
+        	AND PO_ORG   = #{SB_PO_ORG}
+        </if>
+	</select>	
+</mapper>

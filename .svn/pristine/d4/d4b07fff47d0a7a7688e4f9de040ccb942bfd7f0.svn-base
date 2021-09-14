@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.cmn.PlantStorage">
+
+	<select id="selectPlantStorageList" parameterType="Map" resultType="Map">
+        SELECT A.COMP_CD                                 COMP_CD       
+              ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD)   COMP_NM       
+              ,A.PLANT_CD                                PLANT_CD       
+              ,B.PLANT_NM                                PLANT_NM       
+              ,A.STORAGE_CD                              STORAGE_CD     
+              ,A.STORAGE_NM                              STORAGE_NM     
+          FROM STORAGE_INFO A
+              LEFT OUTER JOIN
+               PLANT_INFO B
+              ON    B.COMP_CD  = A.COMP_CD
+                AND B.PLANT_CD = A.PLANT_CD						
+         WHERE 1 = 1
+		<if test="TB_COMP_CD != null and TB_COMP_CD != ''">
+   		   AND A.COMP_CD = #{TB_COMP_CD}
+    	</if>
+    	 ORDER BY A.COMP_CD
+                 ,A.PLANT_CD
+                 ,A.STORAGE_CD
+                 ,A.STORAGE_NM
+	</select>
+	
+	
+</mapper>

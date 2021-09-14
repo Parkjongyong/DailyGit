@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.WareHouse">
+
+	<select id="selectPlantList" parameterType="Map" resultType="Map">
+--. 창고관리 플랜트 조회
+SELECT A.COMP_CD                               COMP_CD     -- 회사코드
+      ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD) COMP_NM     -- 회사명
+      ,A.PLANT_CD                              PLANT_CD    -- 플랜트코드
+      ,A.PLANT_NM                              PLANT_NM    -- 플랜트명칭
+      ,A.CRE_DATE                              CRE_DATE    -- 등록일자
+      ,A.CRE_USER                              CRE_USER    -- 등록자ID
+      ,A.MOD_DATE                              MOD_DATE    -- 수정일자
+      ,A.MOD_USER                              MOD_USER    -- 수정자ID
+      ,'R'                                     CRUD
+  FROM PLANT_INFO A
+  WHERE 1=1
+  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+    AND A.COMP_CD   = #{SB_COMP_CD}
+  </if>
+ ORDER BY A.COMP_CD
+         ,A.PLANT_CD
+	</select>
+	
+	
+    <insert id="insertPlant" parameterType="Map">
+--. 창고관리 플랜트 추가
+INSERT INTO PLANT_INFO (
+       COMP_CD
+      ,PLANT_CD
+      ,PLANT_NM
+      ,CRE_DATE
+      ,CRE_USER
+      ,MOD_DATE
+      ,MOD_USER
+      ) VALUES (
+                 #{COMP_CD}
+                ,#{PLANT_CD}
+                ,#{PLANT_NM}
+                ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                ,#{CRE_USER}
+                ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                ,#{MOD_USER}
+               )
+    </insert>
+	
+    <update id="updatePlant" parameterType="Map">
+--. 창고관리 플랜트 수정
+UPDATE PLANT_INFO
+   SET PLANT_NM = #{PLANT_NM}
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD  = #{COMP_CD}
+   AND PLANT_CD = #{PLANT_CD}
+    </update>
+	
+    <delete id="deletePlant" parameterType="Map">
+--. 창고관리 플랜트 삭제
+DELETE FROM PLANT_INFO
+ WHERE COMP_CD   = #{COMP_CD}     
+   AND PLANT_CD  = #{PLANT_CD}      
+    </delete>
+    
+	<select id="selectWareHouseList" parameterType="Map" resultType="Map">
+--. 창고관리 창고 조회
+SELECT A.COMP_CD       COMP_CD       -- 회사코드
+      ,A.PLANT_CD      PLANT_CD      -- 플랜트코드드
+      ,A.STORAGE_CD    STORAGE_CD    -- 창고코드칭
+      ,A.STORAGE_NM    STORAGE_NM    -- 창고명
+      ,A.CRE_DATE      CRE_DATE      -- 등록일자
+      ,A.CRE_USER      CRE_USER      -- 등록자ID
+      ,A.MOD_DATE      MOD_DATE      -- 수정일자
+      ,A.MOD_USER      MOD_USER      -- 수정자ID
+      ,'R'             CRUD
+  FROM STORAGE_INFO	A
+  WHERE 1=1
+  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+    AND A.COMP_CD   = #{SB_COMP_CD}
+  </if>
+  <if test="TB_PLANT_CODE != null and TB_PLANT_CODE != ''">
+    AND A.PLANT_CD   = #{TB_PLANT_CODE}
+  </if>
+  ORDER BY A.COMP_CD
+          ,A.PLANT_CD
+          ,A.STORAGE_CD
+	</select>
+	
+	
+    <insert id="insertWareHouse" parameterType="Map">
+--. 창고 추가
+INSERT INTO STORAGE_INFO (
+       COMP_CD
+      ,PLANT_CD
+      ,STORAGE_CD
+      ,STORAGE_NM
+      ,CRE_DATE
+      ,CRE_USER
+      ,MOD_DATE
+      ,MOD_USER
+      ) VALUES (
+                 #{COMP_CD}
+                ,#{PLANT_CD}
+                ,#{STORAGE_CD}
+                ,#{STORAGE_NM}
+                ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                ,#{CRE_USER}
+                ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                ,#{MOD_USER}
+               )
+    </insert>
+	
+    <update id="updateWareHouse" parameterType="Map">
+--. 창고 수정
+UPDATE STORAGE_INFO
+   SET STORAGE_NM = #{STORAGE_NM}
+      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER   = #{MOD_USER}
+ WHERE COMP_CD    = #{COMP_CD}
+   AND PLANT_CD   = #{PLANT_CD}
+   AND STORAGE_CD = #{STORAGE_CD}
+    </update>
+	
+    <delete id="deleteWareHouse" parameterType="Map">
+--. 창고 삭제
+DELETE FROM STORAGE_INFO
+ WHERE COMP_CD    = #{COMP_CD}     
+   AND PLANT_CD   = #{PLANT_CD}      
+   AND STORAGE_CD = #{STORAGE_CD}
+    </delete>
+
+    <delete id="deletePlantStorage" parameterType="Map">
+--. 해당 플랜트의 창고 삭제
+DELETE FROM STORAGE_INFO
+ WHERE COMP_CD   = #{COMP_CD}     
+   AND PLANT_CD  = #{PLANT_CD}      
+    </delete>
+</mapper>

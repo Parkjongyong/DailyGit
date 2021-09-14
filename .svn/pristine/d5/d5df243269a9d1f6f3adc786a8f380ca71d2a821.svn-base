@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.ApmTransMgt">
+	<select id="selectApmTransMgtHeadList" parameterType="Map" resultType="Map">
+		--com.bdg.ApmTransMgt.selectApmTransMgtHeadList
+		SELECT A.COMP_CD                                                AS COMP_CD        --회사코드
+              ,A.CRTN_YYMM                                              AS CRTN_YYMM      --기준년월
+              ,A.ORG_CD                                                 AS ORG_CD         --작성부서코드
+              ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.ORG_CD, A.CRE_DATE)      AS ORG_CD_NM      --작성부서명
+              ,A.CHC_ETC_GBN                                            AS CHC_ETC_GBN    --CHC/ETC구분
+              ,A.SEND_SABUN                                             AS SEND_SABUN     --이관사번
+              ,'1'                                                      AS CODEMAPPING1   --사원정보 팝업
+              ,FUNC_GET_USER_NAME(A.SEND_SABUN)                         AS SEND_SABUN_NM  --이관사원명
+              ,A.SEND_ORG_CD                                            AS SEND_ORG_CD    --이관부서코드
+              ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.SEND_ORG_CD, A.CRE_DATE) AS SEND_ORG_NM    --이관부서명
+              ,A.SEND_CCTR_CD                                           AS SEND_CCTR_CD   --이관코스트센터
+              ,A.STATUS                                                 AS STATUS         --진행상태
+              ,A.BAL_AMT                                                AS BAL_AMT        --당월잔액
+              ,A.SYS_MGMT_NO                                            AS SYS_MGMT_NO    --시스템관리번호
+              ,A.SAP_SEND_YN                                            AS SAP_SEND_YN    --SAP전송여부
+              ,A.CANCEL_REASON                                          AS CANCEL_REASON  --취소사유
+              ,A.EPS_DOC_NO                                             AS EPS_DOC_NO     --전자결재문서번호
+              ,A.CRE_DATE                                               AS CRE_DATE       --등록일자
+              ,A.CRE_USER                                               AS CRE_USER       --등록자ID
+              ,A.MOD_DATE                                               AS MOD_DATE       --수정일자
+              ,A.MOD_USER                                               AS MOD_USER       --수정자ID
+		      ,'R'                                                      AS CRUD           --행구분  
+		                  
+		  FROM FI_BUGT_APM_TRANS_HEAD A
+		 WHERE 1 = 1
+		  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND A.COMP_CD = #{SB_COMP_CD}
+		  </if>
+		  <if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+		   AND A.CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+		  </if>
+		  <if test="TB_ORG_CD != null and TB_ORG_CD != ''">
+		   AND A.ORG_CD = #{TB_ORG_CD}
+		  </if>
+		  <if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+		   AND A.CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+		  </if>
+		  <if test="SB_STATUS != null and SB_STATUS != ''">
+		   AND A.STATUS = #{SB_STATUS}
+		  </if>
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YYMM
+		        ,A.ORG_CD
+		        ,A.CHC_ETC_GBN
+		        ,A.SEND_SABUN
+	</select>
+	
+	<select id="selectApmTransMgtDetailList" parameterType="Map" resultType="Map">
+		--com.bdg.ApmTransMgt.selectApmTransMgtDetailList
+		SELECT A.COMP_CD                                                AS COMP_CD        -- 회사코드
+              ,A.CRTN_YYMM                                              AS CRTN_YYMM      -- 기준년월
+              ,A.ORG_CD                                                 AS ORG_CD         -- 작성부서코드
+              ,A.CHC_ETC_GBN                                            AS CHC_ETC_GBN    -- CHC/ETC구분
+              ,A.SEND_SABUN                                             AS SEND_SABUN     -- 이관사번
+              ,CASE WHEN A.RETURN_YN  = 'Y' THEN  ' '
+                    ELSE A.RECV_SABUN
+               END                                                      AS RECV_SABUN     -- 수신사번
+              ,'1'                                                      AS CODEMAPPING1   -- 사원정보 팝업
+              ,CASE WHEN A.RETURN_YN  = 'Y' THEN  ' '
+                    ELSE FUNC_GET_USER_NAME(A.RECV_SABUN)
+               END                                                      AS RECV_SABUN_NM     -- 이관사원명              
+              ,A.RECV_ORG_CD                                            AS RECV_ORG_CD    -- 수신부서
+              ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.RECV_ORG_CD, A.CRE_DATE) AS RECV_ORG_NM    -- 수신부서명
+              ,A.RECV_CCTR_CD                                           AS RECV_CCTR_CD   -- 수신코스트센터
+              ,A.RECV_BAL_AMT                                           AS RECV_BAL_AMT   -- 수신당월잔액
+              ,A.RECV_DATE                                              AS RECV_DATE      -- 이관기준일
+              ,A.SEND_NO                                                AS SEND_NO        -- 이관번호
+              ,A.RETURN_YN                                              AS RETURN_YN      -- 사내입금
+              ,A.CRE_DATE                                               AS CRE_DATE       -- 등록일자
+              ,A.CRE_USER                                               AS CRE_USER       -- 등록자ID
+              ,A.MOD_DATE                                               AS MOD_DATE       -- 수정일자
+              ,A.MOD_USER                                               AS MOD_USER       -- 수정자ID
+              ,'R'                                                      AS CRUD           -- 행구분
+              ,B.STATUS                                                 AS STATUS         -- 상태           
+		  FROM FI_BUGT_APM_TRANS_DETAIL A
+		      LEFT OUTER JOIN
+		       FI_BUGT_APM_TRANS_HEAD B
+		      ON    B.COMP_CD     = A.COMP_CD
+		        AND B.CRTN_YYMM   = A.CRTN_YYMM
+		        AND B.ORG_CD      = A.ORG_CD
+                AND B.CHC_ETC_GBN = A.CHC_ETC_GBN
+                AND B.SEND_SABUN  = A.SEND_SABUN
+		 WHERE 1 = 1
+		   AND A.COMP_CD     = #{COMP_CD}
+		   AND A.CRTN_YYMM   = #{CRTN_YYMM}
+		   AND A.ORG_CD      = #{ORG_CD}
+		   AND A.CHC_ETC_GBN = #{CHC_ETC_GBN}
+		   AND A.SEND_SABUN  = #{SEND_SABUN}
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YYMM
+		        ,A.ORG_CD
+		        ,A.CHC_ETC_GBN
+		        ,A.SEND_SABUN
+	</select>
+	
+	<select id="selectSendApmTransData" parameterType="Map" resultType="Map">
+		--com.bdg.ApmTransMgt.selectSendApmTransData
+		SELECT *
+		  FROM (
+		        SELECT A.COMP_CD                                           AS BUKRS        --회사코드
+                      ,A.CRTN_YYMM                                         AS ZMONTH       --기준년월
+                      ,A.SYS_MGMT_NO                                       AS LEGACYNO     --시스템관리번호
+                      ,CASE WHEN B.RETURN_YN = 'Y' THEN 'R'
+                            ELSE 'T' 
+                       END                                                 AS ZBUGTYPE     --예산구분                              
+                      ,B.SEND_NO                                           AS ZTNR         --이관번호
+                      ,'I'                                                 AS ZUPIND       --업데이트 지시자
+                      ,CASE WHEN A.CHC_ETC_GBN = 'CHC' THEN 'C'
+                            WHEN A.CHC_ETC_GBN = 'ETC' THEN 'E'
+                            ELSE ''
+                       END                                                 AS ZCHANN       --부문
+                      ,A.SEND_CCTR_CD                                      AS KOSTL        --코스트센터
+                      ,A.SEND_SABUN                                        AS LIFNR        --영업사원
+                      ,NULL                                                AS ZAPMBUGAMT   --신규예산
+                      ,B.RECV_DATE                                         AS ZTRDATE     -- 이관기준일
+                      ,B.RECV_BAL_AMT                                      AS ZTFSENDAMT  -- 이관송금액
+                      ,NULL                                                AS ZTFRECVAMT  -- 이관수신액
+                      ,#{CRE_USER}                                         AS ZLIFNR      -- 작성인
+                      ,TO_CHAR(SYSDATE, 'YYYYMMDD')                        AS ZCRDATE     -- 작업일자
+                      ,A.COMP_CD                                           AS COMP_CD
+                      ,A.CRTN_YYMM                                         AS CRTN_YYMM
+                      ,A.ORG_CD                                            AS ORG_CD
+                      ,A.CHC_ETC_GBN                                       AS CHC_ETC_GBN
+                      ,A.SEND_SABUN                                        AS SEND_SABUN
+                      ,B.SEND_NO                                           AS SEND_NO
+                      ,NULL                                                AS RECV_SABUN
+                      ,'D1'                                                AS DATA_GUBN
+                      ,A.SYS_MGMT_NO                                       AS SYS_MGMT_NO
+		          FROM FI_BUGT_APM_TRANS_HEAD A
+		              LEFT OUTER JOIN
+		               FI_BUGT_APM_TRANS_DETAIL B
+		              ON    B.COMP_CD     = A.COMP_CD
+                        AND B.CRTN_YYMM   = A.CRTN_YYMM
+                        AND B.ORG_CD      = A.ORG_CD
+                        AND B.CHC_ETC_GBN = A.CHC_ETC_GBN
+                        AND B.SEND_SABUN  = A.SEND_SABUN
+		         WHERE 1 = 1
+		           AND A.COMP_CD     = #{SB_COMP_CD}
+		           AND A.CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+		           AND A.STATUS      IN ('5', '7')
+             UNION ALL
+		        SELECT A.COMP_CD                                           AS BUKRS        --회사코드
+                      ,A.CRTN_YYMM                                         AS ZMONTH       --기준년월
+                      ,''                                                  AS LEGACYNO     --시스템관리번호
+                      ,'T'                                                 AS ZBUGTYPE     --예산구분                              
+                      ,A.SEND_NO                                           AS ZTNR         --이관번호
+                      ,'I'                                                 AS ZUPIND       --업데이트 지시자
+                      ,CASE WHEN A.CHC_ETC_GBN = 'CHC' THEN 'C'
+                            WHEN A.CHC_ETC_GBN = 'ETC' THEN 'E'
+                            ELSE ''
+                       END                                                 AS ZCHANN       --부문
+                      ,A.RECV_CCTR_CD                                      AS KOSTL        --코스트센터
+                      ,A.RECV_SABUN                                        AS LIFNR        --영업사원
+                      ,NULL                                                AS ZAPMBUGAMT   --신규예산
+                      ,A.RECV_DATE                                         AS ZTRDATE     -- 이관기준일
+                      ,NULL                                                AS ZTFSENDAMT  -- 이관송금액
+                      ,A.RECV_BAL_AMT                                      AS ZTFRECVAMT  -- 이관수신액
+                      ,#{CRE_USER}                                         AS ZLIFNR      -- 작성인
+                      ,TO_CHAR(SYSDATE, 'YYYYMMDD')                        AS ZCRDATE     -- 작업일자
+                      ,A.COMP_CD                                           AS COMP_CD
+                      ,A.CRTN_YYMM                                         AS CRTN_YYMM
+                      ,A.ORG_CD                                            AS ORG_CD
+                      ,A.CHC_ETC_GBN                                       AS CHC_ETC_GBN
+                      ,A.SEND_SABUN                                        AS SEND_SABUN
+                      ,A.SEND_NO                                           AS SEND_NO
+                      ,A.RECV_SABUN                                        AS RECV_SABUN
+                      ,'D2'                                                AS DATA_GUBN
+                      ,B.SYS_MGMT_NO                                       AS SYS_MGMT_NO              
+		          FROM FI_BUGT_APM_TRANS_DETAIL A
+		              LEFT OUTER JOIN
+		               FI_BUGT_APM_TRANS_HEAD B
+		              ON    B.COMP_CD     = A.COMP_CD
+                        AND B.CRTN_YYMM   = A.CRTN_YYMM
+                        AND B.ORG_CD      = A.ORG_CD
+                        AND B.CHC_ETC_GBN = A.CHC_ETC_GBN
+                        AND B.SEND_SABUN  = A.SEND_SABUN		       
+		         WHERE 1 = 1
+		           AND A.COMP_CD     = #{SB_COMP_CD}
+		           AND A.CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+		           AND B.STATUS      IN ('5', '7') 
+		           AND A.RETURN_YN   = 'N'    
+       		   ) A
+          ORDER BY A.COMP_CD
+                  ,A.CRTN_YYMM
+                  ,A.ORG_CD
+                  ,A.CHC_ETC_GBN
+                  ,A.SEND_SABUN
+                  ,A.DATA_GUBN
+                  ,A.SEND_NO
+	</select>
+	
+	<select id="selectStatusHeader" parameterType="Map" resultType="Map">
+	    --com.bdg.ApmTransMgt.selectStatusHeader
+		SELECT MAX(STATUS) STATUS
+		  FROM FI_BUGT_APM_TRANS_HEAD
+		 WHERE 1 = 1
+		   AND COMP_CD   = #{SB_COMP_CD}
+	       AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+	       AND ORG_CD    = #{TB_ORG_CD} 		
+	</select>	
+	
+	<select id="selectStatusCnt" parameterType="Map" resultType="Map">
+	    --com.bdg.ApmTransMgt.selectStatusCnt
+		SELECT COUNT(*) CNT
+		  FROM FI_BUGT_APM_TRANS_HEAD
+		 WHERE 1 = 1
+		   AND COMP_CD   = #{SB_COMP_CD}
+	       AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+	       AND ORG_CD    = #{TB_ORG_CD}
+	       AND STATUS    = '8'		
+	</select>	
+	
+	<select id="selectFlagYn" parameterType="Map" resultType="Map">
+		--com.bdg.ApmTransMgt.selectFlagYn
+		SELECT A.FLAG_YN AS FLAG_YN
+		  FROM (
+		        SELECT ROW_NUMBER() OVER(ORDER BY FLAG_YN) AS RNUM
+		              ,A.FLAG_YN
+		          FROM (
+		                SELECT CASE WHEN #{GUBN} IN ('SA') THEN CASE -- 저장은 작성중상태만 가능
+		                                                          WHEN STATUS = '1' THEN 'Y'
+		                                                          ELSE 'N'
+		                                                        END
+		                            WHEN #{GUBN} IN ('DE') THEN CASE -- 삭제는 작성중/재작성요청상태에서 가능
+		                                                          WHEN STATUS IN( '1', '6') THEN 'Y'
+		                                                          ELSE 'N'
+		                                                        END
+		                            WHEN #{GUBN} IN ('RR') THEN CASE -- 재작성
+		                                                          WHEN STATUS IN( '5', '7') THEN 'Y'
+		                                                          ELSE 'N'
+		                                                        END
+		                            WHEN #{GUBN} IN ('RC') THEN CASE -- 재작성확정
+		                                                          WHEN STATUS = '6' THEN 'Y'
+		                                                          ELSE 'N'
+		                                                        END  		                                                        
+		                            ELSE 'N'
+		                       END AS FLAG_YN
+		                  FROM FI_BUGT_APM_TRANS_HEAD B
+		                 WHERE 1 = 1
+		                   AND B.COMP_CD     = #{COMP_CD}
+		                   AND B.CRTN_YYMM   = #{CRTN_YYMM}
+		                   AND B.ORG_CD      = #{ORG_CD}
+		                   AND B.CHC_ETC_GBN = #{CHC_ETC_GBN}
+		                   AND B.SEND_SABUN  = #{SEND_SABUN}
+		               UNION ALL
+		                SELECT 'Y' AS FLAG_YN
+		                  FROM DUAL
+		               ) A
+		        ) A
+		 WHERE 1 = 1
+		   AND RNUM = 1
+	</select>
+	
+    <insert id="saveApmTransHeadMgt" parameterType="Map">
+		--com.bdg.ApmTransMgt.saveApmTransHeadMgt
+		MERGE INTO FI_BUGT_APM_TRANS_HEAD A
+		
+		    USING (
+		           SELECT #{COMP_CD}                     AS COMP_CD    
+                         ,#{CRTN_YYMM}                   AS CRTN_YYMM
+                         ,#{ORG_CD}                      AS ORG_CD
+                         ,#{CHC_ETC_GBN}                 AS CHC_ETC_GBN
+                         ,#{SEND_SABUN}                  AS SEND_SABUN
+                         ,#{SEND_ORG_CD}                 AS SEND_ORG_CD
+                         ,#{SEND_CCTR_CD}                AS SEND_CCTR_CD
+                         ,#{STATUS}                      AS STATUS
+                         ,#{BAL_AMT}                     AS BAL_AMT
+                         ,TO_CHAR(SYSDATE, 'YYYYMMDD')   AS RECV_DATE
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')   AS CRE_DATE     
+		                 ,#{CRE_USER}                    AS CRE_USER     
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')   AS MOD_DATE     
+		                 ,#{MOD_USER}                    AS MOD_USER     
+		             FROM DUAL A
+		          ) B
+		       ON (    A.COMP_CD     = B.COMP_CD    
+		           AND A.CRTN_YYMM   = B.CRTN_YYMM  
+		           AND A.ORG_CD      = B.ORG_CD     
+		           AND A.CHC_ETC_GBN = B.CHC_ETC_GBN
+		           AND A.SEND_SABUN  = B.SEND_SABUN 
+		          )
+		           
+		    WHEN MATCHED THEN
+		           
+		        UPDATE 
+		           SET A.SEND_ORG_CD  = B.SEND_ORG_CD
+		              ,A.SEND_CCTR_CD = B.SEND_CCTR_CD
+		              ,A.STATUS       = B.STATUS
+		              ,A.BAL_AMT      = B.BAL_AMT
+		              ,A.MOD_DATE     = B.MOD_DATE
+		              ,A.MOD_USER     = B.MOD_USER
+		    WHEN NOT MATCHED THEN
+		                     
+		        INSERT (
+		                A.COMP_CD
+		               ,A.CRTN_YYMM
+		               ,A.ORG_CD
+		               ,A.CHC_ETC_GBN
+		               ,A.SEND_SABUN
+		               ,A.SEND_ORG_CD
+		               ,A.SEND_CCTR_CD
+		               ,A.STATUS
+		               ,A.BAL_AMT
+		               ,A.CRE_DATE
+		               ,A.CRE_USER
+		               ,A.MOD_DATE
+		               ,A.MOD_USER
+		               ) VALUES ( B.COMP_CD
+		                         ,B.CRTN_YYMM
+		                         ,B.ORG_CD
+		                         ,B.CHC_ETC_GBN
+		                         ,B.SEND_SABUN
+		                         ,B.SEND_ORG_CD
+		                         ,B.SEND_CCTR_CD
+		                         ,B.STATUS
+		                         ,B.BAL_AMT
+		                         ,B.CRE_DATE
+		                         ,B.CRE_USER
+		                         ,B.MOD_DATE
+		                         ,B.MOD_USER
+		                         )             
+
+    </insert>
+    
+    <delete id="deleteApmTransHeadMgt" parameterType="Map">
+		--com.bdg.ApmTransMgt.deleteApmTransHeadMgt(건별삭제)
+		DELETE FROM FI_BUGT_APM_TRANS_HEAD
+		 WHERE 1 = 1
+		   AND COMP_CD     = #{COMP_CD}
+		   AND CRTN_YYMM   = #{CRTN_YYMM}
+		   AND ORG_CD      = #{ORG_CD}
+		   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+		   AND SEND_SABUN  = #{SEND_SABUN}
+    </delete>
+    
+	<update id="apprApmTransMgt" parameterType="map">
+	--com.bdg.ApmTransMgt.apprApmTransMgt
+		UPDATE FI_BUGT_APM_TRANS_HEAD
+		   SET STATUS      = '2'
+		      ,EPS_DOC_NO  = #{EPS_DOC_NO}
+		      ,MOD_DATE    = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER    = #{MOD_USER}
+		 WHERE COMP_CD     = #{SB_COMP_CD}
+		   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+		   AND ORG_CD      = #{TB_ORG_CD}
+	</update>
+	
+	<update id="updateStatus" parameterType="Map">
+	--com.bdg.ApmTransMgt.updateStatus
+		UPDATE FI_BUGT_APM_TRANS_HEAD
+		   SET STATUS     = #{STATUS}
+		      ,EPS_DOC_NO = CASE WHEN #{STATUS} = '1' THEN ''
+		                         ELSE EPS_DOC_NO
+		                    END
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER   = #{APPROVAL_ID}
+		 WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+	</update>
+    
+    <update id="updatApmTransMgtStatus" parameterType="Map">
+		--com.bdg.ApmTransMgt.updatApmTransMgtStatus(확정/재작성요청/재작성확정/전송)
+		UPDATE FI_BUGT_APM_TRANS_HEAD
+		   SET STATUS   = #{STATUS}
+		      ,MOD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,MOD_USER = #{MOD_USER}
+		 WHERE 1 = 1
+		   AND COMP_CD     = #{COMP_CD}
+		   AND CRTN_YYMM   = #{CRTN_YYMM}
+		   AND ORG_CD      = #{ORG_CD}
+		   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+		   AND SEND_SABUN  = #{SEND_SABUN}    
+    </update>
+    
+    <update id="updatApmTransMgtStatus2" parameterType="Map">
+		--com.bdg.ApmTransMgt.updatApmTransMgtStatus2(예산취소)
+		UPDATE FI_BUGT_APM_TRANS_HEAD
+		   SET STATUS        = #{STATUS}
+		      ,CANCEL_REASON = #{CANCEL_REASON}
+		      ,MOD_DATE      = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,MOD_USER      = #{MOD_USER}
+		 WHERE 1 = 1
+		   AND A.COMP_CD     = #{COMP_CD}
+		   AND A.CRTN_YYMM   = #{CRTN_YYMM}
+		   AND A.ORG_CD      = #{ORG_CD}
+		   AND A.CHC_ETC_GBN = #{CHC_ETC_GBN}
+		   AND A.SEND_SABUN  = #{SEND_SABUN}     
+    </update>
+    
+    <update id="updatApmTransMgtStatus3" parameterType="Map">
+		--com.bdg.ApmTransMgt.updatApmTransMgtStatus3(전송)
+		UPDATE FI_BUGT_APM_TRANS_HEAD
+		   SET STATUS      = '8'
+		      ,SAP_SEND_YN = 'Y'
+		      ,SYS_MGMT_NO = #{SYS_MGMT_NO}
+		      ,MOD_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,MOD_USER = #{MOD_USER}
+		 WHERE 1 = 1
+		   AND COMP_CD     = #{COMP_CD}
+		   AND CRTN_YYMM   = #{CRTN_YYMM}
+		   AND ORG_CD      = #{ORG_CD}
+		   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+		   AND SEND_SABUN  = #{SEND_SABUN}    
+    </update>  
+    
+	<update id="rejectApmBasicMgt" parameterType="map">
+--com.bdg.ApmTransMgt.rejectApmBasicMgt
+UPDATE FI_BUGT_APM_TRANS_HEAD
+   SET STATUS   = '1' 
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE 1 = 1
+   AND COMP_CD   = #{SB_COMP_CD}
+   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+   AND ORG_CD    = #{TB_ORG_CD}
+	</update>
+    
+    <delete id="deleteApmTransDetailMgt" parameterType="Map">
+		--com.bdg.ApmTransMgt.deleteApmTransDetailMgt(전체삭제처리)
+		DELETE FROM FI_BUGT_APM_TRANS_DETAIL
+		 WHERE 1 = 1
+		   AND COMP_CD     = #{COMP_CD}
+		   AND CRTN_YYMM   = #{CRTN_YYMM}
+		   AND ORG_CD      = #{ORG_CD}
+		   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+		   AND SEND_SABUN  = #{SEND_SABUN}          
+    </delete>
+    
+    <insert id="saveApmTransDetailMgt" parameterType="Map">
+		--com.bdg.ApmTransMgt.saveApmTransDetailMgt
+		MERGE INTO FI_BUGT_APM_TRANS_DETAIL A
+		
+		    USING (
+		           SELECT #{COMP_CD}                           AS COMP_CD    
+                         ,#{CRTN_YYMM}                         AS CRTN_YYMM
+                         ,#{ORG_CD}                            AS ORG_CD
+                         ,#{CHC_ETC_GBN}                       AS CHC_ETC_GBN
+                         ,#{SEND_SABUN}                        AS SEND_SABUN
+                         ,NVL(TRIM(#{RECV_SABUN}), 'XXXXXX')   AS RECV_SABUN
+                         ,#{RECV_ORG_CD}                       AS RECV_ORG_CD
+                         ,#{RECV_CCTR_CD}                      AS RECV_CCTR_CD
+                         ,#{RECV_BAL_AMT}                      AS RECV_BAL_AMT
+                         ,#{SEND_NO}                           AS SEND_NO
+                         ,#{RETURN_YN}                         AS RETURN_YN
+                         ,TO_CHAR(SYSDATE, 'YYYYMMDD')         AS RECV_DATE
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')         AS CRE_DATE     
+		                 ,#{CRE_USER}                          AS CRE_USER     
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')         AS MOD_DATE     
+		                 ,#{MOD_USER}                          AS MOD_USER     
+		             FROM DUAL A
+		          ) B
+		       ON (    A.COMP_CD     = B.COMP_CD    
+		           AND A.CRTN_YYMM   = B.CRTN_YYMM  
+		           AND A.ORG_CD      = B.ORG_CD     
+		           AND A.CHC_ETC_GBN = B.CHC_ETC_GBN
+		           AND A.SEND_SABUN  = B.SEND_SABUN 
+		           AND A.RECV_SABUN  = B.RECV_SABUN
+		          )
+		           
+		    WHEN MATCHED THEN
+		           
+		        UPDATE 
+		           SET A.RECV_ORG_CD  = B.RECV_ORG_CD
+                      ,A.RECV_CCTR_CD = B.RECV_CCTR_CD
+                      ,A.RECV_BAL_AMT = B.RECV_BAL_AMT
+                      ,A.RECV_DATE    = B.RECV_DATE
+                      ,A.SEND_NO      = B.SEND_NO
+                      ,A.RETURN_YN    = B.RETURN_YN
+                      ,A.MOD_USER     = B.MOD_USER
+                      ,A.MOD_DATE     = B.MOD_DATE
+
+		    WHEN NOT MATCHED THEN
+		                     
+		        INSERT (
+		                A.COMP_CD
+                       ,A.CRTN_YYMM
+                       ,A.ORG_CD
+                       ,A.CHC_ETC_GBN
+                       ,A.SEND_SABUN
+                       ,A.RECV_SABUN
+                       ,A.RECV_ORG_CD
+                       ,A.RECV_CCTR_CD
+                       ,A.RECV_BAL_AMT
+                       ,A.RECV_DATE
+                       ,A.SEND_NO
+                       ,A.RETURN_YN
+                       ,A.CRE_DATE
+                       ,A.CRE_USER
+                       ,A.MOD_DATE
+                       ,A.MOD_USER
+
+		               ) VALUES ( B.COMP_CD
+		                         ,B.CRTN_YYMM
+		                         ,B.ORG_CD
+		                         ,B.CHC_ETC_GBN
+		                         ,B.SEND_SABUN
+		                         ,B.RECV_SABUN
+		                         ,B.RECV_ORG_CD
+		                         ,B.RECV_CCTR_CD
+		                         ,B.RECV_BAL_AMT
+		                         ,B.RECV_DATE
+		                         ,B.SEND_NO
+		                         ,B.RETURN_YN
+		                         ,B.CRE_DATE
+		                         ,B.CRE_USER
+		                         ,B.MOD_DATE
+		                         ,B.MOD_USER
+		                         )  
+	</insert>
+	
+	<select id="selectApmTransMgtPop" parameterType="Map" resultType="Map">
+		--com.bdg.ApmTransMgt.selectApmTransMgtPop
+		SELECT A.COMP_CD                                                AS COMP_CD        --회사코드
+              ,A.CRTN_YYMM                                              AS CRTN_YYMM      --기준년월
+              ,A.ORG_CD                                                 AS ORG_CD         --작성부서코드
+              ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.ORG_CD, A.CRE_DATE)      AS ORG_CD_NM      --작성부서명
+              ,A.CHC_ETC_GBN                                            AS CHC_ETC_GBN    --CHC/ETC구분
+              ,A.SEND_SABUN                                             AS SEND_SABUN     --이관사번
+              ,'1'                                                      AS CODEMAPPING1   --사원정보 팝업
+              ,FUNC_GET_USER_NAME(A.SEND_SABUN)                         AS SEND_SABUN_NM  --이관사원명
+              ,A.SEND_ORG_CD                                            AS SEND_ORG_CD    --이관부서코드
+              ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.SEND_ORG_CD, A.CRE_DATE) AS SEND_ORG_NM    --이관부서명
+              ,A.SEND_CCTR_CD                                           AS SEND_CCTR_CD   --이관코스트센터
+              ,A.STATUS                                                 AS STATUS         --진행상태
+              ,A.BAL_AMT                                                AS BAL_AMT        --당월잔액
+              ,A.SYS_MGMT_NO                                            AS SYS_MGMT_NO    --시스템관리번호
+              ,A.SAP_SEND_YN                                            AS SAP_SEND_YN    --SAP전송여부
+              ,A.CANCEL_REASON                                          AS CANCEL_REASON  --취소사유
+              ,A.EPS_DOC_NO                                             AS EPS_DOC_NO     --전자결재문서번호
+              ,A.CRE_DATE                                               AS CRE_DATE       --등록일자
+              ,A.CRE_USER                                               AS CRE_USER       --등록자ID
+              ,A.MOD_DATE                                               AS MOD_DATE       --수정일자
+              ,A.MOD_USER                                               AS MOD_USER       --수정자ID
+		      ,'R'                                                      AS CRUD           --행구분  
+		  FROM FI_BUGT_APM_TRANS_HEAD A
+		 WHERE 1 = 1
+		   AND A.EPS_DOC_NO = #{EPS_DOC_NO}
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YYMM
+		        ,A.ORG_CD
+		        ,A.CHC_ETC_GBN
+		        ,A.SEND_SABUN
+	</select>	
+	           
+</mapper>

@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchUser">
+
+	<select id="selectCountUserInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchUser.selectCountUserInfo
+	    SELECT COUNT(*) CNT
+	      FROM EMPLOYEE_IF A
+	     WHERE 1 = 1
+	       AND COMP_CD = #{COMP_CD}
+           AND SABUN   = #{SABUN}
+        ]]>
+	</select>
+	
+    <insert id="mergeUserIfData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchUser.mergeUserIfData
+	    MERGE INTO EMPLOYEE_IF A 
+	    USING (
+	        SELECT #{COMP_CD}         AS COMP_CD         
+	              ,#{SABUN}           AS SABUN           
+                  ,#{NAME}            AS NAME            
+                  ,#{ORG_CD}          AS ORG_CD          
+                  ,#{JIKWEE_CD}       AS JIKWEE_CD       
+                  ,#{JIKWEE_NM}       AS JIKWEE_NM       
+                  ,#{JIKCHAK_CD}      AS JIKCHAK_CD      
+                  ,#{JIKCHAK_NM}      AS JIKCHAK_NM      
+                  ,#{EMP_YMD}         AS EMP_YMD         
+                  ,#{RET_YMD}         AS RET_YMD         
+                  ,#{DISPATCH_ORG_CD} AS DISPATCH_ORG_CD 
+                  ,#{HP_NUMBER}       AS HP_NUMBER       
+                  ,#{MAIL}            AS MAIL            
+                  ,#{USER_STATUS}     AS USER_STATUS     
+                  ,#{CRE_DATE_TIME}   AS CRE_DATE_TIME   
+                  ,#{CRE_USER}        AS CRE_USER        
+                  ,#{UPD_DATE_TIME}   AS UPD_DATE_TIME   
+                  ,#{UPD_USER}        AS UPD_USER        
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.COMP_CD = B.COMP_CD
+	        AND A.SABUN   = B.SABUN
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.NAME            = B.NAME           
+                  ,A.ORG_CD          = B.ORG_CD         
+                  ,A.JIKWEE_CD       = B.JIKWEE_CD      
+                  ,A.JIKWEE_NM       = B.JIKWEE_NM      
+                  ,A.JIKCHAK_CD      = B.JIKCHAK_CD     
+                  ,A.JIKCHAK_NM      = B.JIKCHAK_NM     
+                  ,A.EMP_YMD         = B.EMP_YMD        
+                  ,A.RET_YMD         = B.RET_YMD        
+                  ,A.DISPATCH_ORG_CD = B.DISPATCH_ORG_CD
+                  ,A.HP_NUMBER       = B.HP_NUMBER      
+                  ,A.MAIL            = B.MAIL           
+                  ,A.USER_STATUS     = B.USER_STATUS    
+                  ,A.CRE_DATE_TIME   = B.CRE_DATE_TIME  
+                  ,A.CRE_USER        = B.CRE_USER       
+                  ,A.UPD_DATE_TIME   = B.UPD_DATE_TIME  
+                  ,A.UPD_USER        = B.UPD_USER       
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.COMP_CD        
+	             ,A.SABUN          
+	             ,A.NAME           
+	             ,A.ORG_CD         
+	             ,A.JIKWEE_CD      
+                 ,A.JIKWEE_NM      
+                 ,A.JIKCHAK_CD     
+                 ,A.JIKCHAK_NM     
+                 ,A.EMP_YMD        
+                 ,A.RET_YMD        
+                 ,A.DISPATCH_ORG_CD
+                 ,A.HP_NUMBER      
+                 ,A.MAIL           
+                 ,A.USER_STATUS    
+                 ,A.CRE_DATE_TIME  
+                 ,A.CRE_USER       
+                 ,A.UPD_DATE_TIME  
+                 ,A.UPD_USER       
+	            ) VALUES ( B.COMP_CD        
+	                      ,B.SABUN          
+	                      ,B.NAME           
+	                      ,B.ORG_CD         
+	                      ,B.JIKWEE_CD      
+                          ,B.JIKWEE_NM      
+                          ,B.JIKCHAK_CD     
+                          ,B.JIKCHAK_NM     
+                          ,B.EMP_YMD        
+                          ,B.RET_YMD        
+                          ,B.DISPATCH_ORG_CD
+                          ,B.HP_NUMBER      
+                          ,B.MAIL           
+                          ,B.USER_STATUS    
+                          ,B.CRE_DATE_TIME  
+                          ,B.CRE_USER       
+                          ,B.UPD_DATE_TIME  
+                          ,B.UPD_USER       
+	                     )
+     ]]>
+    </insert>
+    
+	<insert id="batchUserIfData" parameterType="Map">
+		--com.bat.BatchUser.batchUserIfData
+		INSERT ALL
+		<foreach item="item" separator=" " collection="list"> 
+			INTO EMPLOYEE_IF (COMP_CD,SABUN,NAME,ORG_CD,JIKWEE_CD,JIKWEE_NM,JIKCHAK_CD,JIKCHAK_NM,EMP_YMD,RET_YMD,DISPATCH_ORG_CD,HP_NUMBER,MAIL,USER_STATUS,CRE_DATE_TIME,CRE_USER,UPD_DATE_TIME,UPD_USER,PWD) VALUES (#{ item.COMP_CD },#{ item.SABUN },#{ item.NAME },#{ item.ORG_CD },#{ item.JIKWEE_CD },#{ item.JIKWEE_NM },#{ item.JIKCHAK_CD },#{ item.JIKCHAK_NM },#{ item.EMP_YMD },#{ item.RET_YMD },#{ item.DISPATCH_ORG_CD },#{ item.HP_NUMBER },#{ item.MAIL },#{ item.USER_STATUS },#{ item.CRE_DATE_TIME },#{ item.CRE_USER },#{ item.UPD_DATE_TIME },#{ item.UPD_USER },#{ item.PWD})
+		</foreach>
+		SELECT * FROM DUAL
+
+	</insert>
+	
+	<insert id="insertUserIfData" parameterType="map">
+		<![CDATA[
+		--com.bat.BatchUser.insertUserIfData
+		INSERT INTO EMPLOYEE_IF
+		(
+		  COMP_CD
+	     ,SABUN
+	     ,NAME
+	     ,ORG_CD
+	     ,JIKWEE_CD
+	     ,JIKWEE_NM
+	     ,JIKCHAK_CD
+	     ,JIKCHAK_NM
+	     ,EMP_YMD
+	     ,RET_YMD
+	     ,DISPATCH_ORG_CD
+	     ,HP_NUMBER
+	     ,MAIL
+	     ,USER_STATUS
+	     ,CRE_DATE_TIME
+	     ,CRE_USER
+	     ,UPD_DATE_TIME
+	     ,UPD_USER
+		) VALUES (
+		           #{COMP_CD}
+	              ,#{SABUN}
+	              ,#{NAME}
+	              ,#{ORG_CD}
+	              ,#{JIKWEE_CD}
+	              ,#{JIKWEE_NM}
+	              ,#{JIKCHAK_CD}
+	              ,#{JIKCHAK_NM}
+	              ,#{EMP_YMD}
+	              ,#{RET_YMD}
+	              ,#{DISPATCH_ORG_CD}
+	              ,#{HP_NUMBER}
+	              ,#{MAIL}
+	              ,#{USER_STATUS}
+	              ,#{CRE_DATE_TIME}
+	              ,#{CRE_USER}
+	              ,#{UPD_DATE_TIME}
+	              ,#{UPD_USER}
+		          )
+		]]>
+	</insert>
+	
+    <update id="updateUserIfData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchUser.updateUserIfData
+	        UPDATE EMPLOYEE_IF
+	           SET NAME            = #{NAME}           
+	              ,ORG_CD          = #{ORG_CD}         
+	              ,JIKWEE_CD       = #{JIKWEE_CD}      
+	              ,JIKWEE_NM       = #{JIKWEE_NM}      
+	              ,JIKCHAK_CD      = #{JIKCHAK_CD}     
+	              ,JIKCHAK_NM      = #{JIKCHAK_NM}     
+	              ,EMP_YMD         = #{EMP_YMD}        
+	              ,RET_YMD         = #{RET_YMD}        
+	              ,DISPATCH_ORG_CD = #{DISPATCH_ORG_CD}
+	              ,HP_NUMBER       = #{HP_NUMBER}      
+	              ,MAIL            = #{MAIL}           
+	              ,USER_STATUS     = #{USER_STATUS}    
+	              ,CRE_DATE_TIME   = #{CRE_DATE_TIME}  
+	              ,CRE_USER        = #{CRE_USER}       
+	              ,UPD_DATE_TIME   = #{UPD_DATE_TIME}  
+	              ,UPD_USER        = #{UPD_USER}       
+			 WHERE COMP_CD         = #{COMP_CD}
+			   AND SABUN           = #{SABUN}
+		   ]]>
+    </update>
+    
+    <insert id="makeUserData">
+    <![CDATA[
+	    --com.bat.BatchUser.makeUserData
+	    BEGIN
+		    MERGE INTO SYS_USER A 
+		    USING (
+		        SELECT COMP_CD
+	                  ,JIKCHAK_NM
+	                  ,SABUN
+	                  ,NAME
+	                  ,ORG_CD
+	                  ,JIKWEE_CD
+	                  ,JIKWEE_NM
+	                  ,JIKCHAK_CD
+	                  ,EMP_YMD
+	                  ,RET_YMD
+	                  ,DISPATCH_ORG_CD
+	                  ,HP_NUMBER
+	                  ,MAIL
+	                  ,USER_STATUS
+	                  ,CRE_DATE_TIME
+	                  ,CRE_USER
+	                  ,UPD_DATE_TIME
+	                  ,UPD_USER
+	                  ,PWD
+		          FROM EMPLOYEE_IF
+		          ) B
+		    ON (
+		             A.COMP_CD = B.COMP_CD
+		         AND A.USER_ID = B.SABUN
+		       )
+		    WHEN MATCHED THEN
+		        UPDATE
+		           SET A.USER_NM         = B.NAME          
+	                  ,A.DEPT_CD         = B.ORG_CD
+	                  ,A.DESIGNATION     = B.JIKWEE_CD
+	                  ,A.DESIGNATION_N   = B.JIKWEE_NM
+	                  ,A.GRADE_CODE      = B.JIKCHAK_CD
+	                  ,A.GRADE_NAME      = B.JIKCHAK_NM
+	                  ,A.DUTY_CODE       = B.JIKWEE_CD
+	                  ,A.DUTY_NAME       = B.JIKWEE_NM
+	                  ,A.EMP_YMD         = B.EMP_YMD
+	                  ,A.RET_YMD         = B.RET_YMD
+	                  ,A.DISPATCH_ORG_CD = B.DISPATCH_ORG_CD
+	                  ,A.MOBILE_NO       = B.HP_NUMBER
+	                  ,A.EMAIL_ID        = B.MAIL
+	                  ,A.USER_STATUS     = B.USER_STATUS
+	                  ,A.EMP_NO          = B.SABUN
+	                  ,A.INS_DT          = B.CRE_DATE_TIME
+	                  ,A.INS_ID          = B.CRE_USER
+	                  ,A.MOD_DT          = B.UPD_DATE_TIME
+	                  ,A.MOD_ID          = B.UPD_USER
+		              ,A.DEL_YN          = CASE WHEN NVL(B.RET_YMD, ' ') = ' ' THEN 'N'
+		                                        ELSE 'Y'
+		                                   END 
+		              ,A.USG_YN          = CASE WHEN NVL(B.RET_YMD, ' ') = ' ' THEN 'Y'
+		                                        ELSE 'N'
+		                                   END 
+		    WHEN NOT MATCHED THEN
+		            INSERT ( 
+		                     A.COMP_CD
+		                    ,A.USER_ID
+		                    ,A.USER_NM        
+	                        ,A.DEPT_CD        
+	                        ,A.DESIGNATION    
+	                        ,A.DESIGNATION_N  
+	                        ,A.GRADE_CODE     
+	                        ,A.GRADE_NAME     
+	                        ,A.EMP_YMD        
+	                        ,A.RET_YMD        
+	                        ,A.DISPATCH_ORG_CD
+	                        ,A.MOBILE_NO      
+	                        ,A.EMAIL_ID       
+	                        ,A.USER_STATUS 
+	                        ,A.DUTY_CODE
+	                        ,A.DUTY_NAME
+						    ,A.USER_CLS
+						    ,A.EMP_NO  
+	                        ,A.INS_DT         
+	                        ,A.INS_ID         
+	                        ,A.MOD_DT         
+	                        ,A.MOD_ID         
+	                        ,A.DEL_YN
+	                        ,A.USG_YN
+	                        ,A.PWD         
+		                    ) VALUES ( B.COMP_CD
+		                              ,B.SABUN
+		                              ,B.NAME           
+	                                  ,B.ORG_CD         
+	                                  ,B.JIKWEE_CD      
+	                                  ,B.JIKWEE_NM      
+	                                  ,B.JIKCHAK_CD     
+	                                  ,B.JIKCHAK_NM     
+	                                  ,B.EMP_YMD        
+	                                  ,B.RET_YMD        
+	                                  ,B.DISPATCH_ORG_CD
+	                                  ,B.HP_NUMBER      
+	                                  ,B.MAIL           
+	                                  ,B.USER_STATUS
+	                                  ,B.JIKWEE_CD
+	                                  ,B.JIKWEE_NM
+	                                  ,'B'
+	                                  ,B.SABUN
+	                                  ,B.CRE_DATE_TIME  
+	                                  ,B.CRE_USER       
+	                                  ,B.UPD_DATE_TIME  
+	                                  ,B.UPD_USER       
+		                              ,CASE WHEN NVL(B.RET_YMD, ' ') = ' ' THEN 'N'
+		                                    ELSE 'Y'
+		                               END
+		                              ,CASE WHEN NVL(B.RET_YMD, ' ') = ' ' THEN 'Y'
+		                                    ELSE 'N'
+		                               END
+		                              ,B.PWD	                               
+		                             )
+	    	;
+	    	
+		    MERGE INTO SYS_USER_ROLE A 
+		    USING (
+		        SELECT SABUN
+	                  ,'USR001'   ROLE_CD
+	                  ,'BATCHSYS' INS_ID
+	                  ,SYSDATE    INS_DT
+		          FROM EMPLOYEE_IF
+		          ) B
+		    ON (
+		        A.USER_ID = B.SABUN
+		       )
+		    WHEN NOT MATCHED THEN
+		            INSERT ( 
+	                         A.USER_ID
+	                        ,A.ROLE_CD        
+                            ,A.INS_ID        
+                            ,A.INS_DT    
+	                        ) VALUES ( 
+	                                   B.SABUN
+	                                  ,B.ROLE_CD       
+                                      ,B.INS_ID      
+                                      ,B.INS_DT     
+	                                 )
+	        ;       	    
+	    END;
+
+     ]]>
+    </insert>
+    
+    <delete id="deleteUserIfData">
+		--com.bat.BatchUser.deleteUserIfData
+		DELETE FROM EMPLOYEE_IF
+    </delete>    
+</mapper>

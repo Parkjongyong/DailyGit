@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<!-- 권한 체크가 필요없는 url 정보 등록 -->	
+	<sec:http pattern="/resources/**" security="none" />
+	<sec:http pattern="/WEB-INF/jsp/loginView.jsp" security="none" />
+	<sec:http pattern="/WEB-INF/jsp/loginViewExternal.jsp" security="none" />
+	<sec:http pattern="/WEB-INF/jsp/com/wrh/wrhStorageSpaceM.jsp" security="none" />
+	<sec:http pattern="/loginView.do" security="none" />
+	<sec:http pattern="/loginViewExternal.do" security="none" />
+	<sec:http pattern="/com/wrh/wrhStorageSpaceM.do" security="none" />
+	
+	
+	<!-- spring security file cofnig (file 기반일때의 설정)-->
+	<sec:http access-decision-manager-ref="accessDecisionManager"
+		      authentication-manager-ref="authenticationManager"
+		      entry-point-ref="loginUrlAuthenticationEntryPoint"
+		      use-expressions="true">
+		      
+		<sec:custom-filter position="CONCURRENT_SESSION_FILTER" ref="concurrencyFilter" />			      
+		<sec:custom-filter position="LOGOUT_FILTER"             ref="logoutFilter"  />			      
+		<sec:custom-filter position="FORM_LOGIN_FILTER"         ref="defaultUsernamePasswordAuthenticationFilter"  />
+	
+		<sec:csrf disabled="true" />
+    <sec:headers>
+      <sec:frame-options policy="SAMEORIGIN"/>
+    </sec:headers>
+    <sec:access-denied-handler ref="accessDeniedHandler"  />
+	
+		<sec:intercept-url pattern="/index.jsp" 		access="permitAll"/>
+		<sec:intercept-url pattern="/ajax-redirect/**" 	access="permitAll"/>
+		<sec:intercept-url pattern="/board/**" 			access="permitAll"/>
+		<sec:intercept-url pattern="/user/**" 			access="hasAnyRole('ROLE_USER', 'ROLE_ADMIN')"/>
+		<sec:intercept-url pattern="/admin/**" 			access="hasRole('ROLE_ADMIN')"/>
+		<sec:intercept-url pattern="/**"       			access="permitAll"/>
+	</sec:http>	
+		
+	<sec:user-service id="defaultUserDetailsService" properties="classpath:META-INF/properties/users.properties"/>
+			
+</beans:beans>

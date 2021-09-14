@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<bean id="licenseCheck" class="com.ecbank.framework.license.LicenseChecker" />
+
+
+	<bean id="requestlogAdvice" class="com.app.ildong.common.interceptor.RequestLogAdvice" />
+	<bean class="org.springframework.aop.aspectj.AspectJExpressionPointcutAdvisor">
+		<property name="advice" ref="requestlogAdvice" />
+		<property name="expression" value="execution(* com.app.ildong..*Controller.*(..))" />
+    </bean>
+
+
+
+    <!-- ========================= [START] Sprout Event DEFINITIONS ======================== -->
+    <bean id="EcbankEventPublisher"  class="com.ecbank.framework.event.EcbankEventPublisher"/>
+		<bean id="applicationEventMulticaster" class="com.ecbank.framework.event.multicaster.AsyncEventListenerSupportMulticaster">
+			<property name="taskExecutor" ref="multicastExecutor"/>
+		</bean>
+	<task:executor id="multicastExecutor" pool-size="100" keep-alive="60" queue-capacity="100"/>
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<mvc:exclude-mapping path="/resources/**" /> 
+			<ref bean="EcbankEventPublisher"/>
+		</mvc:interceptor>
+		
+		<!-- mvc:interceptor>
+            <mvc:mapping path="/download.do"/>
+            <bean class="com.app.common.interceptor.SSOAuthenticInterceptor" />
+        </mvc:interceptor -->
+        
+		<mvc:interceptor>
+			<mvc:mapping path="/**/*.do" />
+			<mvc:mapping path="/**/**/*.do" />
+           
+            <!-- 비밀번호 찾기 -->
+            <mvc:exclude-mapping path="/findPwInfo.do" />
+            <mvc:exclude-mapping path="/findUserPw.do" />
+            <!-- 비밀번호 찾기 -->
+            <mvc:exclude-mapping path="/index.do" />
+            <mvc:exclude-mapping path="/loginView.do" />
+            <mvc:exclude-mapping path="/loginViewExternal.do" />
+            <mvc:exclude-mapping path="/login.do" />
+            <mvc:exclude-mapping path="/ssoLogin.do" />
+            <mvc:exclude-mapping path="/logino.do" />
+            <mvc:exclude-mapping path="/logout.do" />
+            <mvc:exclude-mapping path="/download.do" />
+            <mvc:exclude-mapping path="/downloadFilePop.do" />
+            
+            
+            <mvc:exclude-mapping path="/com/bitf/*.do" />
+            <mvc:exclude-mapping path="/downloadEx.do"/>
+            <mvc:exclude-mapping path="/resEdms.do"/>
+            
+            <!-- 메인 -->
+            <mvc:exclude-mapping path="/purProcessPop.do" />
+            <mvc:exclude-mapping path="/taskManagerPop.do" />
+            <mvc:exclude-mapping path="/com/mai/viewTradeItemTerm.do" />
+            <mvc:exclude-mapping path="/com/mai/fileDownload.do" />
+            <mvc:exclude-mapping path="/com/mai/selectPopupMgmtMain.do" />
+            
+            <!-- 메인 -->
+            
+            <mvc:exclude-mapping path="/upload/file.do"/> <!-- 공통 업로드  확인필요 -->
+            
+            <!-- mvc:exclude-mapping path="/template/**/*.do" / -->
+		    <bean class="com.app.ildong.common.interceptor.AuthenticInterceptor" >
+		    	<property name="uncheckUrl">
+					<set>
+						<value>/main.do</value>
+						<value>/foward.do</value>
+						<value>/authfoward.do</value>
+						<value>/goTopMenu.do</value>
+						<value>/goMenu.do</value>
+						<value>/upload/file.do</value>
+						<value>/image.do</value>
+						<value>/download.do</value>
+						<value>/downForm.do</value>
+						<value>/downloadFilePop.do</value>
+                        <value>/delete.do</value>
+						<value>/com/sys/sysBoardListPop.do</value>
+						<value>/com/sys/sysBoardListPopup.do</value>
+						<value>/com/sys/sysBoardDetailPopup.do</value>
+						<value>/com/sys/sysBoardViewPop.do</value>
+						<value>/com/sys/sysPwChange.do</value>
+						
+						<value>/com/bdg/bdgBasicMgtEps.do</value>
+						<value>/com/bdg/bdgBasicMgtPop.do</value>
+						
+						<value>/com/bdg/bdgDeptSampleMgtEps.do</value>
+						<value>/com/bdg/bdgDeptSampleMgtPop.do</value>
+						
+						<value>/com/bdg/bdgVendBankMgtPop.do</value>
+						<value>/com/bdg/bdgVendBankMgtEps.do</value>
+						
+						<value>/com/bdg/bdgModifyMgtEps.do</value>
+						<value>/com/bdg/bdgModifyMgtPop.do</value>
+						
+						<value>/com/bdg/bdgExecBugtMgtEps.do</value>
+						<value>/com/bdg/bdgExecBugtMgtPop.do</value>
+						
+						<value>/com/bdg/bdgApmBasicMgtEps.do</value>
+						<value>/com/bdg/bdgApmBasicMgtPop.do</value>
+						
+						<value>/com/bdg/bdgApmTransMgtEps.do</value>
+						<value>/com/bdg/bdgApmTransMgtPop.do</value>
+						
+						<value>/com/bdg/bdgEstCostReqEps.do</value>
+						<value>/com/bdg/bdgEstCostReqPop.do</value>												
+						<value>/com/bdg/bdgEstCostDetail.do</value>												
+						<value>/com/bdg/bdgEstCostDetailResult.do</value>												
+						
+						<value>/com/bdg/bdgSupplementEps.do</value>
+						<value>/com/bdg/bdgSupplementPop.do</value>
+						
+						<value>/com/bdg/bdgTangAssetMgtEps.do</value>
+						<value>/com/bdg/bdgTangAssetMgtPop.do</value>
+						
+						<value>/com/bdg/bdgVendBankMgtEps.do</value>
+						<value>/com/bdg/bdgVendBankMgtPop.do</value>
+						
+						<value>/com/wrh/wrhStorageSpacePop.do</value>
+						
+						<value>/com/sys/sysInFaqListPop.do</value>
+						<value>/com/sys/sysInDataListPop.do</value>
+						<value>/com/sys/sysOutBoardDetail.do</value>
+						<value>/com/sys/selectSysOutBoardFaqList.do</value>
+						<value>/com/sys/selectSysOutBoardDataList.do</value>
+
+
+						<value>/alarmPop.do</value>
+						<value>/siteMapPop.do</value>
+					</set>
+				</property>
+		    </bean>
+		</mvc:interceptor>
+		
+		
+	</mvc:interceptors>
+	
+	<!-- ========================= [END] Sprout Event DEFINITIONS ======================== -->
+	 
+	<!-- ========================= [START] Access Log DEFINITIONS ======================== -->
+	<bean id="accessLogManager" class="com.ecbank.framework.log.accesslog.AccessLogManager">
+		<property name="accessLogWriters">
+			<list>
+				<!-- ref bean="accessLogDbWriter" />
+				<ref bean="errorLogDbWriter" />
+				<ref bean="logstashAccessLogWriter" / -->  <!-- 추가 -->
+			</list>
+		</property>
+	</bean>
+	<bean id="accessLogDataExtractorForOldBcm" class="com.ecbank.framework.log.accesslog.old.AccessLogDataExtractorForOldBcm"/>
+	<bean id="accessLogDbWriter" class="com.ecbank.framework.log.accesslog.old.AccessLogDbWriterForOldBcm">
+		<property name="dataSource" ref="dataSourceForSprout"/>
+		<property name="transactionManager" ref="transactionManagerForSprout"/>
+		<property name="accessLogDataExtractor" ref="accessLogDataExtractorForOldBcm"/>
+		<property name="insertQuery" value="${${dbms.kind}.access-log.insert-query}" />
+	</bean>
+ 	<bean id="errorLogDbWriter" class="com.ecbank.framework.log.errorlog.ErrorLogDbWriter">
+		<property name="dataSource" ref="dataSourceForSprout" />
+		<property name="transactionManager" ref="transactionManagerForSprout" />
+		<property name="accessLogDataExtractor" ref="accessLogDataExtractorForOldBcm" />
+		<property name="insertQuery" value="${${dbms.kind}.error-log.insert-query}" />
+	</bean>
+	
+	<!-- 모니터링 추가 -->
+	<bean id="logstashAccessLogWriter" class="com.ecbank.log.monitor.writer.logstash.LogstashAccessLogWriter">
+		<property name="deviceResolver" ref="liteDeviceResolver" />
+		<property name="serviceGroupName" value="${sprout.service.group.name:}"/>
+		<property name="useYN" value="${sprout.log.monitor.useYN:false}" />
+		<property name="useInflowsInfo" value="${sprout.log.monitor.useInflowsInfo:true}" />
+		<property name="logstashLoggerName" value="${sprout.log.monitor.access.logger.name:logstash.log}"/>
+	</bean>
+	<bean id="liteDeviceResolver" class="org.springframework.mobile.device.LiteDeviceResolver" />
+	
+	<bean id="sysStatusLogDataProcessor" class="com.ecbank.log.monitor.processor.SystemStatusLogDataProcessor">
+		<property name="logGatherers">
+				<list>
+				<ref bean="sysDataGatherer" />
+				<ref bean="sessionCountGatherer"/>
+				</list>
+		</property>
+		<property name="serviceGroupName" value="${sprout.service.group.name:}"/>
+	</bean>
+	<bean id="sysDataGatherer" class="com.ecbank.log.monitor.gatherer.SystemDataGatherer"/>
+	<bean id="sessionCountGatherer" class="com.ecbank.log.monitor.gatherer.SessionCountGatherer">
+		<property name="listener" ref="sessionListener" />
+	</bean>
+		
+	<bean id="periodLogstashLogWriter" class="com.ecbank.log.monitor.writer.logstash.PeriodLogstashLogWriter">
+		<property name="logDataProcessors">
+				<list>
+				<ref bean="sysStatusLogDataProcessor"/>
+				</list>
+		</property>
+		<property name="logstashLoggerName" value="${sprout.log.monitor.period.logger.name:logstash.log}"/>
+	</bean>
+	<bean id="sessionListener" class="com.ecbank.log.monitor.EcbankHttpSessionCountListener" />
+		
+	<bean id="periodLogTimer" class="com.ecbank.log.monitor.PeriodLogTimer">
+		<constructor-arg name="timerInterval" value="${sprout.log.monitor.writeSysDataInterval:5}" />
+		<constructor-arg name="logstashLogWriter" ref="periodLogstashLogWriter"/>
+		<property name="useYN" value="${sprout.log.monitor.useYN:false}" />
+	</bean>
+ 
+	<beans profile="test">
+		<!-- Junt 테스트 시에는 Access log 작성을 하지  않음  -->
+		<bean id="accessLogManager" class="com.ecbank.framework.log.accesslog.AccessLogManager"/>
+	</beans>
+	<!-- ========================= [END] Access Log DEFINITIONS ======================== -->
+	
+</beans>

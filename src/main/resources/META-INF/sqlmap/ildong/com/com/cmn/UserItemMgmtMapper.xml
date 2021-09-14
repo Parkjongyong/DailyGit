@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.cmn.cmnItemMgmt">
+
+	<select id="selectItemMgmtList" parameterType="Map" resultType="Map">
+SELECT A.ITEM_CD
+      ,A.LVL
+      ,A.ITEM_DESC
+  FROM CO_BUGT_ITEM_MGMT A 
+ WHERE 1 = 1
+	<if test="TB_ITEM_DESC != null and TB_ITEM_DESC != ''">
+   AND A.TB_ITEM_DESC LIKE #{TB_ITEM_DESC} || '%'
+    </if>
+	<if test="SB_LVL != null and SB_LVL != ''">
+   AND A.LVL = #{SB_LVL}
+    </if>
+ ORDER BY A.ITEM_CD 
+	</select>
+	
+	<select id="selectPlantItemList" parameterType="Map" resultType="Map">
+--selectPlantItemList	
+	SELECT *
+      FROM (
+           SELECT B.PLANT_CODE                                   PLANT_CODE 
+                 ,C.PLANT_NM                                     PLANT_NM   
+                 ,A.MAT_NUMBER                                   MAT_NUMBER 
+                 ,A.MAT_DESC                                     MAT_DESC   
+                 ,COUNT(*) OVER()                                TOT_CNT    
+                 ,ROW_NUMBER() OVER(ORDER BY A.MAT_NUMBER DESC)  RNUM
+             FROM MAT_HEAD A
+                 INNER JOIN 
+                  MAT_PLANT B
+                ON    B.MAT_NUMBER = A.MAT_NUMBER
+                <![CDATA[ 
+                  AND NVL(B.DEL_FLAG,' ')  <> 'X'
+                  AND NVL(B.DRAFT_FLAG,' ') = 'X'
+                ]]>
+                 LEFT OUTER JOIN
+                  PLANT_INFO C
+                 ON    C.PLANT_CD = B.PLANT_CODE
+                   AND C.COMP_CD  = #{SB_COMP_CD}
+            WHERE 1=1
+           	<if test="SB_PLANT_CD != null and SB_PLANT_CD != ''">
+              AND B.PLANT_CODE  = #{SB_PLANT_CD}
+              </if>
+           	<if test="TB_MAT_NUMBER != null and TB_MAT_NUMBER != ''">
+              AND A.MAT_NUMBER LIKE '%' || #{TB_MAT_NUMBER} || '%'
+               </if>
+           	<if test="TB_MAT_DESC != null and TB_MAT_DESC != ''">
+              AND A.MAT_DESC LIKE '%' || #{TB_MAT_DESC} || '%'
+               </if>
+           )
+<![CDATA[WHERE RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 500)]]>		
+ ORDER BY MAT_NUMBER 
+	</select>
+	
+	
+	<select id="selectPlantItemList222" parameterType="Map" resultType="Map">
+SELECT B.PLANT_CODE
+      ,C.PLANT_NM
+      ,A.MAT_NUMBER
+      ,A.MAT_DESC
+  FROM MAT_HEAD A
+      INNER JOIN 
+       MAT_PLANT B
+     ON    B.MAT_NUMBER = A.MAT_NUMBER
+     <![CDATA[ 
+       AND NVL(B.DEL_FLAG,' ')  <> 'X'
+       AND NVL(B.DRAFT_FLAG,' ') = 'X'
+     ]]>
+      LEFT OUTER JOIN
+       PLANT_INFO C
+      ON    C.PLANT_CD = B.PLANT_CODE
+        AND C.COMP_CD  = #{SB_COMP_CD}
+ WHERE 1=1
+	<if test="TB_PLANT_CODE != null and TB_PLANT_CODE != ''">
+   AND B.PLANT_CODE  = #{TB_PLANT_CODE}
+   </if>
+	<if test="TB_MAT_NUMBER != null and TB_MAT_NUMBER != ''">
+   AND A.MAT_NUMBER  = #{TB_MAT_NUMBER}
+    </if>
+	<if test="TB_MAT_DESC != null and TB_MAT_DESC != ''">
+   AND A.MAT_DESC    = #{TB_MAT_DESC}
+    </if>
+ ORDER BY A.MAT_NUMBER 
+	</select>
+	
+</mapper>

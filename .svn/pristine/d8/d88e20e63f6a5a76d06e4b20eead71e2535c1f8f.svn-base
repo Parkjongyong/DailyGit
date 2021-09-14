@@ -1,0 +1,279 @@
+<%@ page language="java" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.app.common.util.StringUtil"%>
+<%@page import="com.app.common.util.StringUtilEx"%>
+<%@ taglib prefix="c"       uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring"  uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"     uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fmt"     uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%
+
+/*******************************************************************
+  httpclient 호출로 파라미터 전송시 object 전송 불가
+  list,map => json string 유형으로 변환 전송 됨
+  json string 유형 데이터를 jstl 사용 가능하도록 object로 변경
+*******************************************************************/
+String AP_GR_INFO = request.getParameter("GR_INFO");
+String AP_CNTRT_INFO = request.getParameter("CNTRT_INFO");
+String ITEM_LIST  = request.getParameter("ITEM_LIST");
+String AP_AMT_INFO = request.getParameter("AMT_INFO");
+String FILE_LIST  = request.getParameter("FILE_LIST");
+
+
+request.setAttribute("AP_GR_INFO" ,  com.app.common.util.JsonUtil.getMapFromJsonString(AP_GR_INFO)); //MAP
+request.setAttribute("AP_CNTRT_INFO" ,  com.app.common.util.JsonUtil.getMapFromJsonString(AP_CNTRT_INFO)); //MAP
+request.setAttribute("ITEM_LIST" ,   com.app.common.util.JsonUtil.getListFromJsonString(ITEM_LIST)); //LISTMAP
+request.setAttribute("AP_AMT_INFO" ,  com.app.common.util.JsonUtil.getMapFromJsonString(AP_AMT_INFO)); //MAP
+request.setAttribute("FILE_LIST" ,   com.app.common.util.JsonUtil.getListFromJsonString(FILE_LIST)); //LISTMAP
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<link href="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_reset.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_common.css'/>" rel="stylesheet"/>
+<!-- jquery -->
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-1.12.3/jquery-1.12.3.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/attach.js'/>"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+//	fnInitFileUpload();
+    //전자결재 페이지에서 창에 높이 확인 가능하도록 수정
+    document.domain="parucnc.com";
+    //전자결재 부모창으로 높이 전송
+    var maxHeight = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight,document.documentElement.offsetHeight);
+    window.parent.postMessage(maxHeight, '*');	
+
+});
+
+</script>
+</head>
+<body>
+<div class="pop-wrap fixed">
+    <div class="pop-cont"><!-- 상단 타이틀 영역 고정시 fixed 클래스 추가 -->
+        <div class="section1 scrolls">
+            <div class="sub-tit first" id="section1">
+                <h4>기본정보</h4>
+            </div>
+            
+            <table class="table-style">
+                <colgroup>
+                    <col style="width:15%;">
+                    <col style="width:35%;">
+                    <col style="width:15%;">
+                    <col style="width:35%;">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th style="text-align: left;">검수번호</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_NO}
+                        </td>
+                        <th style="text-align: left;">검수건명</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_NM}
+                        </td>
+                        
+                    </tr>
+                    <tr>
+                        <th style="text-align: left;">PO No</th>
+                        <td>
+                            ${AP_GR_INFO.PO_NO}
+                        </td>
+                        <th style="text-align: left;">계약번호</th>
+                        <td>
+                            ${AP_CNTRT_INFO.CNTRT_NO}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: left;">BP명</th>
+                        <td>
+                            ${AP_GR_INFO.VENDOR_NAME}
+                        </td>
+                        <th style="text-align: left;">계약기간</th>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: left;">검수구분</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_TYPE_NM}
+                        </td>
+                        <th style="text-align: left;">검수일</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_DATE}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: left;">검수금액</th>
+                        <td>
+                            ${AP_AMT_INFO.INSP_REQ_AMT}
+                        </td>
+                        <th style="text-align: left;">검수누적금액</th>
+                        <td>
+                            ${AP_AMT_INFO.TOT_SUM_INSP_REQ_AMT}
+                        </td>
+                    </tr>
+                    <tr> 
+                        <th style="text-align: left;">검수담당자</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_PIC_NM}
+                        </td>
+                        <th style="text-align: left;">검수부서</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_DEPT_NM}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section2 scrolls">
+            <div class="sub-tit" id="section2">
+                <h4>검수내역</h4>
+            </div>
+            
+            <div>
+                <table class="table-style">
+	                <colgroup>
+	                    <col style="width:50px;">
+	                    <col style="width:100px;">
+	                    <col style="width:80px;">
+	                    <col style="width:180px;">
+	                    <col style="width:60px;">
+	                    <col style="width:80px;">
+	                    <col style="width:60px;">
+	                    <col style="width:50px;">
+	                    <col style="width:80px;">
+	                    <col style="width:80px;">
+	                    <col style="width:50px;">
+	                    <col style="width:80px;">
+	                </colgroup>
+	                <thead>
+	                    <tr>
+	                        <td style="text-align: center;">No</td>
+	                        <td style="text-align: center;">SG</td>
+	                        <td style="text-align: center;">품목번호</td>
+	                        <td style="text-align: center;">품목명</td>
+	                        <td style="text-align: center;">PO 수량</td>
+	                        <td style="text-align: center;">PO 금액</td>
+	                        <td style="text-align: center;">검수수량</td>
+	                        <td style="text-align: center;">단위</td>
+	                        <td style="text-align: center;">단가</td>
+	                        <td style="text-align: center;">검수금액</td>
+	                        <td style="text-align: center;">통화</td>
+	                        <td style="text-align: center;">누적금액</td>
+	                    </tr>
+	                </thead>
+	                <tbody>
+	                    <c:forEach var="ITEM" items="${ITEM_LIST}" varStatus="status">
+	                    <tr>
+							<td style="text-align: center;">${ITEM.RNUM}</td>
+							<td style="text-align: center;">${ITEM.SRC_GRP_NM}</td>
+							<td style="text-align: center;">${ITEM.ITEM_CD}</td>
+							<td style="text-align: left: ;">${ITEM.ITEM_NM}</td>
+							<td style="text-align: right;">${ITEM.PO_QTY}</td>
+							<td style="text-align: right;">${ITEM.PO_AMT}</td>
+							<td style="text-align: right;">${ITEM.INSP_QTY}</td>
+							<td style="text-align: center;">${ITEM.ITEM_UNIT}</td>
+							<td style="text-align: right;">${ITEM.UNIT_PRICE}</td>
+							<td style="text-align: right;">${ITEM.INSP_AMT}</td>
+							<td style="text-align: center;">${ITEM.CURRENCY_CD}</td>
+							<td style="text-align: right;">${ITEM.TOT_INSP_AMT}</td>
+                        </tr>
+	                    </c:forEach>
+	                </tbody>
+	            </table> 
+            </div>
+            <br>
+        </div>
+        
+        <div class="section3 scrolls">
+            <div class="sub-tit">
+                <h4>검수의견</h4>
+            </div>
+            <table class="table-style">
+                <tbody>
+                    <tr>
+                        <td colspan="4">
+                            <pre><c:out value="${AP_GR_INFO.INSP_OPINION}"/><c:if test="${AP_GR_INFO.DELAY_RSN ne '' && AP_GR_INFO.DELAY_RSN ne null }">
+[지체사유]
+<c:out value="${AP_GR_INFO.DELAY_RSN}"/>
+</c:if></pre>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <c:if test="${AP_GR_INFO.APP_SEQ_DEPT != null and AP_GR_INFO.APP_SEQ_DEPT != ''}">
+        <div class="section4 scrolls">
+            <div class="layoutArea m_b50">
+                <input type="hidden" id="APP_SEQ_DEPT" name="APP_SEQ_DEPT" value="${AP_GR_INFO.APP_SEQ_DEPT}">
+                <div class="sub-tit" id="section4">
+                    <h4>첨부파일&nbsp;</h4>
+                    <div class="right">
+                        <!-- <button type="button" class="btn" id="btnMultiFile_dept">첨부파일</button> -->
+                    </div>
+                </div>
+            
+                <div id="fileUploadTable_dept" class="jqGridArea m_t5">
+                    <table class="table-style">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center;" width="10%">No</th>
+                                <th style="text-align:center;">파일명</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                           <c:forEach var="ITEM" items="${FILE_LIST}" varStatus="status">
+                              <tr>
+                                 <td style="text-align: center;">${ITEM.FILE_RNUMN}</td>
+                                 <td class="t_left">
+                                 <a href="${URL_IN}/download.do?APP_SEQ=${ITEM.APP_SEQ}&amp;ATTACHMENT_SEQ=${ITEM.ATTACHMENT_SEQ}" title="${ITEM.FILE_NAME}" style="color:blue;" download="${ITEM.FILE_NAME}">${ITEM.FILE_NAME}</a></td>
+                              </tr>
+                           </c:forEach>
+                        </tbody>
+                    </table>
+               </div>
+            </div>
+        </div>
+         </c:if>
+        
+        
+    </div><!-- //popCont -->
+</div>
+<script>
+//첨부파일 조회
+function fnInitFileUpload() {
+    //검수요청 증빙파일
+    if ($("#ATT_FILE").val() != "") { 
+        displayFileUpload({
+            KEY_ID      : 'ATT_FILE',
+            DATA_FORMAT : 'table',
+            CALLBACK    : 'fnFileUploadCallback'
+        });
+    }
+    
+    //검수보고서 증빙파일
+    if ($("#APP_SEQ_DEPT").val() != "") { 
+        displayFileUpload({
+            KEY_ID      : 'APP_SEQ_DEPT',
+            DATA_FORMAT : 'table',
+            CALLBACK    : 'fnFileUploadCallback_dept'
+        });
+    }
+    
+}
+//파일업로드 콜백
+function fnFileUploadCallback(data)
+{
+    $("#fileUploadTable").empty().html(data);
+}
+
+function fnFileUploadCallback_dept(data)
+{
+    $("#fileUploadTable_dept").empty().html(data);
+}
+</script>
+</body>

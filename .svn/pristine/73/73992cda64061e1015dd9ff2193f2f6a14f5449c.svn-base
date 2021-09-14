@@ -1,0 +1,644 @@
+<%@ page language="java" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.app.common.util.StringUtil"%>
+<%@page import="com.app.common.util.StringUtilEx"%>
+<%@page import="com.app.common.util.PropertiesUtil"%>
+
+<%@ taglib prefix="c"       uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring"  uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"     uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fmt"     uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+<%
+/*******************************************************************/
+// 결재폼.
+/*******************************************************************/
+String URL_IN = PropertiesUtil.getProperty("HTTP.SERVER.URL.IN");
+request.setAttribute("URL_IN" ,  URL_IN);
+/*******************************************************************
+  httpclient 호출로 파라미터 전송시 object 전송 불가
+  list,map => json string 유형으로 변환 전송 됨
+  json string 유형 데이터를 jstl 사용 가능하도록 object로 변경
+*******************************************************************/
+
+String CNTRT_INFO = request.getParameter("cntrtInfo");
+String CNTRT_TYPE = request.getParameter("cntrtType");
+String CNTRT_MOD = request.getParameter("cntrtMod");
+String PR_REQ_INFO = request.getParameter("prReqInfo")==null?"":request.getParameter("prReqInfo");
+
+String CNTRT_ITEM_LIST  = request.getParameter("cntrtItemList");
+
+request.setAttribute("CNT_INFO" ,       com.app.common.util.JsonUtil.getMapFromJsonString(CNTRT_INFO)); //MAP
+request.setAttribute("PR_INFO" ,       com.app.common.util.JsonUtil.getMapFromJsonString(PR_REQ_INFO)); //MAP
+request.setAttribute("ITEM_LIST" ,  com.app.common.util.JsonUtil.getListFromJsonString(CNTRT_ITEM_LIST)); //LISTMAP */
+
+String FILE_LIST1       = request.getParameter("fileList1");
+request.setAttribute("FILE_LIST1" ,  com.app.common.util.JsonUtil.getListFromJsonString(FILE_LIST1)); //LISTMAP
+
+String FILE_LIST2       = request.getParameter("fileList2");
+request.setAttribute("FILE_LIST2" ,  com.app.common.util.JsonUtil.getListFromJsonString(FILE_LIST2)); //LISTMAP
+ 
+if(CNTRT_MOD.equals("C")){
+	/* 이전 계약 정보  */
+	
+	String OLD_CNTRT_INFO = request.getParameter("oldCntrtInfo");
+	String OLD_CNTRT_ITEM_LIST  = request.getParameter("oldCntrtItemList");
+	
+	request.setAttribute("OLD_CNT_INFO" ,       com.app.common.util.JsonUtil.getMapFromJsonString(OLD_CNTRT_INFO)); //MAP
+	request.setAttribute("OLD_ITEM_LIST" ,  com.app.common.util.JsonUtil.getListFromJsonString(OLD_CNTRT_ITEM_LIST)); //LISTMAP */
+	
+	String FILE_LIST3       = request.getParameter("fileList3");
+	request.setAttribute("FILE_LIST3" ,  com.app.common.util.JsonUtil.getListFromJsonString(FILE_LIST3)); //LISTMAP
+
+	String FILE_LIST4       = request.getParameter("fileList4");
+	request.setAttribute("FILE_LIST4" ,  com.app.common.util.JsonUtil.getListFromJsonString(FILE_LIST4)); //LISTMAP
+	
+}  
+
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<link href="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_reset.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_common.css'/>" rel="stylesheet"/>
+<!-- jquery -->
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-1.12.3/jquery-1.12.3.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/attach.js'/>"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	<c:if test="${CNT_INFO.CNTRT_MOD eq 'C'}">
+    //fnInitFileUploadOld();
+    //fnInitFileUploadInnerOld();
+    </c:if>
+    //fnInitFileUpload();
+    //fnInitFileUploadInner();
+    //전자결재 페이지에서 창에 높이 확인 가능하도록 수정
+    document.domain="parucnc.com";
+    //전자결재 부모창으로 높이 전송
+    var maxHeight = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight,document.documentElement.offsetHeight);
+    window.parent.postMessage(maxHeight, '*');	
+    
+});
+function viewCntrDoc(){
+    var url = "${URL_IN}/com/bcnt/viewContractDocPop.do?CNTRT_SEQ=${CNT_INFO.CNTRT_SEQ}";
+    var target = "viewContractDocPop";
+    var win = window.open(url, "_blank", "toolbar=no,scrollbars=yes,resizable=yes,width=900,height=900");
+}
+</script>
+</head>
+<body>
+    <div class="pop-wrap">
+        <div class="pop-cont link">
+            <div class="section1 scrolls">
+                <div class="sub-tit first" id="section1">
+                    <h4>기본정보</h4>
+                </div>
+                <table  id="basicInfo" class="table-style">
+                    <colgroup>
+                        <col style="width: 15%;">
+                        <col>
+                        <col style="width: 15%;">
+                        <col>
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <th style="text-align: left;"><span>계약 번호</span></th>
+                            <td><c:out value="${CNT_INFO.CNTRT_NO }"/>
+                            <c:if test="${CNT_INFO.CNTRT_CNLS_TYPE eq 'ON'}">
+                            &nbsp;&nbsp;[<a href="javascript:viewCntrDoc();"><b>계약서보기</b></a>]
+                            </c:if>
+                            </td>
+                            <th style="text-align: left;"><span>계약 건명</span></th>
+                            <td><c:out value="${CNT_INFO.CNTRT_NM }"/></td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;"><span>BP 번호</span></th>
+                            <td><c:out value="${CNT_INFO.VENDOR_CD }" /></td>
+                            <th style="text-align: left;"><span>BP명</span></th>
+                            <td><c:out value="${CNT_INFO.VENDOR_NM }" /></td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;"><span>변경요청부서</span></th>
+                            <td><c:out value="${CNT_INFO.CHG_DEPT_NAME }" /></td>
+                            <th style="text-align: left;"><span></span></th>
+                            <td></td>
+                        </tr>
+                        <tr>
+                           <th style="text-align: left;"><span>변경요청자</span></th>
+                           <td><c:out value="${CNT_INFO.CHG_USER_NAME }" /></td>
+                           <th style="text-align: left;"><span>계정지정범주</span></th>
+                           <td><c:out value="${PR_INFO.PR_SET_CATE_NM }" /></td>
+                        </tr>
+                        <tr>
+                           <th style="text-align: left;"><span>변경요청일</span></th>
+                           <td><c:out value="${CNT_INFO.CHG_REQ_DATE }" /></td>
+                           <th style="text-align: left;"><span>투자번호</span></th>
+                           <td><c:out value="${PR_INFO.INVEST_SEQ}" /></td>
+                        </tr>
+                        <tr>
+                           <th style="text-align: left;"><span>구매담당자</span></th>
+                           <td><c:out value="${CNT_INFO.PUR_USER_NAME }" /></td>
+                           
+                           <th style="text-align: left;"><span>구분</span></th>
+                           <td>
+                                <c:out value="${CNT_INFO.CNTRT_MOD_TEXT }" />
+                           </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="sub-tit">
+                    <c:if test="${CNT_INFO.CNTRT_MOD eq 'A'}">
+                    <h4>계약해지 요청 사유</h4>
+                    </c:if>
+                    <c:if test="${CNT_INFO.CNTRT_MOD eq 'C'}">
+                    <h4>계약변경 요청 개요</h4>
+                    </c:if>
+                </div>
+                <table class="table-style">
+                    <tbody>
+                        <tr>
+                            <td colspan="4">
+                                <pre><c:if test="${CNT_INFO.CNTRT_MOD eq 'A'}"><c:out value="${CNT_INFO.DISUSE_REASON}" /></c:if><c:if test="${CNT_INFO.CNTRT_MOD eq 'C'}"><c:out value="${CNT_INFO.PKG_COMPLETE_OPINION}" /></c:if></pre>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                
+            </div>
+            
+            <c:if test="${CNT_INFO.CNTRT_MOD eq 'A'}">
+                
+                <div class="section3 scrolls">
+                    <div class="sub-tit first" id="section1">
+                        <h4>계약정보</h4>
+                    </div>
+                    <table  id="basicInfo" class="table-style">
+                        <colgroup>
+                            <col style="width: 20%;">
+                            <col>
+                        </colgroup>
+                        <tbody>
+                            <tr>
+                                <th style="text-align: left;">계약해지일</th>
+                                <td style="padding-left: 15px;"><c:out value="${CNT_INFO.DISUSE_DATE }" /></td>
+                            </tr>
+                            <tr>
+                               <th style="text-align: left;">계약기간</th>
+                               <td style="padding-left: 15px;"><c:out value="${CNT_INFO.CNTRT_START_YMD }" /><em> ~ </em><c:out value="${CNT_INFO.CNTRT_END_YMD }" /></td>
+                            </tr>
+                            <tr>
+                                <th style="text-align: left;"><span>지급조건</span></th>
+                                <td style="padding-left: 15px;">
+                                    <c:if test="${CNT_INFO.CNTRT_COND_TYPE eq 'A' }" >
+                                                                        선금 : <c:out value="${CNT_INFO.CHARGE_ITEM_000 }" />%<br>
+                                                            납품시 : <c:out value="${CNT_INFO.CHARGE_ITEM_001 }" />%<br>
+                                                            최종검수시 : <c:out value="${CNT_INFO.CHARGE_ITEM_003 }" />%<br>
+                                                            유보금 : <c:out value="${CNT_INFO.CHARGE_ITEM_004 }" />%                  
+                                    </c:if>
+                                    <c:if test="${CNT_INFO.CNTRT_COND_TYPE eq 'B' }" >
+                                                                선금 : <c:out value="${INFO.CHARGE_CNST_001 }" />%<br>
+                                                                중도금(기성) : <c:out value="${CNT_INFO.CHARGE_CNST_002 }" />%<br>
+                                                                중도금(확정) : <c:out value="${CNT_INFO.CHARGE_CNST_003 }" />%<br>
+                                                                잔금 : <c:out value="${CNT_INFO.CHARGE_CNST_004 }" />%
+                                                                유보금 : <c:out value="${CNT_INFO.CHARGE_CNST_005 }" />%
+                                    </c:if>
+                                    <c:if test="${CNT_INFO.CNTRT_COND_TYPE eq 'C' }" >
+                                                                        선금 : <c:out value="${CNT_INFO.CHARGE_SRVC_001 }" />%<br>
+                                                                    중도금(기성) : <c:out value="${CNT_INFO.CHARGE_SRVC_002 }" />%<br>
+                                                                    중도금(확정) : <c:out value="${CNT_INFO.CHARGE_SRVC_003 }" />%<br>
+                                                                    잔금 : <c:out value="${CNT_INFO.CHARGE_SRVC_004 }" />%
+                                                                    유보금 : <c:out value="${CNT_INFO.CHARGE_SRVC_005 }" />%  
+                                    </c:if>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><span>보증조건</span></th>
+                                <td style="padding-left: 15px;">
+                                                                계약이행보증 : <c:out value="${CNT_INFO.CNTRT_SEC_NM }" /><br>
+                                                                선급금보증 : <c:out value="${CNT_INFO.CNTRT_SEC_P_NM }" /><br>
+                                                                하자이행보증 : <c:out value="${CNT_INFO.CNTRT_SEC_F_NM }" /> 
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="text-align: left;"><span>부가세</span></th>
+                                <td style="padding-left: 15px;">
+                                    <c:if test="${CNT_INFO.CNTRT_VAT_YN eq 'Y'}">대상</c:if>
+                                    <c:if test="${CNT_INFO.CNTRT_VAT_YN eq 'N'}">비대상</c:if>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="text-align: left;"><span>특기사항</span></th>
+                                <td style="padding-left: 15px;"><c:out value="${CNT_INFO.ETC_COND_ETC}" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+            </c:if>
+            
+            <c:if test="${CNT_INFO.CNTRT_MOD eq 'C'}">
+                
+                <div class="section3 scrolls">
+	                <div class="sub-tit first" id="section1">
+	                    <h4>계약정보</h4>
+	                </div>
+	                <table  id="basicInfo" class="table-style">
+	                    <colgroup>
+	                        <col style="width: 20%;">
+	                        <col>
+	                        <col>
+	                    </colgroup>
+	                    <tbody>
+	                        <tr>
+	                           <td></td>
+	                           <td style="text-align:center;">변경전</td>
+	                           <td style="text-align:center;">변경후</td>
+	                        </tr>
+	                        <tr>
+	                           <th style="text-align: left;">계약기간</th>
+	                           <td style="text-align:center;"><c:out value="${OLD_CNT_INFO.CNTRT_START_YMD }" /><em> ~ </em><c:out value="${OLD_CNT_INFO.CNTRT_END_YMD }" /></td>
+	                           <td style="text-align:center;"><c:out value="${CNT_INFO.CNTRT_START_YMD }" /><em> ~ </em><c:out value="${CNT_INFO.CNTRT_END_YMD }" /></td>
+	                        </tr>
+	                        <tr>
+	                            <th style="text-align: left;"><span>지급조건</span></th>
+	                            <td>
+	                                <c:if test="${OLD_CNT_INFO.CNTRT_COND_TYPE eq 'A' }" >
+	                                                                    선금 : <c:out value="${OLD_CNT_INFO.CHARGE_ITEM_000 }" />%<br>
+	                                                        납품시 : <c:out value="${OLD_CNT_INFO.CHARGE_ITEM_001 }" />%<br>
+	                                                        최종검수시 : <c:out value="${OLD_CNT_INFO.CHARGE_ITEM_003 }" />%<br>
+	                                                        유보금 : <c:out value="${OLD_CNT_INFO.CHARGE_ITEM_004 }" />%                  
+	                                </c:if>
+	                                <c:if test="${OLD_CNT_INFO.CNTRT_COND_TYPE eq 'B' }" >
+	                                                            선금 : <c:out value="${CNT_INFO.CHARGE_CNST_001 }" />%<br>
+	                                                            중도금(기성) : <c:out value="${OLD_CNT_INFO.CHARGE_CNST_002 }" />%<br>
+	                                                            중도금(확정) : <c:out value="${OLD_CNT_INFO.CHARGE_CNST_003 }" />%<br>
+	                                                            잔금 : <c:out value="${OLD_CNT_INFO.CHARGE_CNST_004 }" />%
+	                                                            유보금 : <c:out value="${OLD_CNT_INFO.CHARGE_CNST_005 }" />%
+	                                </c:if>
+	                                <c:if test="${OLD_CNT_INFO.CNTRT_COND_TYPE eq 'C' }" >
+	                                                                    선금 : <c:out value="${OLD_CNT_INFO.CHARGE_SRVC_001 }" />%<br>
+	                                                                중도금(기성) : <c:out value="${OLD_CNT_INFO.CHARGE_SRVC_002 }" />%<br>
+	                                                                중도금(확정) : <c:out value="${OLD_CNT_INFO.CHARGE_SRVC_003 }" />%<br>
+	                                                                잔금 : <c:out value="${OLD_CNT_INFO.CHARGE_SRVC_004 }" />%
+	                                                                유보금 : <c:out value="${OLD_CNT_INFO.CHARGE_SRVC_005 }" />%  
+	                                </c:if>
+	                            </td>
+	                            <td>
+	                               <c:if test="${CNT_INFO.CNTRT_COND_TYPE eq 'A' }" >
+                                                                        선금 : <c:out value="${CNT_INFO.CHARGE_ITEM_000 }" />%<br>
+		                                                        납품시 : <c:out value="${CNT_INFO.CHARGE_ITEM_001 }" />%<br>
+		                                                        최종검수시 : <c:out value="${CNT_INFO.CHARGE_ITEM_003 }" />%<br>
+		                                                        유보금 : <c:out value="${CNT_INFO.CHARGE_ITEM_004 }" />%                  
+		                                </c:if>
+		                                <c:if test="${CNT_INFO.CNTRT_COND_TYPE eq 'B' }" >
+		                                                            선금 : <c:out value="${CNT_INFO.CHARGE_CNST_001 }" />%<br>
+		                                                            중도금(기성) : <c:out value="${CNT_INFO.CHARGE_CNST_002 }" />%<br>
+		                                                            중도금(확정) : <c:out value="${CNT_INFO.CHARGE_CNST_003 }" />%<br>
+		                                                            잔금 : <c:out value="${CNT_INFO.CHARGE_CNST_004 }" />%
+		                                                            유보금 : <c:out value="${CNT_INFO.CHARGE_CNST_005 }" />%
+		                                </c:if>
+		                                <c:if test="${CNT_INFO.CNTRT_COND_TYPE eq 'C' }" >
+		                                                                    선금 : <c:out value="${CNT_INFO.CHARGE_SRVC_001 }" />%<br>
+		                                                                중도금(기성) : <c:out value="${CNT_INFO.CHARGE_SRVC_002 }" />%<br>
+		                                                                중도금(확정) : <c:out value="${CNT_INFO.CHARGE_SRVC_003 }" />%<br>
+		                                                                잔금 : <c:out value="${CNT_INFO.CHARGE_SRVC_004 }" />%
+		                                                                유보금 : <c:out value="${CNT_INFO.CHARGE_SRVC_005 }" />%  
+		                            </c:if>
+	                            </td>
+	                        </tr>
+	                        <tr>
+	                            <th style="text-align: left;"><span>보증조건</span></th>
+	                            <td>
+		                                                        계약이행보증 : <c:out value="${OLD_CNT_INFO.CNTRT_SEC_NM }" /><br>
+		                                                        선급금보증 : <c:out value="${OLD_CNT_INFO.CNTRT_SEC_P_NM }" /><br>
+		                                                        하자이행보증 : <c:out value="${OLD_CNT_INFO.CNTRT_SEC_F_NM }" /> 
+	                            </td>
+	                            <td>
+					                                계약이행보증 : <c:out value="${CNT_INFO.CNTRT_SEC_NM }" /><br>
+		                                                        선급금보증 : <c:out value="${CNT_INFO.CNTRT_SEC_P_NM }" /><br>
+		                                                        하자이행보증 : <c:out value="${CNT_INFO.CNTRT_SEC_F_NM }" /> 
+	                            </td>
+	                        </tr>
+	                        <tr>
+	                            <th style="text-align: left;"><span>부가세</span></th>
+	                            <td>
+	                                <c:if test="${OLD_CNT_INFO.CNTRT_VAT_YN eq 'Y'}">대상</c:if>
+	                                <c:if test="${OLD_CNT_INFO.CNTRT_VAT_YN eq 'N'}">비대상</c:if>
+	                            </td>
+	                            <td>
+	                                <c:if test="${CNT_INFO.CNTRT_VAT_YN eq 'Y'}">대상</c:if>
+                                    <c:if test="${CNT_INFO.CNTRT_VAT_YN eq 'N'}">비대상</c:if>
+	                            </td>
+	                        </tr>
+	                        <tr>
+	                            <th style="text-align: left;"><span>특기사항</span></th>
+	                            <td><c:out value="${OLD_CNT_INFO.ETC_COND_ETC}" /></td>
+	                            <td><c:out value="${CNT_INFO.ETC_COND_ETC}" /></td>
+	                        </tr>
+	                    </tbody>
+	                </table>
+	            </div>
+                
+            </c:if>
+            
+            <c:if test="${CNT_INFO.CNTRT_MOD eq 'C'}">
+                
+                <div class="section2 scrolls">
+                    <div class="sub-tit"  id="section3">
+                        <h4>이전 품목정보</h4>
+                    </div>
+                    <div>
+                        <table class="table-style">
+                            <colgroup>
+                                <col style="width:5%">
+                                <col style="width:10%">
+                                <col style="width:10%">
+                                <col>
+                                <col style="width:5%">
+                                <col style="width:7%">
+                                <col style="width:10%">
+                                <col style="width:10%">
+                                <col style="width:8%">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>SG</th>
+                                    <th>자재번호</th>
+                                    <th>자재명</th>
+                                    <th>수량</th>
+                                    <th>단위</th>
+                                    <th>단가</th>
+                                    <th>금액</th>
+                                    <th>통화</th>
+                                    <!-- <th>납품일</th> -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="ITEM" items="${OLD_ITEM_LIST}" varStatus="status">
+                                <tr>
+                                    <td style="text-align: center;">${status.index + 1 }</td>
+                                    <td>${ITEM.SRC_GRP_NM }</td>
+                                    <td style="text-align: center;">${ITEM.ITEM_CD}</td>
+                                    <td align="left">${ITEM.ITEM_NM }</td>
+                                    <td style="text-align: right;">${ITEM.ITEM_QTY }</td>
+                                    <td style="text-align: center;">${ITEM.ITEM_UNIT }</td>
+                                    <td style="text-align: right;">${ITEM.ITEM_PRICE }</td>
+                                    <td style="text-align: right;">${ITEM.ITEM_AMT }</td>
+                                    <td style="text-align: center;">${ITEM.ITEM_CURR }</td>
+                                    <%-- <td>${ITEM.DELY_DATE_TO }</td> --%>
+                                </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+            </c:if>
+                       
+            <div class="section2 scrolls">
+                <div class="sub-tit"  id="section3">
+                    <h4>품목정보</h4>
+                </div>
+                <div>
+                    <table class="table-style">
+                        <colgroup>
+                            <col style="width:5%">
+                            <col style="width:10%">
+                            <col style="width:10%">
+                            <col>
+                            <col style="width:5%">
+                            <col style="width:7%">
+                            <col style="width:10%">
+                            <col style="width:10%">
+                            <col style="width:8%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>SG</th>
+                                <th>자재번호</th>
+                                <th>자재명</th>
+                                <th>수량</th>
+                                <th>단위</th>
+                                <th>단가</th>
+                                <th>금액</th>
+                                <th>통화</th>
+                                <!-- <th>납품일</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="ITEM" items="${ITEM_LIST}" varStatus="status">
+                            <tr>
+                                <td style="text-align: center;">${status.index + 1 }</td>
+                                <td>${ITEM.SRC_GRP_NM }</td>
+                                <td style="text-align: center;">${ITEM.ITEM_CD}</td>
+                                <td align="left">${ITEM.ITEM_NM }</td>
+                                <td style="text-align: right;">${ITEM.ITEM_QTY }</td>
+                                <td style="text-align: center;">${ITEM.ITEM_UNIT }</td>
+                                <td style="text-align: right;">${ITEM.ITEM_PRICE }</td>
+                                <td style="text-align: right;">${ITEM.ITEM_AMT }</td>
+                                <td style="text-align: center;">${ITEM.ITEM_CURR }</td>
+                                <%-- <td>${ITEM.DELY_DATE_TO }</td> --%>
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <c:if test="${CNT_INFO.CNTRT_MOD eq 'C'}">
+            
+            <div class="section5 scrolls">
+                <div class="sub-tit">
+                    <h4>이전 구매계약서 첨부파일</h4>
+                    <input type="hidden" id="OLD_APP_SEQ_VENDOR" value="${OLD_CNT_INFO.APP_SEQ_VENDOR}">
+                </div>
+                <div id="fileUploadTableEtcOld" class="jqGridArea m_t5">
+                    <table class="table-style">
+                        <tbody>
+                            <tr>
+                                <th style="text-align: center;" width="10%">No</th>
+                                <th style="text-align: center;">파일명</th>
+                            </tr>
+                            <c:forEach var="FILE" items="${FILE_LIST3}" varStatus="status">
+                            <tr class="F_File_ROW">
+                                <td style="text-align: center;">${status.count}</td>
+                                <td class="t_left">
+                                <a href="${URL_IN}/download.do?APP_SEQ=${FILE.APP_SEQ}&amp;ATTACHMENT_SEQ=${FILE.ATTACHMENT_SEQ}" title="${FILE.FILE_NAME}" style="color:blue;" download="${FILE.FILE_NAME}">${FILE.FILE_NAME}</a></td>
+                                <!-- <td class="t_center">2019-12-12</td>
+                                <td class="t_right">0.06 KB</td> -->
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            </c:if>
+            
+            <div class="section5 scrolls">
+                <div class="sub-tit">
+                    <h4>구매계약서 첨부파일</h4>
+                    <input type="hidden" id="APP_SEQ_VENDOR" value="${CNT_INFO.APP_SEQ_VENDOR}">
+                </div>
+                <div id="fileUploadTableEtc" class="jqGridArea m_t5">
+                    <table class="table-style">
+                        <tbody>
+                            <tr>
+                                <th style="text-align: center;" width="10%">No</th>
+                                <th style="text-align: center;">파일명</th>
+                            </tr>
+                            <c:forEach var="FILE" items="${FILE_LIST1}" varStatus="status">
+                            <tr class="F_File_ROW">
+                                <td style="text-align: center;">${status.count}</td>
+                                <td class="t_left">
+                                <a href="${URL_IN}/download.do?APP_SEQ=${FILE.APP_SEQ}&amp;ATTACHMENT_SEQ=${FILE.ATTACHMENT_SEQ}" title="${FILE.FILE_NAME}" style="color:blue;" download="${FILE.FILE_NAME}">${FILE.FILE_NAME}</a></td>
+                                <!-- <td class="t_center">2019-12-12</td>
+                                <td class="t_right">0.06 KB</td> -->
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <c:if test="${CNT_INFO.CNTRT_MOD eq 'C'}">
+            
+            <div class="section5 scrolls">
+                <div class="sub-tit">
+                    <h4>이전 내부보고 및 증빙 첨부파일</h4>
+                    <input type="hidden" id="OLD_ATT_FILE_NO" value="${OLD_CNT_INFO.ATT_FILE_NO}">
+                </div>
+                <div id="fileUploadTableInnerOld" class="jqGridArea m_t5">
+                    <table class="table-style">
+                        <tbody>
+                            <tr>
+                                <th style="text-align: center;" width="10%">No</th>
+                                <th style="text-align: center;">파일명</th>
+                            </tr>
+                            <c:forEach var="FILE" items="${FILE_LIST4}" varStatus="status">
+                            <tr class="F_File_ROW">
+                                <td style="text-align: center;">${status.count}</td>
+                                <td class="t_left">
+                                <a href="${URL_IN}/download.do?APP_SEQ=${FILE.APP_SEQ}&amp;ATTACHMENT_SEQ=${FILE.ATTACHMENT_SEQ}" title="${FILE.FILE_NAME}" style="color:blue;" download="${FILE.FILE_NAME}">${FILE.FILE_NAME}</a></td>
+                                <!-- <td class="t_center">2019-12-12</td>
+                                <td class="t_right">0.06 KB</td> -->
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            </c:if>
+            
+            <div class="section5 scrolls">
+                <div class="sub-tit">
+                    <h4>내부보고 및 증빙 첨부파일</h4>
+                    <input type="hidden" id="ATT_FILE_NO" value="${CNT_INFO.ATT_FILE_NO}">
+                </div>
+                <div id="fileUploadTableInner" class="jqGridArea m_t5">
+                    <table class="table-style">
+                        <tbody>
+                            <tr>
+                                <th style="text-align: center;" width="10%">No</th>
+                                <th style="text-align: center;">파일명</th>
+                            </tr>
+                            <c:forEach var="FILE" items="${FILE_LIST2}" varStatus="status">
+                            <tr class="F_File_ROW">
+                                <td style="text-align: center;">${status.count}</td>
+                                <td class="t_left">
+                                <a href="${URL_IN}/download.do?APP_SEQ=${FILE.APP_SEQ}&amp;ATTACHMENT_SEQ=${FILE.ATTACHMENT_SEQ}" title="${FILE.FILE_NAME}" style="color:blue;" download="${FILE.FILE_NAME}">${FILE.FILE_NAME}</a></td>
+                                <!-- <td class="t_center">2019-12-12</td>
+                                <td class="t_right">0.06 KB</td> -->
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+        <!-- //popCont -->
+    </div>
+<script>
+
+<c:if test="${CNT_INFO.CNTRT_MOD eq 'C'}">
+
+//첨부파일 조회
+function fnInitFileUploadOld() {
+    if ($("#OLD_APP_SEQ_VENDOR").val() != "") {
+        displayFileUpload({
+            KEY_ID : 'OLD_APP_SEQ_VENDOR',
+            DATA_FORMAT : 'table',
+            CALLBACK : 'fnFileUploadCallbackOld'
+        });
+    }
+}
+
+//파일 업로드 콜백함수
+function fnFileUploadCallbackOld(data) {
+    $("#fileUploadTableEtcOld").empty().html(data);
+}
+
+</c:if>
+
+//첨부파일 조회
+function fnInitFileUpload() {
+    if ($("#APP_SEQ_VENDOR").val() != "") {
+        displayFileUpload({
+            KEY_ID : 'APP_SEQ_VENDOR',
+            DATA_FORMAT : 'table',
+            CALLBACK : 'fnFileUploadCallback'
+        });
+    }
+}
+
+//파일 업로드 콜백함수
+function fnFileUploadCallback(data) {
+    $("#fileUploadTableEtc").empty().html(data);
+}
+
+//내부 증빙 및 첨부 파일
+<c:if test="${CNT_INFO.CNTRT_MOD eq 'C'}">
+
+//첨부파일 조회
+function fnInitFileUploadInnerOld() {
+    if ($("#OLD_ATT_FILE_NO").val() != "") {
+        displayFileUpload({
+            KEY_ID : 'OLD_ATT_FILE_NO',
+            DATA_FORMAT : 'table',
+            CALLBACK : 'fnFileUploadCallbackInnerOld'
+        });
+    }
+}
+
+//파일 업로드 콜백함수
+function fnFileUploadCallbackInnerOld(data) {
+    $("#fileUploadTableInnerOld").empty().html(data);
+}
+
+</c:if>
+
+//첨부파일 조회
+function fnInitFileUploadInner() {
+    if ($("#ATT_FILE_NO").val() != "") {
+        displayFileUpload({
+            KEY_ID : 'ATT_FILE_NO',
+            DATA_FORMAT : 'table',
+            CALLBACK : 'fnFileUploadCallbackInner'
+        });
+    }
+}
+
+//파일 업로드 콜백함수
+function fnFileUploadCallbackInner(data) {
+    $("#fileUploadTableInner").empty().html(data);
+}
+
+</script>
+</body>

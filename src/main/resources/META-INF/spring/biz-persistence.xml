@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		
+	<!-- ========================= Transaction DEFINITIONS ======================== -->
+ 	<!-- <tx:annotation-driven transaction-manager="transactionManager" />  -->
+ 	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*" rollback-for="Exception"/>
+			
+			<tx:method name="insert*"      propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="create*"      propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="update*"      propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="upload*"      propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="delete*"      propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="upsert*"      propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="merge*"       propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="save*"        propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="process*"     propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="process"      propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="perform*"     propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="call*"        propagation="REQUIRED" rollback-for="Exception" />
+			
+			<tx:method name="regist*"      propagation="REQUIRED" rollback-for="Exception" />
+            <tx:method name="change*"      propagation="REQUIRED" rollback-for="Exception" />
+            <tx:method name="cancel*"      propagation="REQUIRED" rollback-for="Exception" />
+            <tx:method name="end*"         propagation="REQUIRED" rollback-for="Exception" />
+            <tx:method name="submit*"      propagation="REQUIRED" rollback-for="Exception" />
+            <tx:method name="send*"        propagation="REQUIRED" rollback-for="Exception" />
+            <tx:method name="request*"     propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="accept*"      propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="receipt*"     propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="confirm*"     propagation="REQUIRED" rollback-for="Exception" />
+            <tx:method name="agree*"       propagation="REQUIRED" rollback-for="Exception" />
+            <tx:method name="return*"      propagation="REQUIRED" rollback-for="Exception" />
+            <tx:method name="acknowledge*" propagation="REQUIRED" rollback-for="Exception" />
+            
+			<tx:method name="select*"      propagation="REQUIRED" read-only="true" />
+			<tx:method name="get*"         propagation="REQUIRED" read-only="true" />
+			<tx:method name="set*"         propagation="REQUIRED" read-only="true" />
+			<tx:method name="find*"        propagation="REQUIRED" read-only="true" />
+			
+			<tx:method name="processJCoExecute" propagation="REQUIRES_NEW" no-rollback-for="Exception"/>
+			
+			<tx:method name="*" propagation="REQUIRED" read-only="true" />			
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- ========================= transactionManager DEFINITIONS ======================== -->
+	<!-- for XA <bean id="transactionManager" class="org.springframework.transaction.jta.JtaTransactionManager" />  -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+		
+	<!-- ========================= sqlMapClientTemplate DEFINITIONS ======================== -->
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate"  destroy-method="clearCache">
+		<constructor-arg index="0">
+			<bean class="com.app.ildong.common.util.RefreshableSqlSessionFactoryBean">
+				<property name="dataSource" ref="dataSource" />
+				<property name="configLocation" value="classpath:/META-INF/sqlmap/config/mybatis-config.xml"/>
+				<property name="mapperLocations" value="classpath:/META-INF/sqlmap/${dbms.kind}/com/**/*Mapper.xml" />
+				<property name="interval" value="500" />
+			</bean>
+		</constructor-arg>
+	</bean>
+	
+	<bean id="sqlSessionTemplate2" class="org.mybatis.spring.SqlSessionTemplate"  destroy-method="clearCache">
+		<constructor-arg index="0">
+			<bean class="com.app.ildong.common.util.RefreshableSqlSessionFactoryBean">
+				<property name="dataSource" ref="dataSource2" />
+				<property name="configLocation" value="classpath:/META-INF/sqlmap/config/mybatis-config.xml"/>
+				<property name="mapperLocations" value="classpath:/META-INF/sqlmap/${dbms.kind}/interface/**/*Mapper.xml" />
+				<property name="interval" value="500" />
+			</bean>
+		</constructor-arg>
+	</bean>	
+	
+	<bean id="sqlSessionTemplate3" class="org.mybatis.spring.SqlSessionTemplate"  destroy-method="clearCache">
+		<constructor-arg index="0">
+			<bean class="com.app.ildong.common.util.RefreshableSqlSessionFactoryBean">
+				<property name="dataSource" ref="dataSource3" />
+				<property name="configLocation" value="classpath:/META-INF/sqlmap/config/mybatis-config.xml"/>
+				<property name="mapperLocations" value="classpath:/META-INF/sqlmap/${dbms.kind}/interface/**/*Mapper.xml" />
+				<property name="interval" value="500" />
+			</bean>
+		</constructor-arg>
+	</bean>	
+	
+<!-- 	<bean id="sqlMapClientTemplate" class="org.springframework.orm.ibatis.SqlMapClientTemplate"> -->
+<!-- 		<property name="sqlMapClient"> -->
+<!-- 			<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean"> -->
+<!-- 				<property name="dataSource" ref="dataSource"/> -->
+<!-- 				<property name="configLocation" value="classpath:META-INF/persistence/ibatis/sql-map-config.xml"/> -->
+<!-- 			</bean> -->
+<!-- 		</property> -->
+<!-- 	</bean> -->
+</beans>

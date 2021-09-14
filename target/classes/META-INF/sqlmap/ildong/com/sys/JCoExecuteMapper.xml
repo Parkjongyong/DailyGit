@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.JCoLog">
+
+	<!-- 저장 -->
+    <insert id="insertJCoLog" parameterType="Map">
+    --JCoExecuteMapper.insertJCoLog
+    INSERT INTO JCO_LOG (
+          COMP_CD
+        , JCO_SEQ
+        , FUNCTION_NAME
+        , JCO_PARAMS
+        , START_DT
+    ) VALUES (
+          #{COMP_CD}
+        , SEQ_JCO_LOG.NEXTVAL
+        , #{FUNCTION_NAME}
+        , #{JCO_PARAMS}
+        , SYSDATE
+    ) 
+    <selectKey keyProperty="JCO_SEQ" resultType="int" order="AFTER">
+      <!-- SELECT LAST_INSERT_ID() FROM DUAL -->
+      SELECT MAX(JCO_SEQ) FROM JCO_LOG
+    </selectKey>
+    </insert>
+    
+    <update id="updateJCoLog" parameterType="Map">
+    --JCoExecuteMapper.updateJCoLog
+    UPDATE JCO_LOG
+       SET RESULT           = #{RESULT}
+         , RESULT_MSG       = #{RESULT_MSG}
+         , JCO_DATA         = #{JCO_DATA}
+         , END_DT           = SYSDATE
+     WHERE JCO_SEQ          = #{JCO_SEQ}
+    </update>
+    
+    <!-- RFC 호출 결과테이블 저장 -->
+    <insert id="insertJcoRetunLog" parameterType="Map">
+    --JCoExecuteMapper.insertJcoRetunLog
+    INSERT INTO JCO_RETURN_LOG(
+         JCO_SEQ     --JCO로그일련번호
+        ,RFC_NAME    --RFC명
+        ,TYPE        --메시지 유형: S 성공, E 오류, W 경고, I 정보, A 중단
+        ,CODE        --메시지 코드
+        ,MESSAGE     --메시지 텍스트
+        ,LOG_NO      --어플리케이션 로그: 로그 번호
+        ,LOG_MSG_NO  --어플리케이션 로그: 내부 메시지 일련 번호
+        ,MESSAGE_V1  --Message Variable
+        ,MESSAGE_V2  --Message Variable
+        ,MESSAGE_V3  --Message Variable
+        ,MESSAGE_V4  --Message Variable
+        ,REF_DATA1   --업무별참조값1
+        ,REF_DATA2   --업무별참조값2
+        ,REF_DATA3   --업무별참조값3
+        ,INS_DT      --저장일시
+    )
+    VALUES(
+         #{JCO_SEQ   }  --JCO로그일련번호
+        ,#{RFC_NAME  }  --RFC명
+        ,#{TYPE      }  --메시지 유형: S 성공, E 오류, W 경고, I 정보, A 중단
+        ,#{CODE      }  --메시지 코드
+        ,#{MESSAGE   }  --메시지 텍스트
+        ,#{LOG_NO    }  --어플리케이션 로그: 로그 번호
+        ,#{LOG_MSG_NO}  --어플리케이션 로그: 내부 메시지 일련 번호
+        ,#{MESSAGE_V1}  --Message Variable
+        ,#{MESSAGE_V2}  --Message Variable
+        ,#{MESSAGE_V3}  --Message Variable
+        ,#{MESSAGE_V4}  --Message Variable
+        ,#{REF_DATA1 }  --업무별참조값1
+        ,#{REF_DATA2 }  --업무별참조값2
+        ,#{REF_DATA3 }  --업무별참조값3
+        ,SYSDATE        --저장일시
+    )
+    </insert>
+    
+    <!-- RFC 호출 결과로그 목록조회 -->
+    <select id="selectJcoReturnLogList" parameterType="Map" resultType="Map">
+    --JCoExecuteMapper.selectJcoReturnLogList
+      SELECT JCO_SEQ     --JCO로그일련번호
+            ,RFC_NAME
+            ,TYPE        --메시지 유형: S 성공, E 오류, W 경고, I 정보, A 중단
+            ,CODE        --메시지 코드
+            ,MESSAGE     --메시지 텍스트
+            ,LOG_NO      --어플리케이션 로그: 로그 번호
+            ,LOG_MSG_NO  --어플리케이션 로그: 내부 메시지 일련 번호
+            ,MESSAGE_V1  --Message Variable
+            ,MESSAGE_V2  --Message Variable
+            ,MESSAGE_V3  --Message Variable
+            ,MESSAGE_V4  --Message Variable
+            ,REF_DATA1   --업무별참조값1
+            ,REF_DATA2   --업무별참조값2
+            ,REF_DATA3   --업무별참조값3
+            ,TO_CHAR(INS_DT,'YYYY-MM-DD HH24:MI:SS') AS INS_DT      --저장일시
+       FROM JCO_RETURN_LOG
+      WHERE 1 = 1
+          <if test="JCO_SEQ != null and JCO_SEQ != ''">
+          AND JCO_SEQ = #{JCO_SEQ}
+          </if>
+          <if test="REF_DATA1 != null and REF_DATA1 != ''">
+          AND REF_DATA1 = #{REF_DATA1}
+          </if>
+          <if test="REF_DATA2 != null and REF_DATA2 != ''">
+          AND REF_DATA2 = #{REF_DATA2}
+          </if>
+          <if test="REF_DATA3 != null and REF_DATA3 != ''">
+          AND REF_DATA3 = #{REF_DATA3}
+          </if>
+    </select>
+	
+	
+</mapper>

@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.inf.InfJoinMgmt">
+
+
+	<!-- 협력업체 정보 아이디 정보 생성  ( V + yyyymmdd + 5자리 id max  )-->
+	<select id="selectNewVendorInfoId" parameterType="Map" resultType="Map">
+	--InfJoinMgmtMapper.selectNewVendorInfoId
+		SELECT CONCAT('V' 
+						, CAST(TO_CHAR(SYSDATE ,'%Y%m%d') as char)
+						, LPAD(SUBSTR(MAX(VENDOR_ID), 10, 5) + 1 ,5,'0' ) 
+					  ) AS NEW_VENDOR_INFO_ID
+		 FROM VENDOR_MASTER
+	
+	</select>
+
+	<!-- 협력업체 정보 입력 -->
+	<insert id="insertVndInfo" parameterType="Map">
+	--InfJoinMgmtMapper.insertVndInfo
+	INSERT
+	INTO	VENDOR_MASTER (
+			VENDOR_ID						/* 협력업체 정보 아이디 */
+		,	VENDOR_TYPE						/* 회원구분 */
+		,	REG_NO							/* 사업자 등록번호 */
+		,	VENDOR_NM
+		<if test="T_VENDOR_ID_TYPE == 'B'.toString() ">
+		,	CORP_NO							/* 법인사업자일경우에 법인번호 입력 */
+		,	CORP_NM							/* 법인 명 */
+		</if>
+		,	REPRE_NM						/* 대표자명 */
+		,	REPRE_PHN_NO					/* 대표 전화번호 */
+		,	REPRE_FAX_NO					/* 대표 팩스번호 */
+		,	POST_NO							/* 우편번호 */		
+		,	ADDR_1							/* 주소 1 */
+		,	ADDR_2							/* 주소 2 */
+		,	FOUND_YMD						/* 설립일자 */
+		,	BUSICDT							/* 업태 */
+		,	IND								/* 업종 */
+		,	MAIN_DEAL_ITEM					/* 주요 취급품목 및 서비스 */
+		,	HOMEPAGE						/* 홈페이지 */
+		,	BIZ_SIZE						/* 기업규모 */
+		,	INS_ID							/* 등록자 ID */
+		,	INS_NM							/* 등록자 명 */
+		,	INS_DT							/* 등록일 */
+	) VALUES (
+			#{VENDOR_INFO_ID}
+		,	#{T_VENDOR_ID_TYPE}
+		,	#{T_POBUSI_REG_NO}
+		,	#{T_POBUSI_NM}
+		<if test="T_VENDOR_ID_TYPE == 'B'.toString() ">
+		,	#{T_CORP_NO}
+		,	#{T_CORP_NM}
+		</if>
+		,	#{T_REPRE_NM}
+		,	#{T_REPRE_PHN_NO}
+		,	#{T_REPRE_FAX_NO}
+		,	#{T_POST_NO}
+		,	#{T_LINK_ADDR_1}
+		,	#{T_LINK_ADDR_2}
+		,	#{T_FOUND_DATE}
+		,	#{T_BUSICDT}
+		,	#{T_IND}
+		,	#{T_MAIN_DEAL_ITEM}
+		,	#{T_HOMEPAGE}
+		,	#{S_BIZ_SIZE}
+		,	LOWER ( #{T_USER_ID} )
+		,	#{T_USER_NAME}
+		,	SYSDATE 
+		
+	)
+	</insert>
+	
+	<!--  사용자 정보 입력 -->
+	<insert id="insertRepUserInfo" parameterType="Map">
+	--InfJoinMgmtMapper.insertRepUserInfo
+	INSERT
+	INTO	VENDOR_USERS (
+			VENDOR_ID						/* 업체ID */
+		,	USER_ID								/* 사용자 ID */
+		,	BIZ_ID_TYPE							/* 사업자ID구분(S:대표ID, I:일반ID) */ 
+		,	PASSWORD							/* 비밀번호 */
+		,	USER_NAME							/* 사용자명 */
+		,	PHONE_NO							/* 연락처 */
+		,	EMAIL								/* 이메일 */
+		,	CELL_PHONE_NO						/* 휴대폰번호 */
+		,	FAX_NO								/* 팩스번호 */
+		,	OFPOS_NAME							/* 직위명 */
+		,	RSPOF_NAME							/* 담당업무 */
+		,	INFO_AGREE_DATE						/* 개인정보 동의 일자 */
+		,	INFO_AGREE_YN						/* 개인정보 동의 여부 */
+		,	TERMS_AGREE_DATE					/* 약관 동의 일자 */
+		,	TERMS_AGREE_YN						/* 약관 동의 여부 */
+		,	DEL_YN								/* 삭제여부 */
+		,	INS_ID
+		,	INS_NM
+		,	INS_DT
+		,	PWD_MOD_DATE						/* 비밀번호수정일시 */
+		,	TERMS3_AGREE_YN						/* 제3자 정보제공 동의 여부 */
+		,	TERMS3_AGREE_DATE					/* 제3자 정보제공 동의 일자 */
+		,	AGREE_YN							/* 공정거래 동의 여부 */
+		,	AGREE_DATE							/* 공정거래 동의 여부 일자 */
+		,	STATUS								/* 승인상태(R:승인요청, S:승인완료, N:승인거부, D:사용정지, E:삭제) */
+	) VALUES (
+			#{VENDOR_INFO_ID}
+		,	LOWER ( #{T_USER_ID} )
+		,	#{T_BIZ_ID_TYPE}					/* 사업자 ID구분 아이디 */
+		,	#{T_PASSWORD}
+		,	#{T_USER_NAME}
+		,	#{T_PHONE_NO}
+		,	#{T_EMAIL}
+		,	#{T_CELL_PHONE_NO}
+		,	#{T_FAX_NO}
+		,	#{T_OFPOS_NAME}
+		,	#{T_RSPOF_NAME}
+		,	SYSDATE
+		,	'Y'
+		,	SYSDATE
+		,	'Y'
+		,	'N'
+		,	LOWER ( #{T_USER_ID} )
+		,	#{T_USER_NAME}
+		,	SYSDATE 
+		,	SYSDATE 
+		,	#{T_TERMS3_AGREE_YN}
+		,	SYSDATE 
+		,	'Y'
+		,	SYSDATE
+		,	#{T_STATUS}
+		
+	)
+	</insert>
+	
+	
+	
+	<!-- 공급업체 상세 정보 입력 -->
+	<insert id="insertVndDetailInfo" parameterType="Map">
+	--InfJoinMgmtMapper.insertVndDetailInfo
+	INSERT
+	INTO	VENDOR_MASTER_ENTRY (
+			VENDOR_ID						/* 업체ID */
+		,	BZNO								/* 사업자번호 */
+		,	IS_RELATIVE							/* 관계사 여부 */
+		,	VD_REG_DATE							/* 공급업체 등록일자 */
+		,	ATT_FILE_INTRO						/* 첨부파일 회사소개서 */
+		,	ATT_FILE_ID							/* 첨부파일 사업자등록증 */
+		,	ATT_FILE_ITEM_INTRO					/* 첨부파일 제품소개서 */
+		,	ATT_FILE_CON						/* 첨부파일 공사면허증 */
+		,	ATT_FILE_RECORD						/* 첨부파일 실적증명서 */
+		,	ATT_FILE_CERDIT						/* 첨부파일 신용평가서 */
+		,	ATT_FILE							/* 첨부파일 기타첨부 */
+		,	VD_REG_TYPE							/* 공급업체 등록유형 (VND014 : 10 : 가입업체, 20 : 등록업체) */
+		,	CREDIT_GRD							/* 신용등급(신용평가 보고서 등록 시 최신 등급 반영) */
+		,	CREDIT_DATE							/* 신용등급 만료일자 */
+		,	CREDIT_ORG							/* 신용평가 기관명 */
+		,	INS_ID							/* 등록자 아이디 */
+		,	INS_NM							/* 등록자명 */
+		,	INS_DT							/* 등록일시 */
+	) VALUES (
+			#{VENDOR_INFO_ID}
+		,	#{T_POBUSI_REG_NO}
+		,	'N'
+		,	SYSDATE
+		,	#{T_ATT_FILE_INTRO}
+		,	#{T_ATT_FILE_ID}
+		,	#{T_ATT_FILE_ITEM_INTRO}
+		,	#{T_ATT_FILE_CON}	
+		,	#{T_ATT_FILE_RECORD}
+		,	#{T_ATT_FILE_CERDIT}
+		,	#{APP_SEQ}
+		,	'10'
+		,	#{T_CREDIT_GRD}
+		,	#{T_CREDIT_DATE}
+		,	#{T_CREDIT_ORG}
+		,	LOWER ( #{T_USER_ID} )
+		,	#{T_USER_NAME}
+		,	SYSDATE 
+	)
+	</insert>
+	
+	
+	<!-- 대표사용자 권한 정보 입력 -->
+	<insert id="insertRepUserRole" parameterType="Map">
+	--InfJoinMgmtMapper.insertRepUserRole
+	INSERT
+	INTO	SYS_USER_ROLE (
+			USER_ID
+		,	ROLE_CD
+		,	INS_ID
+		,	INS_DT
+	) VALUES (
+		
+			LOWER ( #{T_USER_ID} )
+		,	'R800'					/* 파트너 일반권한 'R801'  , 대표권한 'R800' */
+		,	LOWER ( #{T_USER_ID} )
+		,	SYSDATE 
+	)
+	</insert>
+	
+	
+	<!-- 사업자번호 중복조회  -->
+	<select id="selectVndPrnDupChk" parameterType="Map" resultType="Map">
+	--InfJoinMgmtMapper.selectVndPrnDupChk
+		SELECT  COUNT(REG_NO) AS CNT
+		 FROM  VENDOR_MASTER VND
+		WHERE  1=1
+		  AND  VND.REG_NO  			= TRIM( REPLACE( #{T_POBUSI_REG_NO} , '-', '') )
+	
+	</select>
+
+	<!-- 사업자번호 탈퇴여부 -->
+	<select id="selectVndPrnDelChk" parameterType="Map" resultType="Map">
+	--InfJoinMgmtMapper.selectVndPrnDelChk
+		SELECT  VENDOR_ID AS VENDOR_INFO_ID
+		       ,DEL_YN
+		  FROM  VENDOR_MASTER VND
+		 WHERE  1=1
+		   AND  VND.REG_NO  			= TRIM( REPLACE( #{T_POBUSI_REG_NO} , '-', '') )
+	
+	</select>
+	
+	
+	
+	
+	<!-- 협력업체 정보 수정 -->
+	<update id="updateVndInfo" parameterType="Map">
+	--InfJoinMgmtMapper.updateVndInfo
+	UPDATE  VENDOR_MASTER VND
+	   SET  VND.VENDOR_TYPE				= #{T_VENDOR_ID_TYPE}					/* 회원구분 */
+	       ,VND.VENDOR_NM				= #{T_POBUSI_NM}						/* 사업자명 */
+	       <if test="T_VENDOR_ID_TYPE == 'B'.toString() ">
+	       ,VND.CORP_NO					= #{T_CORP_NO}							/* 법인사업자일경우에 법인번호 입력 */
+	       ,VND.CORP_NM					= #{T_CORP_NM}							/* 법인 명 */
+	       </if>
+	       ,VND.REPRE_NM				= #{T_REPRE_NM}							/* 대표자명 */
+	       ,VND.REPRE_PHN_NO			= #{T_REPRE_PHN_NO}						/* 대표 전화번호 */
+	       ,VND.REPRE_FAX_NO			= #{T_REPRE_FAX_NO}						/* 대표 팩스번호 */
+	       ,VND.POST_NO					= #{T_POST_NO}							/* 우편번호 */	
+	       ,VND.ADDR_1					= #{T_LINK_ADDR_1}						/* 주소 1 */
+	       ,VND.ADDR_2					= #{T_LINK_ADDR_2}						/* 주소 2 */
+	       ,VND.FOUND_YMD				= #{T_FOUND_DATE}						/* 설립일자 */
+	       ,VND.BUSICDT					= #{T_BUSICDT}							/* 업태 */
+	       ,VND.IND						= #{T_IND}								/* 업종 */
+	       ,VND.MAIN_DEAL_ITEM		= #{T_MAIN_DEAL_ITEM}					/* 주요 취급품목 및 서비스 */
+	       ,VND.HOMEPAGE				= #{T_HOMEPAGE}							/* 홈페이지 */
+	       ,VND.BIZ_SIZE				    = #{S_BIZ_SIZE}							/* 기업규모 */
+	       ,VND.MOD_ID					= LOWER ( #{T_USER_ID} )	/* 수정자 ID */
+	       ,VND.MOD_NM					= #{T_USER_NAME}				/* 수정자 명 */
+	       ,VND.MOD_DT					= SYSDATE                         /* 수정일 */
+	       ,VND.DEL_YN					= 'N'									/* 삭제여부 */
+	 WHERE  1=1
+	   AND  VND.VENDOR_ID	= #{VENDOR_INFO_ID}						/* 기존 협력업체 아이디 */
+	   AND  VND.REG_NO		= #{T_POBUSI_REG_NO}					/* 사업자 등록번호 */
+	
+	</update>
+	
+	
+	
+	<!-- 공급업체 상세 정보 수정 -->
+	<update id="updateVndDetailInfo" parameterType="Map">
+	--InfJoinMgmtMapper.updateVndDetailInfo
+	UPDATE  VENDOR_MASTER_ENTRY LPM
+	   SET  LPM.IS_RELATIVE				= 'N'										/* 관계사여부 */
+	       ,LPM.VD_REG_DATE				=  SYSDATE                   		/* 공급업체 등록일자 */
+	       ,LPM.ATT_FILE_INTRO			= #{T_ATT_FILE_INTRO}						/* 첨부파일 회사소개서 */
+	       ,LPM.ATT_FILE_ID				= #{T_ATT_FILE_ID}							/* 첨부파일 사업자등록증 */
+	       ,LPM.ATT_FILE_ITEM_INTRO		= #{T_ATT_FILE_ITEM_INTRO}					/* 첨부파일 제품소개서 */
+	       ,LPM.ATT_FILE_CON			= #{T_ATT_FILE_CON}							/* 첨부파일 공사면허증 */
+	       ,LPM.ATT_FILE_RECORD			= #{T_ATT_FILE_RECORD}						/* 첨부파일 실적증명서 */
+	       ,LPM.ATT_FILE_CERDIT			= #{T_ATT_FILE_CERDIT}						/* 첨부파일 신용평가서 */
+	   	   ,LPM.ATT_FILE				= #{APP_SEQ}								/* 첨부파일 기타첨부 */
+	   	   ,LPM.VD_REG_TYPE				= '10'										/* 공급업체 등록유형 (VND014 : 10 : 가입업체, 20 : 등록업체) */
+	   	   ,LPM.CREDIT_GRD				= #{T_CREDIT_GRD}							/* 신용등급(신용평가 보고서 등록 시 최신 등급 반영) */
+	   	   ,LPM.CREDIT_DATE				= #{T_CREDIT_DATE}							/* 신용등급 만료일자 */
+	   	   ,LPM.CREDIT_ORG				= #{T_CREDIT_ORG}							/* 신용평가 기관명 */
+	   	   ,LPM.MOD_ID				= LOWER ( #{T_USER_ID} )					/* 수정자 아이디 */
+	   	   ,LPM.MOD_NM				= #{T_USER_NAME}							/* 수정자_명 */
+	   	   ,LPM.MOD_DT				=  SYSDATE                           		   /* 수정일시 */
+	    WHERE  1=1
+	   AND  LPM.VENDOR_ID  = #{VENDOR_INFO_ID}								/* 기존 협력업체 아이디 */
+	   AND  LPM.BZNO			= #{T_POBUSI_REG_NO}								/* 사업자 등록번호 */
+	
+	</update>
+	
+	
+	<!-- 회원 ID 찾기  -->
+	<select id="selectFindUserId" parameterType="Map" resultType="Map">
+	--InfJoinMgmtMapper.selectFindUserId
+		SELECT	/* USER_ID */  
+				CONCAT(SUBSTR(USER_ID, 1, LENGTH(USER_ID) -3), '**', RIGHT(USER_ID, 1)) AS USER_ID
+		       ,EMAIL
+		       ,CELL_PHONE_NO
+		  FROM  VENDOR_USERS AS VND_USR
+		 WHERE  1=1
+		   AND  VND_USR.USER_NM  			= #{T_USER_NAME}
+		   AND  DEL_YN='N'
+		  <if test="S_FIND_METHOD == 'EMAIL' ">
+		   AND  VND_USR.EMAIL 				= #{T_FIND_EMAIL}
+		  </if>
+		  <if test="S_FIND_METHOD == 'PHONE' ">
+		   AND  VND_USR.CELL_PHONE_NO 		= #{T_FIND_PHONE_ID}
+		  </if>
+	
+	</select>
+
+	
+	<!-- 회원 PW 찾기  -->
+	<select id="selectFindUserPw" parameterType="Map" resultType="Map">
+	--InfJoinMgmtMapper.selectFindUserPw
+		SELECT  USER_ID
+		       ,EMAIL_ID
+		       ,MOBILE_NO
+		  FROM  SYS_USER AS ADM_USR
+		 WHERE  1=1
+		   AND  ADM_USR.USER_NM  			= #{T_USER_NAME2}
+		   AND  DEL_YN='N'
+		   AND  ADM_USR.USER_ID 			= LOWER(#{T_USER_ID})
+		  <if test="S_FIND_METHOD2 == 'EMAIL' ">
+		   AND  ADM_USR.EMAIL_ID 				= #{T_FIND_EMAIL2}
+		  </if>
+		  <if test="S_FIND_METHOD2 == 'PHONE' ">
+		   AND  ADM_USR.MOBILE_NO		= #{T_FIND_PHONE_PW}
+		  </if>
+	</select>
+	
+	
+	<!-- 사용자 랜덤비밀번호로 초기화 -->
+	<update id="updateResetUserPassword" parameterType="Map" >
+	--InfJoinMgmtMapper.updateResetUserPassword
+		UPDATE  SYS_USER ADM_USER
+		   SET  ADM_USER.PWD		= #{T_RANDOM_PASSWORD}							/* 랜덤 비밀번호 */
+		WHERE  1=1
+		   AND  DEL_YN='N'
+		   AND  ADM_USER.USER_NM  		= #{T_USER_NAME2}
+		   AND  ADM_USER.USER_ID  		= LOWER( #{T_USER_ID} )
+		   <if test="S_FIND_METHOD2 == 'EMAIL' ">
+		   AND  ADM_USER.EMAIL_ID		= #{T_FIND_EMAIL2}
+		  </if>
+		  <if test="S_FIND_METHOD2 == 'PHONE' ">
+		   AND  ADM_USER.MOBILE_NO 		= #{T_FIND_PHONE_PW}
+		  </if>
+	</update>
+	
+	
+	<!-- 가입된 공급업체 정보 조회 -->
+	<select id="selectJoinVndInfo" parameterType="Map" resultType="Map">
+	--InfJoinMgmtMapper.selectJoinVndInfo
+		SELECT   VND.VENDOR_ID AS VENDOR_INFO_ID				/* 협력업체 정보 아이디  */
+			   , VND.VENDOR_NM AS POBUSI_NM					/* 사업장 명*/
+			   , CONCAT(SUBSTR(VND.REG_NO, 1,3) , '-', SUBSTR(VND.REG_NO, 4,2), '-', SUBSTR(VND.REG_NO, 6,5))  AS POBUSI_REG_NO  			/* 사업자 등록 번호 */
+			   , VND.BIZ_SIZE					/* 기업규모 */
+			   , VND.CORP_NM					/* 법인_명 */
+			   , CONCAT(SUBSTR(VND.CORP_NO, 1,6), '-', SUBSTR(VND.CORP_NO, 7,7))  AS CORP_NO  	/* 법인_번호 */
+			   , VND.REPRE_NM					/* 대표자_명 */
+			   , VND.BUSICDT					/* 업태 */
+			   , VND.IND						/* 업종 */
+			   , VND.MAIN_DEAL_ITEM				/* 주요_취급_품목 */
+			   , VND.VENDOR_TYPE AS VENDOR_ID_TYPE				/* 회원구분 -> I:개인, P:개인사업자, B:법인사업자, F:외국인 */
+			   , (CASE VND.VENDOR_TYPE  
+	                WHEN 'I' THEN '개인'  
+	                WHEN 'P' THEN '개인사업자' 
+	                WHEN 'B' THEN '법인사업자' 
+	             END) AS VENDOR_ID_TYPE_NAME	/* 회원구분명 */
+	           , TO_CHAR(VND.INS_DT,'YYYY-MM-DD')	AS REG_DATE		/* 등록_일시 */
+	           , TO_CHAR(VND.FOUND_YMD,'YYYY-MM-DD') AS FOUND_DATE	/* 설립_일자 */
+	           , VND.RGNLOC_LOC AS POBUSI_RGNLOC_LOC			/* 사업장_소재_지역 */
+	           , VND.REPRE_FAX_NO				/* 대표_팩스_번호 */
+	           , SUBSTRING_INDEX(VND.REPRE_FAX_NO, '-', 1) 								AS REPRE_FAX_NO1
+			   , SUBSTRING_INDEX(SUBSTRING_INDEX(VND.REPRE_FAX_NO, '-', 2), '-', -1) 	AS REPRE_FAX_NO2
+			   , SUBSTRING_INDEX(VND.REPRE_FAX_NO, '-', -1) 							AS REPRE_FAX_NO3
+	           , VND.REPRE_PHN_NO				/* 대표_전화_번호 */
+	           , SUBSTRING_INDEX(VND.REPRE_PHN_NO, '-', 1) 								AS REPRE_PHN_NO1
+			   , SUBSTRING_INDEX(SUBSTRING_INDEX(VND.REPRE_PHN_NO, '-', 2), '-', -1) 	AS REPRE_PHN_NO2
+			   , SUBSTRING_INDEX(VND.REPRE_PHN_NO, '-', -1) 							AS REPRE_PHN_NO3
+	           , VND.HOMEPAGE					/* 홈페이지 */
+	           , VND.POST_NO					/* 우편번호 */
+	           , VND.ADDR_1 AS LINK_ADDR_1				/* 주소1 */
+	           , VND.ADDR_2 AS LINK_ADDR_2				/* 주소2 */
+	           , CONCAT('(', VND.POST_NO,') ',   VND.ADDR_1, ' ' , VND.ADDR_2) AS LINK_ADDR			/* 주소 */
+		  FROM  VENDOR_MASTER 			AS VND
+		 WHERE  1=1
+		   AND  VND.REG_NO	= TRIM( REPLACE( #{T_POBUSI_REG_NO} , '-', '') )
+	</select>
+
+
+
+</mapper>

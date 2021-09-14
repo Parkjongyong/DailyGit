@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.Draft">
+	<select id="selectDraft" parameterType="Map" resultType="Map">
+--com.bdg.Draft.selectDraft
+SELECT A.COMP_CD            COMP_CD         -- 회사코드
+      ,A.MAT_NUMBER         MAT_NUMBER      -- 자재코드(품목코드)
+      ,A.MAT_DESC           MAT_DESC        -- 자재내역(ERP코드명)
+      ,A.DRAFT_NO           DRAFT_NO        -- 화판번호
+      ,A.DRAFT_CHANGE_YN    DRAFT_CHANGE_YN -- 문안변경여부
+      ,A.CHANGE_DESC        CHANGE_DESC     -- 변경사유
+      ,A.CRE_DATE           CRE_DATE        -- 등록일자
+      ,A.CRE_USER           CRE_USER        -- 등록자ID
+      ,FUNC_GET_USER_NAME(A.CRE_USER) CRE_USER_NM --등록자명
+      ,A.MOD_DATE           MOD_DATE        -- 수정일자
+      ,A.MOD_USER           MOD_USER        -- 수정자ID
+      ,'R'                  CRUD
+  FROM MG_DESIGN_REGIST A
+ WHERE 1=1
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''"> 
+   AND A.COMP_CD   = #{SB_COMP_CD}
+</if>
+<if test="TB_MAT_DESC != null and TB_MAT_DESC != ''"> 
+   AND A.MAT_DESC  LIKE '%'|| #{TB_MAT_DESC} || '%'
+</if>
+<if test="SB_DRAFT_CHANGE_YN != null and SB_DRAFT_CHANGE_YN != ''"> 
+   AND A.DRAFT_CHANGE_YN = #{SB_DRAFT_CHANGE_YN}
+</if>
+<if test="TB_MAT_NUMBER1 != null and TB_MAT_NUMBER1 != ''">
+<![CDATA[
+AND A.MAT_NUMBER >= #{TB_MAT_NUMBER1}
+]]>
+</if>
+<if test="TB_MAT_NUMBER2 != null and TB_MAT_NUMBER2 != ''">
+<![CDATA[
+AND A.MAT_NUMBER <= #{TB_MAT_NUMBER2}
+]]>
+</if>
+  ORDER BY A.COMP_CD
+          ,A.MAT_NUMBER
+  </select>
+  
+  	
+<insert id="insertDraft" parameterType="Map">
+--com.bdg.Draft.insertDraft
+INSERT INTO MG_DESIGN_REGIST
+ (
+   COMP_CD         -- 회사코드         
+  ,MAT_NUMBER      -- 자재코드(품목코드)   
+  ,MAT_DESC        -- 자재내역(ERP코드명) 
+  ,DRAFT_NO        -- 화판번호         
+  ,DRAFT_CHANGE_YN -- 문안변경여부       
+  ,CHANGE_DESC     -- 변경사유         
+  ,CRE_DATE        -- 등록일자         
+  ,CRE_USER        -- 등록자ID        
+  ,MOD_DATE        -- 수정일자         
+  ,MOD_USER        -- 수정자ID        
+ ) VALUES (
+            #{COMP_CD}
+           ,#{MAT_NUMBER}
+           ,#{MAT_DESC}
+           ,#{DRAFT_NO}
+           ,#{DRAFT_CHANGE_YN}
+           ,#{CHANGE_DESC}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{MOD_USER}
+           )
+	</insert>
+
+	<update id="updateDraft" parameterType="map">
+--com.bdg.Draft.updateDraft
+UPDATE MG_DESIGN_REGIST
+   SET DRAFT_NO        = #{DRAFT_NO}
+      ,DRAFT_CHANGE_YN = #{DRAFT_CHANGE_YN}
+      ,CHANGE_DESC     = #{CHANGE_DESC}
+      ,MOD_USER        = #{MOD_USER}
+ WHERE COMP_CD    = #{COMP_CD}
+   AND MAT_NUMBER = #{MAT_NUMBER}
+	</update>
+  
+  	<delete id="delDraft" parameterType="map">
+--com.bdg.Draft.delDraft
+DELETE FROM MG_DESIGN_REGIST
+ WHERE COMP_CD    = #{COMP_CD}
+   AND MAT_NUMBER = #{MAT_NUMBER}
+	</delete>
+
+</mapper>

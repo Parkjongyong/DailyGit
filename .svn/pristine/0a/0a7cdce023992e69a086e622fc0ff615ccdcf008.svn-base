@@ -1,0 +1,126 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<%
+    String url = request.getParameter("URL_IN") == null ? "" : (String)request.getParameter("URL_IN");
+    
+    String TITLE       = "BP 변경 완료 알림";
+    
+    StringBuffer sb = new StringBuffer();
+    sb.append("BP 변경 요청이 완료되었습니다.").append("<br>");
+    sb.append("확인 바랍니다.").append("<br>");
+    
+    String CONTENTS = sb.toString();
+
+    String SUB_TITLE       = "BP 변경 완료 내용";
+    
+    String MAIL_NAME_1 = "BP 명";
+    String VND_NAME   = request.getParameter("VND_NAME") == null ? "" : (String)request.getParameter("VND_NAME");
+    String MAIL_NAME_2 = "등록유형";
+    String REG_TYPE_NM   = request.getParameter("REG_TYPE_NM") == null ? "" : (String)request.getParameter("REG_TYPE_NM");
+    String BEF_REG_TYPE_NM   = request.getParameter("BEF_REG_TYPE_NM") == null ? "" : (String)request.getParameter("BEF_REG_TYPE_NM");
+    
+    String LINK        = request.getParameter("LINK") == null ? "" : (String)request.getParameter("LINK");
+%>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title><%= TITLE %></title>
+<style>
+    .th_class { text-align:left; color:#222; font-size:14px; border-bottom:1px solid #d7d7d7; mso-padding-alt: 10px 10px 0 10px; padding: 10px 10px 10px 15px; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-weight:600; background-color:#f6f6f6;}
+    .td_class { text-align:left; color:#666; font-size:14px; border-left:1px solid #d7d7d7; border-bottom:1px solid #d7d7d7; mso-padding-alt: 10px 10px 0 10px; padding: 10px 10px 10px 10px;font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; }
+    .t_center { text-align:center !important; }
+</style>
+
+<script type="text/javascript">
+</script>
+</head>
+<body>
+    <!-- 메일폼 시작 -->
+    <table align="center" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td style="padding-bottom:15px;">
+                    <a href="#none"><img src="<%=url%>/resources/images/common/logo_email.png" align="middle"></a>
+                </td>
+            </tr>
+
+            <tr>
+                <td style=" width:760px; border:1px solid #d8d8d8; border-top:3px solid #d0112b; ">
+                    <table border="0" cellspacing="0" cellpadding="0" style="width:100%; padding:25px 60px 18px 60px; border-bottom:0;">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <p style="color:#222; font-weight:600; font-size:25px; letter-spacing:-2px; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; margin:0 0 0 0; margin-top:30px; padding-bottom:30px; border-bottom:1px solid #d9d9d9;">
+                                        [PARUCNC] <%= TITLE %>
+                                    </p>
+                                    <div style="line-height:30px; margin:40px 0 40px 0; color:#222; font-weight:500; font-size:15px; letter-spacing:-2px; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif;">
+                                        <%= CONTENTS %>
+                                    </div>
+                                    
+                                    <div style="margin:0 0 0 0;">
+                                        <p style="margin:0 0 15px 0; color:#444; font-size:15px; font-weight:600;"><%= SUB_TITLE %></p>
+                                        <table border="0" cellspacing="0" cellpadding="0" style="width:100%;  margin:0 0 10px 0; border-top:1px solid #d7d7d7;">
+                                            <tbody>
+                                                <tr>
+                                                    <th height="15" width="100" class="th_class"><%=MAIL_NAME_1%></th>
+                                                    <td height="15" width="450" class="td_class"><%=VND_NAME%></td>
+                                                </tr>
+                                                <tr>
+                                                    <th height="15" width="100" class="th_class"><%=MAIL_NAME_2%></th>
+                                                    <td height="15" width="450" class="td_class"><%=BEF_REG_TYPE_NM%> -> <%=REG_TYPE_NM%></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <table border="0" cellspacing="0" cellpadding="0" style="width:100%;">
+                                        <tbody>
+                                            <tr>
+                                                <td style="height:15px;"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    
+<!--                                     <div class="sub-tit"> -->
+<!--                                         <div class="t_center"> -->
+<!--                                             <button type="button" class="btn link" onClick="javascript:fnLink();">바로가기<em></em></button> -->
+<!--                                         </div> -->
+<!--                                     </div> -->
+<!--                                     <br/><br/> -->
+                                    
+                                    <table  border="0" cellspacing="0" cellpadding="0" style="width:100%;">
+                                        <tbody>
+                                            <tr>
+                                                <td style="color:#999; font-size:13px; 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-weight:500;">
+                                                    * 해당 메일은 발신 전용 메일로 회신되지 않습니다.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="height:45px;"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table border="0" cellspacing="0" cellpadding="0" style="width:100%; background-color:#fff;   border-top:1px solid #e9e9e9; padding:20px 60px;">
+                        <tbody>
+                            <tr>
+                                <td style="font-size:13px; color:#ccc; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif;">
+                                    COPYRIGHT ⓒ PARUCNC. ALL RIGHT RESERVED.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <!-- 메일폼 끝 -->
+</body>
+
+</html>

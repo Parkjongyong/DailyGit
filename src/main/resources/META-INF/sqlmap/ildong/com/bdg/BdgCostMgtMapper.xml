@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.CostMgt">
+	<select id="selectCostMgtList" parameterType="Map" resultType="Map">
+--com.bdg.CostMgt.selectCostMgtList
+SELECT COMP_CD   -- 회사코드
+      ,ORG_CD    -- 부서코드
+      ,CCTR_CD   -- 코스트센터
+      ,ORG_NM    -- 부서명칭
+      ,CCTR_NM   -- 코스트센터명칭
+      ,CRE_DATE  -- 등록일자
+      ,CRE_USER  -- 등록자ID
+      ,MOD_DATE  -- 수정일자
+      ,MOD_USER  -- 수정자ID
+      ,'R' CRUD
+  FROM CO_CCTR_MGMT
+ WHERE 1=1
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD = #{SB_COMP_CD}
+</if>		   
+<if test="TB_ORG_CD != null and TB_ORG_CD != ''">
+   AND ORG_CD = #{TB_ORG_CD}
+</if>		   
+<if test="TB_CCTR_NM != null and TB_CCTR_NM != ''">
+   AND CCTR_NM = #{TB_CCTR_NM}
+</if>		   
+ ORDER BY COMP_CD
+         ,ORG_CD
+         ,CCTR_CD
+	</select>
+	
+	
+	<select id="selectCostMgtListPop" parameterType="Map" resultType="Map">
+		--com.bdg.CostMgt.selectCostMgtListPop
+		SELECT A.COMP_CD                                 AS COMP_CD           -- 회사코드
+              ,A.CRTN_YMD                                AS CRTN_YMD          -- 작성일자
+              ,A.ORG_CD                                  AS ORG_CD            -- 부서코드
+              ,A.MAT_NUMBER                              AS MAT_NUMBER        -- 자재코드(품목코드)
+              ,B.MAT_DESC                                AS MAT_DESC          -- 자재내역(품목명)
+              ,'1'                                       AS CODEMAPPING1      -- 품목코드  팝업
+              ,A.REQ_SABUN                               AS REQ_SABUN         -- 신청사번
+              ,FUNC_GET_USER_NAME(A.REQ_SABUN)           AS REQ_SABUN_NM      -- 신청사원명
+              ,'1'                                       AS CODEMAPPING2      -- 신청사번  팝업
+              ,A.ORDER_TYPE                              AS ORDER_TYPE        -- 주문유형
+              ,A.RELEASE_REQ_YMD                         AS RELEASE_REQ_YMD   -- 출고요청일
+              ,A.DELIVERY_LOC                            AS DELIVERY_LOC      -- 납품처코드
+              ,''                                        AS DELIVERY_LOC_TXT  -- 납품처
+              ,'1'                                       AS CODEMAPPING3      -- 신청사번  팝업
+              ,A.REQUEST_QTY                             AS REQUEST_QTY       -- 수량
+              ,A.SAMPLE_AMT                              AS SAMPLE_AMT        -- 견본가
+              ,A.REQUEST_AMT                             AS REQUEST_AMT       -- 금액
+              ,A.JAEGO_QTY                               AS JAEGO_QTY         -- 품목재고
+              ,A.BUGT_AMT                                AS BUGT_AMT          -- 예산금액
+              ,A.RESULT_AMT                              AS RESULT_AMT        -- 실적금액
+              ,NVL(A.BUGT_AMT, 0) + NVL(A.RESULT_AMT, 0) AS TOTAL_AMT         -- 예산+실적 금액
+              ,A.STATUS                                  AS STATUS            -- 진행상태
+              ,A.SD_SEND_NO                              AS SD_SEND_NO        -- SD주문번호
+              ,A.SAP_SEND_YN                             AS SAP_SEND_YN       -- SAP전송여부
+              ,A.EPS_DOC_NO                              AS EPS_DOC_NO        -- 전자결재문서번호
+              ,A.REMARK                                  AS REMARK            -- 비고
+              ,A.CRE_DATE                                AS CRE_DATE          -- 등록일자
+              ,A.CRE_USER                                AS CRE_USER          -- 등록자ID
+              ,A.MOD_DATE                                AS MOD_DATE          -- 수정일자
+              ,A.MOD_USER                                AS MOD_USER          -- 수정자ID
+              ,'R'                                       AS CRUD              -- 행구분  
+              ,A.CCTR_CD                                 AS CCTR_CD           -- 코스트센터
+              ,A.PLANT_CD                                AS PLANT_CD          -- 플랜트              
+		  FROM SD_DEPT_SAMPLE A
+		      LEFT OUTER JOIN
+		       MAT_HEAD B
+		      ON B.MAT_NUMBER = A.MAT_NUMBER
+		 WHERE 1 = 1
+		   AND A.EPS_DOC_NO = #{TB_EPS_DOC_NO}
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YMD
+		        ,A.ORG_CD
+	</select>
+	
+    <update id="updateCostMgt" parameterType="Map">
+--com.bdg.CostMgt.updateCostMgt
+UPDATE CO_CCTR_MGMT
+   SET CCTR_NM = #{CCTR_NM}
+ WHERE COMP_CD = #{COMP_CD}
+   AND ORG_CD  = #{ORG_CD}
+   AND CCTR_CD = #{CCTR_CD}
+    </update>
+    
+    <insert id="insertCostMgt" parameterType="Map">
+--com.bdg.CostMgt.insertCostMgt
+INSERT INTO CO_CCTR_MGMT
+(
+  COMP_CD
+ ,ORG_CD
+ ,CCTR_CD
+ ,ORG_NM
+ ,CCTR_NM
+ ,CRE_DATE
+ ,CRE_USER
+ ,MOD_DATE
+ ,MOD_USER
+) VALUES (
+           #{COMP_CD}
+          ,#{ORG_CD}
+          ,#{CCTR_CD}
+          ,#{ORG_NM}
+          ,#{CCTR_NM}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{INS_ID}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{MOD_ID}          
+         )
+    </insert>
+    
+    <delete id="deleteCostMgt" parameterType="Map">
+--com.bdg.CostMgt.deleteCostMgt(건별삭제)
+DELETE FROM CO_CCTR_MGMT
+ WHERE 1 = 1
+   AND COMP_CD     = #{COMP_CD}
+   AND ORG_CD      = #{ORG_CD}
+   AND CCTR_CD     = #{CCTR_CD}
+    </delete>
+    
+</mapper>

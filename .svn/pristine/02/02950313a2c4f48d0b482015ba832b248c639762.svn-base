@@ -1,0 +1,20 @@
+WEBSSO_SSOSERVICE_URL=http://nsso.parucnc.co.kr:8080/nsso-authweb/webservices/ssoservice?wsdl
+WEBSSO_ENC_KEY=!ssoNetsConfigKeyabdefghijk
+WEBSSO_ENC_TYPE=AES128
+CHECKLOGON_VALUE=MEDIUM
+###########################################\ufffd\ufffd\ufffd\ufffd \ufffd\u03ba\ufffd ######################################
+SITESERVER_IP=10.150.47.244
+SITESERVER_DNS=devipro1.parucnc.co.kr
+###########################################\ufffd\ufffd\ufffd\ufffd \ufffd\u03ba\ufffd ######################################
+SSO_PROVIDER_DOMAIN=nsso.parucnc.co.kr
+SITESERVER_TIMEOUT=5000
+CLIENT_IP_CHECK_LEVEL=4
+SKIP_MOBILE_IP_CHECK=true
+SKIP_MOBILE_AGENT_VALUE=Mobile^Android^iPhone^iPad
+DEFAULT_BUFFER_TIME=0
+SUBMITNEXTURL_OPTION=script
+SCRIPT_OPTION=top
+SITE_ACCESS_DENIED_PAGE=http://jsp.nssod.com:9090/jsso-agent/denied.jsp
+#ProxyConfig
+PROXYPOLICY_USE=false
+PROXYPOLICY_INFO=mkdevx.nssod.com,80,/c002,SSO|mkdevx.nssod.com|80|X-Forwarded-For=10.74.196.10,10.74.196.11|X-Forwarded-Server|x-orig-uri#devx.nssod.com,80,/k002,SSO|devx.nssod.com|80|X-Forwarded-For=10.74.196.10,10.74.196.11|X-Forwarded-Server|x-orig-uri^mkdevx.nssod.co.kr,8080,/c002,SSO|mkdevx.nssod.co.kr|8080|X-Forwarded-For=10.74.196.10,10.74.196.11|X-Forwarded-Server|x-orig-uri#devx.nssod.co.kr,8080,/k002,SSO|devx.nssod.co.kr|8080|X-Forwarded-For=10.74.196.10,10.74.196.11|X-Forwarded-Server|x-orig-uri

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.InvoiceInfo">
+
+	<select id="selectInvoiceInfo" parameterType="Map" resultType="Map">
+--. 송장마감정보 조회
+SELECT SUBSTR(IV_DOC_DATE,0,6)                                                       IV_DOC_MON  -- 전기월
+      ,MAX(CURR_CD)                                                                  CURR_CD     -- 통화키
+      ,SUM(CASE WHEN DC_INDICATOR IS NULL THEN - IV_AMT     ELSE IV_AMT END)         IV_AMT      -- 송장금액(물대)
+      ,SUM(CASE WHEN DC_INDICATOR IS NULL THEN - IV_TAX_AMT ELSE IV_TAX_AMT END)     IV_TAX_AMT  -- 부가세
+      ,SUM(CASE WHEN DC_INDICATOR IS NULL THEN - IV_AMT_TOT ELSE IV_AMT_TOT END)     IV_AMT_TOT  -- 총 송장액
+      ,MAX(VENDOR_CD)                                                                VENDOR_CD   -- 업체코드
+      ,MAX(VENDOR_NM)                                                                VENDOR_NM   -- 업체명
+  FROM IV_HEAD
+ WHERE 1=1
+  <if test="TB_START_MON != null and TB_START_MON != ''">
+    <![CDATA[AND  SUBSTR(IV_DOC_DATE,0,6) >= REPLACE(#{TB_START_MON},'-','')]]>  
+  </if>
+  <if test="TB_END_MON != null and TB_END_MON != ''">
+    <![CDATA[AND  SUBSTR(IV_DOC_DATE,0,6) <= REPLACE(#{TB_END_MON},'-','')]]>
+  </if>
+  <if test="TB_VENDOR_CD != null and TB_VENDOR_CD != ''">
+    AND VENDOR_CD LIKE '%'|| #{TB_VENDOR_CD} || '%'
+  </if>
+  <if test="TB_VENDOR_NM != null and TB_VENDOR_NM != ''">
+    AND VENDOR_NM LIKE '%'|| #{TB_VENDOR_NM} || '%'
+  </if>
+  GROUP BY SUBSTR(IV_DOC_DATE,0,6)
+  ORDER BY SUBSTR(IV_DOC_DATE,0,6)
+	</select>
+	
+	
+	<select id="selectInvoiceInfoDetail" parameterType="Map" resultType="Map">
+		--. 마감상세현황 조회
+		SELECT A.*
+		      ,MOD(RANKING, 2)           ROW_GUBN
+		  FROM (
+				 SELECT DENSE_RANK() OVER(ORDER BY B.PO_NUMBER) AS RANKING --그룹별 순위
+				       ,A.IV_DOC_DATE                    IV_DOC_DATE     -- 전기일
+				       ,B.PO_NUMBER                      PO_NUMBER       -- 발주번호
+				       ,B.PO_SEQ                         PO_SEQ          -- 발주항번
+				       ,B.MAT_NUMBER                     MAT_NUMBER      -- 자재코드
+				       ,B.MAT_DESC                       MAT_DESC        -- 자재내역
+				       ,B.GR_DATE                        GR_DATE         -- 입고일
+				       ,A.TAX_BILL_NUMBER                TAX_BILL_NUMBER -- 세금계산서번호
+				       ,A.IV_NUMBER                      IV_NUMBER       -- 송장번호
+				       ,B.IV_SEQ                         IV_SEQ          -- 송장항번
+				       ,A.CURR_CD                        CURR_CD         -- 통화
+				       ,B.IV_UNIT_MEASURE                IV_UNIT_MEASURE -- 단위
+				       ,CASE 
+				          WHEN B.DC_INDICATOR = 'H' 
+				            THEN  -B.IV_QTY  
+				            ELSE   B.IV_QTY 
+				        END                              IV_QTY          -- 수량
+				       ,CASE 
+				          WHEN B.DC_INDICATOR = 'H' 
+				            THEN  -B.IV_AMT  
+				            ELSE   B.IV_AMT 
+				        END                              IV_AMT          -- 금액
+				       ,A.TAX_CD                         TAX_CD          -- 세금코드
+				       ,A.TAX_TXT                        TAX_TXT         -- 세금코드내역
+				   FROM IV_HEAD A
+				       LEFT OUTER JOIN
+				        IV_ITEM B
+				       ON    B.IV_NUMBER = A.IV_NUMBER 
+				         AND B.IV_YEAR   = A.IV_YEAR
+				 WHERE 1=1
+				  <if test="TB_VENDOR_CD != null and TB_VENDOR_CD != ''">
+				   AND A.VENDOR_CD = #{TB_VENDOR_CD}
+				  </if>
+				  <if test="TB_IV_DOC_MON != null and TB_IV_DOC_MON != ''">
+				   AND  IV_DOC_DATE LIKE #{TB_IV_DOC_MON} || '%'
+				  </if>
+		         ) A
+	       WHERE 1 = 1 
+           ORDER BY A.PO_NUMBER
+                   ,A.PO_SEQ 
+	</select>
+	
+	</mapper>

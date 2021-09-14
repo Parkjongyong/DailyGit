@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<tiles-definitions>
+
+    <definition name="default"
+        template="/WEB-INF/jsp/tiles/defaultLayout.jsp">  
+        <put-attribute name="title" value="ILDONG" />  
+        <put-attribute name="header" value="/WEB-INF/jsp/tiles/default/header.jsp" /> 
+        <put-attribute name="authority" value="/WEB-INF/jsp/tiles/default/authority.jsp" />
+        <put-attribute name="menu" value="/WEB-INF/jsp/tiles/default/menu.jsp" />  
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/default/body.jsp" />
+        <put-attribute name="footer" value="/WEB-INF/jsp/tiles/default/footer.jsp" />
+        <put-attribute name="script" value="/WEB-INF/jsp/tiles/default/script.jsp" />  
+    </definition>
+    
+    <definition name="main"
+        template="/WEB-INF/jsp/tiles/mainLayout.jsp">  
+        <put-attribute name="title" value="ILDONG" />  
+        <put-attribute name="header" value="/WEB-INF/jsp/tiles/main/header.jsp" /> 
+        <put-attribute name="authority" value="/WEB-INF/jsp/tiles/default/authority.jsp" />
+        <put-attribute name="menu" value="/WEB-INF/jsp/tiles/default/menu.jsp" />  
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/default/body.jsp" />
+        <put-attribute name="footer" value="/WEB-INF/jsp/tiles/main/footer.jsp" />
+        <put-attribute name="script" value="/WEB-INF/jsp/tiles/default/script.jsp" />  
+    </definition>
+    
+    <definition name="main2"
+        template="/WEB-INF/jsp/tiles/mainLayout2.jsp">  
+        <put-attribute name="title" value="ILDONG" />  
+        <put-attribute name="header" value="/WEB-INF/jsp/tiles/main/header.jsp" /> 
+        <put-attribute name="authority" value="/WEB-INF/jsp/tiles/default/authority.jsp" />
+        <put-attribute name="menu2" value="/WEB-INF/jsp/tiles/default/menu2.jsp" />  
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/default/body.jsp" />
+        <put-attribute name="footer" value="/WEB-INF/jsp/tiles/main/footer.jsp" />
+        <put-attribute name="script" value="/WEB-INF/jsp/tiles/default/script.jsp" />  
+    </definition>    
+    
+    <definition name="login"
+        template="/WEB-INF/jsp/tiles/loginLayout.jsp">  
+        <put-attribute name="title" value="ILDONG" />  
+        <put-attribute name="header" value="/WEB-INF/jsp/tiles/login/header.jsp" />
+        <put-attribute name="authority" value="/WEB-INF/jsp/tiles/default/authority.jsp" />
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/login/body.jsp" />
+        <put-attribute name="script" value="/WEB-INF/jsp/tiles/login/script.jsp" />  
+    </definition>
+    
+    <definition name="login2"
+        template="/WEB-INF/jsp/tiles/loginLayout2.jsp">  
+        <put-attribute name="title" value="ILDONG" />  
+        <put-attribute name="header" value="" />
+        <put-attribute name="authority" value="/WEB-INF/jsp/tiles/default/authority.jsp" />
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/login/body.jsp" />
+        <put-attribute name="script" value="/WEB-INF/jsp/tiles/login/script.jsp" />  
+    </definition>
+    
+    <definition name="blank"
+        template="/WEB-INF/jsp/tiles/blankLayout.jsp">  
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/default/body.jsp" />
+    </definition>
+    
+    <definition name="board"
+        template="/WEB-INF/jsp/tiles/boardLayout.jsp">  
+        <put-attribute name="authority" value="/WEB-INF/jsp/tiles/default/authority.jsp" />
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/default/body.jsp" />
+        <put-attribute name="script" value="/WEB-INF/jsp/tiles/default/script.jsp" />  
+    </definition>
+    
+    <definition name="noSessionBlank"
+        template="/WEB-INF/jsp/tiles/noSessionBlankLayout.jsp">  
+        <put-attribute name="title" value="ILDONG" />  
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/default/body.jsp" />
+    </definition>
+    
+    <definition name="popup"
+        template="/WEB-INF/jsp/tiles/popupLayout.jsp">  
+        <put-attribute name="title" value="ILDONG" />  
+        <put-attribute name="authority" value="/WEB-INF/jsp/tiles/default/authority.jsp" />
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/default/body.jsp" />
+        <put-attribute name="script" value="/WEB-INF/jsp/tiles/default/script.jsp" />  
+    </definition>
+    
+    <!-- 과거 ePro출력팝업 화면용 -->
+    <definition name="popupEproPrint"
+        template="/WEB-INF/jsp/tiles/popupEproPrintLayout.jsp">  
+        <put-attribute name="title" value="ILDONG" />
+        <put-attribute name="body" value="" />  
+    </definition>
+    
+    <definition name="noSessionPopup"
+        template="/WEB-INF/jsp/tiles/noSessionPopupLayout.jsp">
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/default/body.jsp" />
+    </definition>
+    
+    <definition name="upload"
+        template="/WEB-INF/jsp/tiles/uploadLayout.jsp">  
+        <put-attribute name="body" value="/WEB-INF/jsp/tiles/default/body.jsp" />
+    </definition>
+    
+    <!-- main page -->
+    <definition name="main/main" extends="main">  
+        <put-attribute name="body" value="/WEB-INF/jsp/main/main.jsp" />  
+    </definition>
+    
+    <!-- main page -->
+    <definition name="main/main2" extends="main">  
+        <put-attribute name="body" value="/WEB-INF/jsp/main/main2.jsp" />  
+    </definition>    
+    
+    <!-- login page -->
+    <definition name="loginView" extends="login">  
+        <put-attribute name="body" value="/WEB-INF/jsp/loginView.jsp" />  
+    </definition>
+    
+    <!-- login page -->
+    <definition name="loginViewExternal" extends="login2">  
+        <put-attribute name="body" value="/WEB-INF/jsp/loginViewExternal.jsp" />  
+    </definition>
+    
+    <definition name="fileupload/fileAttachInc" extends="noSessionBlank" >
+        <put-attribute name="body" value="/WEB-INF/jsp/fileupload/fileAttachInc.jsp" />
+    </definition>
+    
+    
+    <definition name="fileupload/upload" extends="upload" >
+        <put-attribute name="body" value="/WEB-INF/jsp/fileupload/upload.jsp" />
+    </definition>
+    
+    <definition name="*/*" extends="default" >
+        <put-attribute name="body" value="/WEB-INF/jsp/{1}/{2}.jsp" />
+    </definition>
+    
+    <!-- main 공지사항 팝업 -->
+    <definition name="com/mai/maiPopupMgmtView" extends="board" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/mai/maiPopupMgmtView.jsp" />
+    </definition>
+    
+    <definition name="com/cmn/cmnVndCreditRatingPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnVndCreditRatingPop.jsp" />
+    </definition>
+    
+    <definition name="com/cmn/cmnDeptSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnDeptSearchPop.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnUserSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnUserSearchPop.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnUserSearchPop2" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnUserSearchPop2.jsp" />
+    </definition>    
+    <definition name="com/cmn/cmnVendorSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnVendorSearchPop.jsp" />
+    </definition>    
+    <definition name="com/cmn/cmnPlantStorageSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnPlantStorageSearchPop.jsp" />
+    </definition>    
+    <definition name="com/cmn/cmnPerUserSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnPerUserSearchPop.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnGLSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnGLSearchPop.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnCostCenterSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnCostCenterSearchPop.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnEQSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnEQSearchPop.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnStorageSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnStorageSearchPop.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnItemSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnItemSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnItemSearchExtWithSapPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnItemSearchExtWithSapPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSrcMappingItemSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSrcMappingItemSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSapItemSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSapItemSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSapItemSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSapItemSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSapImsPreRfqSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSapImsPreRfqSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSapImsEquiSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSapImsEquiSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSapImsAsstSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSapImsAsstSearchPopup.jsp" />
+    </definition>
+
+    <definition name="com/cmn/cmnVendorSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnVendorSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnItemVendorSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnItemVendorSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnVndUserSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnVndUserSearchPop.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnVendorPerSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnVendorPerSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSgVendorPerSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSgVendorPerSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSrcGrpVendorPerSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSrcGrpVendorPerSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSapInOrderSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSapInOrderSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSapCostCenterSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSapCostCenterSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnUnitSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnUnitSearchPop.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSapUnitSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSapUnitSearchPopup.jsp" />
+    </definition>
+    <definition name="com/cmn/cmnSapStorageLocSearchPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnSapStorageLocSearchPopup.jsp" />
+    </definition>
+    <definition name="com/sys/sysUserRolePopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysUserRolePopup.jsp" />
+    </definition>
+    <definition name="com/sys/sysDeptRolePopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysDeptRolePopup.jsp" />
+    </definition>
+    
+    <definition name="com/sys/sysRoleMenuPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysRoleMenuPopup.jsp" />
+    </definition>
+    <definition name="com/sys/sysRoleUserPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysRoleUserPopup.jsp" />
+    </definition>
+    <definition name="com/sys/sysRoleDeptPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysRoleDeptPopup.jsp" />
+    </definition>
+    
+    <definition name="com/sys/sysPwChangePopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysPwChangePopup.jsp" />
+    </definition>
+    
+    <!-- 외부업체 FAQ 팝업 -->
+    <definition name="com/sys/sysInFaqListPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysInFaqListPop.jsp" />
+    </definition>
+    
+    <!-- 외부업체 자료실 팝업 -->
+    <definition name="com/sys/sysInDataListPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysInDataListPop.jsp" />
+    </definition>
+    
+    <!-- 사용자별 화면관리 팝업 -->
+    <definition name="com/sys/sysUserViewPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysUserViewPopup.jsp" />
+    </definition>
+    
+    <!-- 발주현황 상세 팝업 -->
+    <definition name="com/wrh/wrhOrderStatusDetail" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhOrderStatusDetail.jsp" />
+    </definition>
+    
+    <!-- 승인이력 팝업 -->
+    <definition name="com/wrh/wrhDeliveryHistorySearch" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhDeliveryHistorySearch.jsp" />
+    </definition>    
+    
+    <!-- 발주현황 상세(업체용) 팝업 -->
+    <definition name="com/wrh/wrhOrderStatusDetailV" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhOrderStatusDetailV.jsp" />
+    </definition>    
+    
+    <!-- 입고현황 상세 팝업 -->
+    <definition name="com/wrh/wrhStockStatusDetail" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhStockStatusDetail.jsp" />
+    </definition>    
+    
+    <!-- 발주품목 상세 팝업 -->
+    <definition name="com/wrh/wrhOrderStatusDetailOne" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhOrderStatusDetailOne.jsp" />
+    </definition>
+    
+    <!-- 송장마감 상세 팝업 -->
+    <definition name="com/wrh/wrhInvoiceInfoDetail" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhInvoiceInfoDetail.jsp" />
+    </definition>
+    
+    <!-- 입고예정등록 상세 팝업 -->
+    <definition name="com/wrh/wrhStockDueDateRegistDetailV" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhStockDueDateRegistDetailV.jsp" />
+    </definition> 
+    
+    <!-- 입고예정일시 팝업 -->
+    <definition name="com/wrh/wrhDelyDateSearch" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhDelyDateSearch.jsp" />
+    </definition>  
+      
+    <!-- 입고예정상세 팝업 -->
+    <definition name="com/wrh/wrhStockDueDate" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhStockDueDate.jsp" />
+    </definition> 
+    <!-- 입고예정정보 팝업 -->
+    <definition name="com/wrh/wrhStorageSpacePop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhStorageSpacePop.jsp" />
+    </definition>
+    
+    <!-- 업체관리 업체정보 팝업 -->
+    <definition name="com/wrh/wrhVendorInfoPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhVendorInfoPop.jsp" />
+    </definition>       
+        
+    <!-- 계정 팝업 -->
+    <definition name="com/cmn/cmnAccountSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnAccountSearchPop.jsp" />
+    </definition>       
+
+	<!-- 프로젝트 팝업 팝업 -->
+    <definition name="com/cmn/cmnProjSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnProjSearchPop.jsp" />
+    </definition>
+    
+	<!-- 품목정보 팝업 -->
+    <definition name="com/cmn/cmnItemMgmtSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnItemMgmtSearchPop.jsp" />
+    </definition>
+    
+	<!-- 품목정보 팝업 -->
+    <definition name="com/bdg/bdgMatSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgMatSearchPop.jsp" />
+    </definition>
+    
+	<!-- 프로젝트 팝업 팝업(추가예산신청 상세내용) -->
+    <definition name="com/bdg/bdgSupplementDetail" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgSupplementDetail.jsp" />
+    </definition>     
+    
+	<!-- 프로젝트 팝업 팝업(경영예산등록용) -->
+    <definition name="com/bdg/bdgProjSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgProjSearchPop.jsp" />
+    </definition>    
+
+	<!-- 홍보디테일관리(엑셀) -->
+    <definition name="com/bdg/bdgPromDetailExcel" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgPromDetailExcel.jsp" />
+    </definition>
+    
+	<!-- 경영기본예산신청(엑셀) -->
+    <definition name="com/bdg/bdgOpBasicMgtExcel" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgOpBasicMgtExcel.jsp" />
+    </definition>
+    
+	<!-- 경영수정기본예산신청(엑셀) -->
+    <definition name="com/bdg/bdgOpModifyMgtExcel" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgOpModifyMgtExcel.jsp" />
+    </definition>
+    
+	<!-- 월별운행일지 -->
+    <definition name="com/bdg/bdgVehicleOp" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgVehicleOp.jsp" />
+    </definition> 
+
+	<!-- 전자결재 기본예산신청 팝업 -->
+    <definition name="com/bdg/bdgBasicMgtPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgBasicMgtPop.jsp" />
+    </definition> 
+
+	<!-- 전자결재 수정예산신청 팝업 -->
+    <definition name="com/bdg/bdgModifyMgtPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgModifyMgtPop.jsp" />
+    </definition> 
+
+	<!-- 전자결재 실행예산신청 팝업 -->
+    <definition name="com/bdg/bdgExecBugtMgtPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgExecBugtMgtPop.jsp" />
+    </definition> 
+
+	<!-- 전자결재 APM 예산신청 팝업 -->
+    <definition name="com/bdg/bdgApmBasicMgtPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgApmBasicMgtPop.jsp" />
+    </definition>
+    
+	<!-- 전자결재 APM 이관신청 팝업 -->
+    <definition name="com/bdg/bdgApmTransMgtPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgApmTransMgtPop.jsp" />
+    </definition>
+    
+	<!-- 전자결재 원가검토의뢰 팝업 -->
+    <definition name="com/bdg/bdgEstCostReqPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgEstCostReqPop.jsp" />
+    </definition>     
+
+	<!-- 전자결재 추가예산신청 팝업 -->
+    <definition name="com/bdg/bdgSupplementPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgSupplementPop.jsp" />
+    </definition> 
+
+	<!-- 전자결재 유형유형자산투자계획신청 팝업 -->
+    <definition name="com/bdg/bdgTangAssetMgtPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgTangAssetMgtPop.jsp" />
+    </definition>
+    
+     <!-- 전자결재 부서견본신청 팝업 -->
+    <definition name="com/bdg/bdgDeptSampleMgtPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgDeptSampleMgtPop.jsp" />
+    </definition>
+    
+	<!-- 품목정보 팝업 -->
+    <definition name="com/cmn/cmnPlantItemSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnPlantItemSearchPop.jsp" />
+    </definition>     
+    
+     <!-- 전자결재 공급업체계좌 팝업 -->
+    <definition name="com/bdg/bdgVendBankMgtPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgVendBankMgtPop.jsp" />
+    </definition>
+    
+     <!-- 거래처정보 팝업 -->
+    <definition name="com/cmn/cmnCustomerSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnCustomerSearchPop.jsp" />
+    </definition>
+        
+     <!-- 시간 정보 팝업 -->
+    <definition name="com/wrh/wrhDateTimeSearchPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhDateTimeSearchPop.jsp" />
+    </definition>
+        
+     <!-- 전표내역 팝업 -->
+    <definition name="com/bdg/bdgResultPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgResultPop.jsp" />
+    </definition>    
+        
+    <!-- JCO Return log 팝업 -->
+    <definition name="com/cmn/cmnJcoReturnLogPopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnJcoReturnLogPopup.jsp" />
+    </definition>
+    
+    <definition name="com/mgt/mgtBoardListPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/mgt/mgtBoardListPop.jsp" />
+    </definition>
+    
+    <definition name="com/mgt/mgtBoardListPopup" extends="board" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/mgt/mgtBoardListPopup.jsp" />
+    </definition>
+    
+    <definition name="com/mgt/mgtBoardDetailPopup" extends="board" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/mgt/mgtBoardDetailPopup.jsp" />
+    </definition>
+
+    <definition name="com/mgt/mgtBoardListPopFaq" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/mgt/mgtBoardListPopFaq.jsp" />
+    </definition>
+    
+    <definition name="com/mgt/mgtBoardViewPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/mgt/mgtBoardViewPop.jsp" />
+    </definition>
+    
+    <definition name="com/sys/sysPopupMgmtView" extends="board" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysPopupMgmtView.jsp" />
+    </definition>
+    
+    <definition name="com/sys/sysPopupMgmtWrite" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysPopupMgmtWrite.jsp" />
+    </definition>
+    
+    <definition name="com/sys/sysPopupMgmtModify" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysPopupMgmtModify.jsp" />
+    </definition>
+   
+    <!-- 재고품질 첨부파일 팝업 -->
+    <definition name="com/cmn/cmnFileDownPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnFileDownPop.jsp" />
+    </definition>
+    
+    <!-- 파일첨부  -->
+    <definition name="fileupload/uploadForm" extends="upload" >
+        <put-attribute name="body" value="/WEB-INF/jsp/fileupload/uploadForm.jsp" />
+    </definition>
+    
+    <!-- 파일다운  -->
+    <definition name="fileupload/downForm" extends="upload" >
+        <put-attribute name="body" value="/WEB-INF/jsp/fileupload/downForm.jsp" />
+    </definition>
+    
+    <definition name="fileupload/downloadFilePop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/fileupload/downloadFilePop.jsp" />
+    </definition>
+    
+    <definition name="fileupload/fileAttachInc" extends="upload" >
+        <put-attribute name="body" value="/WEB-INF/jsp/fileupload/fileAttachInc.jsp" />
+    </definition>
+
+    <!-- 전자결재 팝업 -->
+    <definition name="com/cmn/wfInnerView" extends="noSessionPopup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/wfInnerView.jsp" />
+    </definition>
+    
+    <definition name="com/cmn/cmnVendorRolePopup" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnVendorRolePopup.jsp" />
+    </definition>
+
+    <!-- RFC 로그 상세화면 -->
+    <definition name="com/sys/sysRfcLogMgmtDetailPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysRfcLogMgmtDetailPop.jsp" />
+    </definition>
+    <!-- 알림발송 로그 상세화면 -->
+    <definition name="com/sys/sysAlarmLogMgmtDetailPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysAlarmLogMgmtDetailPop.jsp" />
+    </definition>
+    <!-- 배치관리  상세화면 -->
+    <definition name="com/sys/sysBatchLogMgmtDetailPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysBatchLogMgmtDetailPop.jsp" />
+    </definition>
+    <!-- 배치관리  오류 상세화면 -->
+    <definition name="com/sys/sysBatchLogMgmtErrPop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysBatchLogMgmtErrPop.jsp" />
+    </definition>
+    <!-- BP 공지사항 게시판 -->
+    <definition name="com/sys/sysOutBoardNoticeList" extends="blank" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysOutBoardNoticeList.jsp" />
+    </definition>
+    <!-- BP 자료실 게시판 -->
+    <definition name="com/sys/sysOutBoardDataList" extends="blank" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysOutBoardDataList.jsp" />
+    </definition>
+    <!-- BP FAQ 게시판 -->
+    <definition name="com/sys/sysOutBoardFaqList" extends="blank" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysOutBoardFaqList.jsp" />
+    </definition>
+    <!-- BP 구매규정 및 정책 게시판 -->
+    <definition name="com/mgt/mgtOutBoardPolicyList" extends="blank" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/mgt/mgtOutBoardPolicyList.jsp" />
+    </definition>
+    <!-- BP 게시판 상세내용 -->
+    <definition name="com/sys/sysOutBoardDetail" extends="board" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysOutBoardDetail.jsp" />
+    </definition>
+    <!-- BP 게시판 상세내용 작성 -->
+    <definition name="com/sys/sysOutBoardWritePop" extends="board" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysOutBoardWritePop.jsp" />
+    </definition>
+    <!-- BP 게시판 상세내용 수정 -->
+    <definition name="com/sys/sysOutBoardEditPop" extends="board" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/sys/sysOutBoardEditPop.jsp" />
+    </definition>
+    <!-- 다량 메일 전송 작성 팝업  -->
+    <definition name="com/cmn/cmnBulkMailManagePop" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnBulkMailManagePop.jsp" />
+    </definition>
+    <!-- 다량 메일 전송 미리보기 팝업  -->
+    <definition name="com/cmn/cmnBulkMailPreViewPop" extends="blank" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnBulkMailPreViewPop.jsp" />
+    </definition>
+    
+    <definition name="*/*/*" extends="default" >
+        <put-attribute name="body" value="/WEB-INF/jsp/{1}/{2}/{3}.jsp" />
+    </definition>
+    
+    <!-- 코스트센터 조회  -->
+    <definition name="com/cmn/cmnCctrList" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/cmn/cmnCctrList.jsp" />
+    </definition>
+
+    <!-- 견적원가의뢰내용  -->
+    <definition name="com/bdg/bdgEstCostDetail" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgEstCostDetail.jsp" />
+    </definition>
+
+    <!-- 견적원가의뢰내용 견적내용  -->
+    <definition name="com/bdg/bdgEstCostDetailResult" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgEstCostDetailResult.jsp" />
+    </definition>
+
+    <!-- 영업출장비세부내역 내용  -->
+    <definition name="com/bdg/bdgTravelCalDetail" extends="popup" >
+        <put-attribute name="body" value="/WEB-INF/jsp/com/bdg/bdgTravelCalDetail.jsp" />
+    </definition>
+
+    <!-- 모바일 창고관리 page -->
+    <definition name="wrhStorageSpaceM" template="/WEB-INF/jsp/com/wrh/wrhStorageSpaceM.jsp">  
+        <put-attribute name="title" value="ILDONG" />  
+        <put-attribute name="header" value="/WEB-INF/jsp/tiles/default/header.jsp" /> 
+        <put-attribute name="body" value="/WEB-INF/jsp/com/wrh/wrhStorageSpaceM.jsp" />
+        <put-attribute name="script" value="/WEB-INF/jsp/tiles/default/script.jsp" />  
+    </definition>    
+    
+
+</tiles-definitions>

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.AccRateMgt">
+	<select id="selectAccRateAMgtLeftList" parameterType="Map" resultType="Map">
+		--com.bdg.AccRateMgt.selectAccRateAMgtLeftList
+	    SELECT A.COMP_CD                                            AS COMP_CD
+	          ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD)              AS COMP_NM
+              ,A.CCTR_CD                                            AS CCTR_CD
+              ,FUNC_GET_COST_NAME(A.COMP_CD, A.CCTR_CD, A.CRE_DATE) AS CCTR_NM
+              ,'1'                                                  AS CODEMAPPING1
+              ,A.ACCOUNT_NO                                         AS ACCOUNT_NO
+              ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                  AS ACCOUNT_DESC
+              ,'1'                                                  AS CODEMAPPING2
+              ,A.CRE_DATE                                           AS CRE_DATE
+              ,A.CRE_USER                                           AS CRE_USER
+              ,A.MOD_DATE                                           AS MOD_DATE
+              ,A.MOD_USER                                           AS MOD_USER
+              ,'R'                                                  AS CRUD
+		  FROM CO_BUGT_ACC_RATE_MGMT A
+		 WHERE 1 = 1
+		  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND A.COMP_CD = #{SB_COMP_CD}
+		  </if>
+		  <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+		   AND A.CCTR_CD = #{SB_CCTR_CD}
+		  </if>
+		  <if test="TB_ACCOUNT_NO != null and TB_ACCOUNT_NO != ''">
+		   AND A.ACCOUNT_NO = #{TB_ACCOUNT_NO}
+		  </if>
+		ORDER BY A.COMP_CD
+		        ,A.COMP_CD
+		        ,A.ACCOUNT_NO
+	</select>
+	
+	<select id="selectAccRateAMgtRightList" parameterType="Map" resultType="Map">
+		--com.bdg.AccRateMgt.selectAccRateAMgtRightList
+		SELECT A.*
+		      ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD)             AS COMP_NM
+		      ,FUNC_GET_COST_NAME(A.COMP_CD, A.CCTR_CD, A.CRE_DATE) AS CCTR_NM
+		      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                 AS ACCOUNT_DESC
+		      ,CASE WHEN A.BUGT_EXEC_AMT IS NULL THEN A.BUGT_EXEC_AMT_I
+		            ELSE A.BUGT_EXEC_AMT
+		       END                                                 AS BUGT_EXEC_AMT_GRID
+		      ,CASE WHEN A.BUGT_RESULT_AMT IS NULL THEN A.BUGT_RESULT_AMT_I
+		            ELSE A.BUGT_RESULT_AMT
+		       END                                                 AS BUGT_RESULT_AMT_GRID		       
+		      ,CASE WHEN A.ERROR_RATE IS NULL THEN CASE 
+		                                             WHEN A.BUGT_RESULT_AMT = 0 THEN 0
+		                                             ELSE TRUNC(100 - A.BUGT_EXEC_AMT_I / A.BUGT_RESULT_AMT_I * 100, 1)
+		                                           END
+		            ELSE A.ERROR_RATE
+		       END                                                 AS ERROR_RATE_GRID
+		  FROM (
+	            SELECT A.COMP_CD                                           AS COMP_CD
+                      ,A.CCTR_CD                                           AS CCTR_CD
+                      ,A.ACCOUNT_NO                                        AS ACCOUNT_NO
+                      ,(
+                        SELECT SUM(
+                                   CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '01' THEN B.WK_M01
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '02' THEN B.WK_M02
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '03' THEN B.WK_M03
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '04' THEN B.WK_M04
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '05' THEN B.WK_M05
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '06' THEN B.WK_M06
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '07' THEN B.WK_M07
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '08' THEN B.WK_M08
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '09' THEN B.WK_M09
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '10' THEN B.WK_M10
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '11' THEN B.WK_M11
+                                        WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''), 5) = '12' THEN B.WK_M12
+                                        ELSE 0
+                                    END
+                                   )
+                          FROM CO_BUGT_EXEC_DETAIL B
+                         WHERE 1 = 1
+                           AND B.COMP_CD    = A.COMP_CD
+                           AND B.CRTN_YYMM  = REPLACE(#{TB_CRTN_YYMM}, '-', '')
+                           AND B.CCTR_CD    = A.CCTR_CD
+                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                       )                                                   AS BUGT_EXEC_AMT_I
+                      ,(
+                        SELECT SUM(ACCOUNT_AMT)
+                          FROM CO_BUGT_RESULT C
+                         WHERE 1 = 1
+                           AND C.COMP_CD    = A.COMP_CD
+                           AND C.CRTN_YYMM  = REPLACE(#{TB_CRTN_YYMM}, '-', '')
+                           AND C.CCTR_CD    = A.CCTR_CD
+                           AND C.ACCOUNT_NO = A.ACCOUNT_NO
+                       )                                                   AS BUGT_RESULT_AMT_I
+                      ,D.BUGT_EXEC_AMT                                     AS BUGT_EXEC_AMT
+                      ,D.BUGT_RESULT_AMT                                   AS BUGT_RESULT_AMT
+                      ,D.ERROR_RATE                                        AS ERROR_RATE
+                      ,D.ERROR_DESC                                        AS ERROR_DESC         
+                      ,A.CRE_DATE                                          AS CRE_DATE
+                      ,A.CRE_USER                                          AS CRE_USER
+                      ,A.MOD_DATE                                          AS MOD_DATE
+                      ,A.MOD_USER                                          AS MOD_USER
+                      ,'R'                                                 AS CRUD
+                      ,REPLACE(#{TB_CRTN_YYMM}, '-', '')                   AS CRTN_YYMM
+		          FROM CO_BUGT_ACC_RATE_MGMT A
+		              LEFT OUTER JOIN
+		               CO_BUGT_RATE_REASON D
+		              ON    D.COMP_CD    = A.COMP_CD
+                        AND D.CRTN_YYMM  = REPLACE(#{TB_CRTN_YYMM}, '-', '')
+                        AND D.CCTR_CD    = A.CCTR_CD
+                        AND D.ACCOUNT_NO = A.ACCOUNT_NO
+		         WHERE 1 = 1
+		          <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		           AND A.COMP_CD = #{SB_COMP_CD}
+		          </if>
+		          <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+		           AND A.CCTR_CD = #{SB_CCTR_CD}
+		          </if>
+		          <if test="TB_ACCOUNT_NO != null and TB_ACCOUNT_NO != ''">
+		           AND A.ACCOUNT_NO = #{TB_ACCOUNT_NO}
+		          </if>
+		        ) A
+	    WHERE 1 = 1 
+		ORDER BY A.COMP_CD
+		        ,A.CCTR_CD
+		        ,A.ACCOUNT_NO
+	</select>
+	
+	<select id="selectDataCount" parameterType="Map" resultType="Map">
+		--com.bdg.AccRateMgt.selectDataCount
+		SELECT COUNT(*) CNT
+		  FROM CO_BUGT_ACC_RATE_MGMT
+		 WHERE 1 = 1
+		   AND COMP_CD    = #{COMP_CD}
+		   AND CCTR_CD    = #{CCTR_CD}
+		   AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</select>
+
+    <insert id="insertAccRateMgt" parameterType="Map">
+		--com.bdg.AccRateMgt.insertAccRateMgt
+		INSERT INTO CO_BUGT_ACC_RATE_MGMT
+		(
+		  COMP_CD
+         ,CCTR_CD
+         ,ACCOUNT_NO
+         ,CRE_DATE
+         ,CRE_USER
+         ,MOD_DATE
+         ,MOD_USER
+		) VALUES (
+		           #{COMP_CD}
+                  ,#{CCTR_CD}
+                  ,#{ACCOUNT_NO}
+                  ,#{CRE_DATE}
+                  ,#{CRE_USER}
+                  ,#{MOD_DATE}
+                  ,#{MOD_USER}		
+		          )
+
+    </insert>
+    
+    <delete id="deleteAccRateMgt" parameterType="Map">
+		--com.bdg.AccRateMgt.deleteAccRateMgt
+		DELETE FROM CO_BUGT_ACC_RATE_MGMT
+		 WHERE 1 = 1
+		   AND COMP_CD    = #{COMP_CD}
+		   AND CCTR_CD    = #{CCTR_CD}
+		   AND ACCOUNT_NO = #{ACCOUNT_NO}      
+    </delete>
+    
+    <insert id="mergeAccRateReason" parameterType="Map">
+		--com.bdg.AccRateMgt.mergeAccRateReason
+		MERGE INTO CO_BUGT_RATE_REASON A
+		    USING (
+		           SELECT #{COMP_CD}                                                                AS COMP_CD                                                              
+                         ,#{CRTN_YYMM}                                                              AS CRTN_YYMM
+                         ,#{CCTR_CD}                                                                AS CCTR_CD
+                         ,#{ACCOUNT_NO}                                                             AS ACCOUNT_NO
+                         ,#{BUGT_EXEC_AMT_GRID}                                                     AS BUGT_EXEC_AMT
+                         ,#{BUGT_RESULT_AMT_GRID}                                                   AS BUGT_RESULT_AMT
+                         ,#{ERROR_RATE_GRID}                                                        AS ERROR_RATE
+                         ,#{ERROR_DESC}                                                             AS ERROR_DESC
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')                                              AS CRE_DATE     
+		                 ,#{CRE_USER}                                                               AS CRE_USER     
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')                                              AS MOD_DATE     
+		                 ,#{MOD_USER}                                                               AS MOD_USER     
+		             FROM DUAL A
+		          ) B
+		       ON (    A.COMP_CD    = B.COMP_CD
+		           AND A.CRTN_YYMM  = B.CRTN_YYMM 
+		           AND A.CCTR_CD    = B.CCTR_CD
+		           AND A.ACCOUNT_NO = B.ACCOUNT_NO
+		          )
+		    WHEN MATCHED THEN
+		           
+		        UPDATE 
+		           SET A.BUGT_EXEC_AMT   = B.BUGT_EXEC_AMT
+		              ,A.BUGT_RESULT_AMT = B.BUGT_RESULT_AMT
+		              ,A.ERROR_RATE      = B.ERROR_RATE
+		              ,A.ERROR_DESC      = B.ERROR_DESC
+		              ,A.MOD_DATE        = B.MOD_DATE
+		              ,A.MOD_USER        = B.MOD_USER
+		    WHEN NOT MATCHED THEN
+		                     
+		        INSERT (
+		                A.COMP_CD
+                       ,A.CRTN_YYMM
+                       ,A.CCTR_CD
+                       ,A.ACCOUNT_NO
+                       ,A.BUGT_EXEC_AMT
+                       ,A.BUGT_RESULT_AMT
+                       ,A.ERROR_RATE
+                       ,A.ERROR_DESC
+                       ,A.CRE_DATE
+                       ,A.CRE_USER
+                       ,A.MOD_DATE
+                       ,A.MOD_USER
+		               ) VALUES ( B.COMP_CD         
+		                         ,B.CRTN_YYMM       
+		                         ,B.CCTR_CD          
+		                         ,B.ACCOUNT_NO      
+		                         ,B.BUGT_EXEC_AMT   
+		                         ,B.BUGT_RESULT_AMT 
+		                         ,B.ERROR_RATE      
+		                         ,B.ERROR_DESC      
+		                         ,B.CRE_DATE        
+		                         ,B.CRE_USER        
+		                         ,B.MOD_DATE        
+		                         ,B.MOD_USER        
+		                         )        
+    </insert>
+
+</mapper>

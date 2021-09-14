@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchCustomerInfo">
+
+	<insert id="makeCustomerInfoInterfaceData" parameterType="Map">
+		--com.bat.BatchCustomerInfo.makeCustomerInfoInterfaceData
+		INSERT ALL
+		<foreach item="item" separator=" " collection="list"> 
+			INTO SD_CUSTOMER_INFO_IF (TRANSACTION_NO,PARTNER,VKORG,VTWEG,NAME1,NAME2,PROC_YN) VALUES (#{ item.TRANSACTION_NO },SUBSTR(#{ item.PARTNER }, 5),#{ item.VKORG },#{ item.VTWEG },#{ item.NAME1 },#{ item.NAME2 },'R')
+		</foreach>
+		SELECT * FROM DUAL
+
+	</insert>  
+        
+
+    <update id="updateCustomerInfoFlag" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchCustomerInfo.updateCustomerInfoFlag
+	        UPDATE SD_CUSTOMER_INFO_IF
+	           SET PROC_YN = 'Z'
+			 WHERE PROC_YN = 'R'
+		   ]]>
+    </update>
+    
+    <insert id="makeCustomerInfoData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchCustomerInfo.makeCustomerInfoData
+	    MERGE INTO SD_CUSTOMER_INFO A 
+	    USING (
+	        SELECT TRANSACTION_NO
+                  ,PARTNER   AS CUST_CD
+                  ,VKORG     AS COMP_CD
+                  ,VTWEG     AS DISTRIB_CD
+                  ,NAME1     AS CUST_NAME1
+                  ,NAME2     AS CUST_NAME2
+	          FROM SD_CUSTOMER_INFO_IF
+	         WHERE 1 = 1
+	           AND PROC_YN = 'R'
+	           AND TRANSACTION_NO = (
+	                                 SELECT MAX(TRANSACTION_NO)
+	                                   FROM SD_CUSTOMER_INFO_IF
+	                                  WHERE PROC_YN = 'R'
+	                                )		           
+	          ) B
+	    ON (
+	            A.COMP_CD = B.COMP_CD
+	        AND A.CUST_CD = B.CUST_CD
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.DISTRIB_CD = B.DISTRIB_CD
+                  ,A.CUST_NAME1 = B.CUST_NAME1
+                  ,A.CUST_NAME2 = B.CUST_NAME2
+                  ,A.MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,A.MOD_USER   = 'BATCHSYS'
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.COMP_CD
+                 ,A.CUST_CD
+                 ,A.DISTRIB_CD
+                 ,A.CUST_NAME1
+                 ,A.CUST_NAME2
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( B.COMP_CD    
+                          ,B.CUST_CD    
+                          ,B.DISTRIB_CD 
+                          ,B.CUST_NAME1 
+                          ,B.CUST_NAME2 
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,'BATCHSYS'
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,'BATCHSYS'
+	                     )
+     ]]>
+    </insert>    
+    
+</mapper>

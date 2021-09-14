@@ -1,0 +1,690 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchVendor">
+
+	<select id="selectCountVendorInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchVendor.selectCountVendorInfo
+	    SELECT COUNT(*) CNT
+	      FROM VENDOR_INFO_IF A
+	     WHERE 1 = 1
+	       AND VENDOR_CD = #{VENDOR_CD}
+        ]]>
+	</select>
+	
+	<select id="selectCountSysUserInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchVendor.selectCountSysUserInfo
+	    SELECT COUNT(*) CNT
+	      FROM SYS_USER A
+	     WHERE 1 = 1
+	       AND USER_ID = #{POBUSI_NO}
+        ]]>
+	</select>
+	
+    <insert id="mergeVendorIfData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchVendor.mergeVendorIfData
+	    MERGE INTO VENDOR_INFO_IF A 
+	    USING (
+	        SELECT #{TRANSACTION_NO} AS TRANSACTION_NO
+	              ,#{VENDOR_CD}      AS VENDOR_CD
+                  ,#{VENDOR_NM}      AS VENDOR_NM
+                  ,#{FUND_TYPE}      AS FUND_TYPE
+                  ,#{POBUSI_NO}      AS POBUSI_NO
+                  ,#{CORP_NO}        AS CORP_NO
+                  ,#{PRESIDENT_NM}   AS PRESIDENT_NM
+                  ,#{BUSS_TYPE}      AS BUSS_TYPE
+                  ,#{BUSIN}          AS BUSIN
+                  ,#{ADDR1}          AS ADDR1
+                  ,#{ADDR2}          AS ADDR2
+                  ,#{ZIP_NO}         AS ZIP_NO
+                  ,#{MAIN_EMAIL}     AS MAIN_EMAIL
+                  ,#{MAIN_TELL_NO}   AS MAIN_TELL_NO
+                  ,#{MAIN_FAXNO}     AS MAIN_FAXNO
+                  ,#{CRE_DATE}       AS CRE_DATE
+                  ,#{CRE_USER}       AS CRE_USER
+                  ,#{MOD_DATE}       AS MOD_DATE
+                  ,#{MOD_USER}       AS MOD_USER
+                  ,#{DEL_YN}         AS DEL_YN
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.TRANSACTION_NO = B.TRANSACTION_NO
+	        AND A.VENDOR_CD      = B.VENDOR_CD
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.VENDOR_NM    = B.VENDOR_NM
+                  ,A.FUND_TYPE    = B.FUND_TYPE
+                  ,A.POBUSI_NO    = B.POBUSI_NO
+                  ,A.CORP_NO      = B.CORP_NO
+                  ,A.PRESIDENT_NM = B.PRESIDENT_NM
+                  ,A.BUSS_TYPE    = B.BUSS_TYPE
+                  ,A.BUSIN        = B.BUSIN
+                  ,A.ADDR1        = B.ADDR1
+                  ,A.ADDR2        = B.ADDR2
+                  ,A.ZIP_NO       = B.ZIP_NO
+                  ,A.MAIN_EMAIL   = B.MAIN_EMAIL
+                  ,A.MAIN_TELL_NO = B.MAIN_TELL_NO
+                  ,A.MAIN_FAXNO   = B.MAIN_FAXNO
+                  ,A.DEL_YN       = B.DEL_YN
+                  ,A.CRE_DATE     = B.CRE_DATE
+                  ,A.CRE_USER     = B.CRE_USER
+                  ,A.MOD_DATE     = B.MOD_DATE
+                  ,A.MOD_USER     = B.MOD_USER
+                  ,A.IF_FLAG      = 'R'
+                  ,A.IF_MSG       = ''
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.TRANSACTION_NO
+	             ,A.VENDOR_CD
+	             ,A.VENDOR_NM   
+	             ,A.FUND_TYPE   
+	             ,A.POBUSI_NO   
+                 ,A.CORP_NO     
+                 ,A.PRESIDENT_NM
+                 ,A.BUSS_TYPE   
+                 ,A.BUSIN       
+                 ,A.ADDR1       
+                 ,A.ADDR2       
+                 ,A.ZIP_NO      
+                 ,A.MAIN_EMAIL  
+                 ,A.MAIN_TELL_NO
+                 ,A.MAIN_FAXNO  
+                 ,A.DEL_YN      
+                 ,A.CRE_DATE    
+                 ,A.CRE_USER    
+                 ,A.MOD_DATE    
+                 ,A.MOD_USER
+                 ,A.IF_FLAG
+                 ,A.IF_MSG    
+	            ) VALUES ( B.TRANSACTION_NO
+	                      ,B.VENDOR_CD
+	                      ,B.VENDOR_NM   
+	                      ,B.FUND_TYPE   
+	                      ,B.POBUSI_NO   
+                          ,B.CORP_NO     
+                          ,B.PRESIDENT_NM
+                          ,B.BUSS_TYPE   
+                          ,B.BUSIN       
+                          ,B.ADDR1       
+                          ,B.ADDR2       
+                          ,B.ZIP_NO      
+                          ,B.MAIN_EMAIL  
+                          ,B.MAIN_TELL_NO
+                          ,B.MAIN_FAXNO  
+                          ,B.DEL_YN      
+                          ,B.CRE_DATE    
+                          ,B.CRE_USER    
+                          ,B.MOD_DATE    
+                          ,B.MOD_USER 
+                          ,'R'
+                          ,''   
+	                     )
+     ]]>
+    </insert>		
+	
+	<insert id="insertVendorIfData" parameterType="map">
+		<![CDATA[
+		--com.bat.BatchVendor.insertVendorIfData
+		INSERT INTO VENDOR_INFO_IF
+		(
+		  VENDOR_CD
+         ,VENDOR_NM
+         ,FUND_TYPE
+         ,POBUSI_NO
+         ,CORP_NO
+         ,PRESIDENT_NM
+         ,BUSS_TYPE
+         ,BUSIN
+         ,ADDR1
+         ,ADDR2
+         ,ZIP_NO
+         ,MAIN_EMAIL
+         ,MAIN_TELL_NO
+         ,MAIN_FAXNO
+         ,CRE_DATE
+         ,CRE_USER
+         ,MOD_DATE
+         ,MOD_USER
+         ,DEL_YN
+         ,IF_FLAG
+         ,IF_MSG
+		) VALUES (
+		           #{VENDOR_CD}
+                  ,#{VENDOR_NM}
+                  ,#{FUND_TYPE}
+                  ,#{POBUSI_NO}
+                  ,#{CORP_NO}
+                  ,#{PRESIDENT_NM}
+                  ,#{BUSS_TYPE}
+                  ,#{BUSIN}
+                  ,#{ADDR1}
+                  ,#{ADDR2}
+                  ,#{ZIP_NO}
+                  ,#{MAIN_EMAIL}
+                  ,#{MAIN_TELL_NO}
+                  ,#{MAIN_FAXNO}
+                  ,#{CRE_DATE}
+                  ,#{CRE_USER}
+                  ,#{MOD_DATE}
+                  ,#{MOD_USER}
+                  ,#{DEL_YN}
+                  ,'R'
+                  ,''
+		          )
+		]]>
+	</insert>
+	
+	<select id="selectVendorUserCreateList" parameterType="Map" resultType="Map">
+		<![CDATA[
+		--com.bat.BatchVendor.selectVendorUserCreateList
+		SELECT A.TRANSACTION_NO
+			  ,A.VENDOR_CD
+			  ,A.VENDOR_NM   
+			  ,A.FUND_TYPE   
+			  ,A.POBUSI_NO   
+		      ,A.CORP_NO     
+		      ,A.PRESIDENT_NM
+		      ,A.BUSS_TYPE   
+		      ,A.BUSIN       
+		      ,A.ADDR1       
+		      ,A.ADDR2       
+		      ,A.ZIP_NO      
+		      ,A.MAIN_EMAIL  
+		      ,A.MAIN_TELL_NO
+		      ,A.MAIN_FAXNO  
+		      ,A.DEL_YN      
+		      ,A.CRE_DATE    
+		      ,A.CRE_USER    
+		      ,A.MOD_DATE    
+		      ,A.MOD_USER
+		  FROM VENDOR_INFO_IF A
+		 WHERE 1=1
+		    AND A.IF_FLAG   = 'R'
+		    AND NVL(A.POBUSI_NO, ' ') <> ' '
+		    AND NOT EXISTS (
+		                    SELECT 1
+		                      FROM SYS_USER B
+		                     WHERE B.COMP_CD = '1100'
+		                       AND B.USER_ID = A.POBUSI_NO
+		                   ) 
+		]]>
+	</select>	
+	
+    <insert id="insertSysUserData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchUser.insertSysUserData
+	    INSERT INTO SYS_USER
+	    ( 
+	      COMP_CD
+	     ,USER_ID
+	     ,USER_NM        
+         ,DEPT_CD        
+         ,DESIGNATION    
+         ,DESIGNATION_N  
+         ,GRADE_CODE     
+         ,GRADE_NAME     
+         ,EMP_YMD        
+         ,RET_YMD        
+         ,DISPATCH_ORG_CD
+         ,MOBILE_NO      
+         ,EMAIL_ID
+         ,FAX_NO       
+         ,USER_STATUS    
+         ,INS_DT         
+         ,INS_ID         
+         ,MOD_DT         
+         ,MOD_ID         
+         ,DEL_YN
+         ,USG_YN
+         ,VENDOR_CD
+         ,VENDOR_NM
+         ,USER_CLS
+         ,PWD       
+	     ) VALUES ( '1100'
+	               ,#{POBUSI_NO}
+	               ,#{VENDOR_NM}          
+                   ,'V0000001'        
+                   ,NULL      
+                   ,NULL      
+                   ,NULL     
+                   ,NULL     
+                   ,TO_CHAR(SYSDATE,'YYYYMMDD')        
+                   ,NULL        
+                   ,NULL
+                   ,#{MAIN_TELL_NO}      
+                   ,#{MAIN_EMAIL} 
+                   ,#{MAIN_FAXNO}         
+                   ,'C'    
+                   ,TO_CHAR(SYSDATE,'YYYYMMDD')   
+                   ,'BATCHSYS'      
+                   ,TO_CHAR(SYSDATE,'YYYYMMDD')  
+                   ,'BATCHSYS'      
+	               ,CASE WHEN NVL(#{DEL_YN}, 'N') = 'Y' THEN 'Y'
+	                     ELSE 'N'
+	                END
+	               ,CASE WHEN NVL(#{DEL_YN}, 'N') = 'Y' THEN 'N'
+	                     ELSE 'Y'
+	                END	
+	               ,#{VENDOR_CD}
+	               ,#{VENDOR_NM}
+	               ,'S'
+	               ,#{USER_PW}
+	              )
+     ]]>
+    </insert>
+    
+    <insert id="insertSysUserRoleData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchUser.insertSysUserRoleData
+	    INSERT INTO SYS_USER_ROLE
+	    ( 
+	      USER_ID
+	     ,ROLE_CD        
+         ,INS_ID        
+         ,INS_DT    
+	     ) VALUES ( 
+	                #{POBUSI_NO}
+	               ,'VDR001'        
+                   ,'BATCHSYS'      
+                   ,SYSDATE     
+	              )
+     ]]>
+    </insert>    
+	
+    <update id="updateVendorIfData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchVendor.updateVendorIfData
+	        UPDATE VENDOR_INFO_IF
+	           SET VENDOR_NM    = #{VENDOR_NM}   
+                  ,FUND_TYPE    = #{FUND_TYPE}   
+                  ,POBUSI_NO    = #{POBUSI_NO}   
+                  ,CORP_NO      = #{CORP_NO}     
+                  ,PRESIDENT_NM = #{PRESIDENT_NM}
+                  ,BUSS_TYPE    = #{BUSS_TYPE}   
+                  ,BUSIN        = #{BUSIN}       
+                  ,ADDR1        = #{ADDR1}       
+                  ,ADDR2        = #{ADDR2}       
+                  ,ZIP_NO       = #{ZIP_NO}      
+                  ,MAIN_EMAIL   = #{MAIN_EMAIL}  
+                  ,MAIN_TELL_NO = #{MAIN_TELL_NO}
+                  ,MAIN_FAXNO   = #{MAIN_FAXNO}  
+                  ,CRE_DATE     = #{CRE_DATE}    
+                  ,CRE_USER     = #{CRE_USER}    
+                  ,MOD_DATE     = #{MOD_DATE}    
+                  ,MOD_USER     = #{MOD_USER}    
+                  ,DEL_YN       = #{DEL_YN}      
+                  ,IF_FLAG      = 'R'
+                  ,IF_MSG       = ''
+			 WHERE VENDOR_CD    = #{VENDOR_CD}
+		   ]]>
+    </update>
+    
+    <update id="updateSysUserData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchVendor.updateSysUserData
+	        UPDATE SYS_USER
+	           SET RET_YMD = CASE WHEN NVL(#{DEL_YN}, 'N') = 'Y' THEN TO_CHAR(SYSDATE,'YYYYMMDD') 
+	                              ELSE RET_YMD
+	                         END   
+                  ,DEL_YN  = CASE WHEN NVL(#{DEL_YN}, 'N') = 'Y' THEN 'Y'
+	                              ELSE 'N'
+	                         END    
+                  ,USG_YN  = CASE WHEN NVL(#{DEL_YN}, 'N') = 'Y' THEN 'Y'
+	                              ELSE 'N'
+	                         END 
+                  ,MOD_DT  = TO_CHAR(SYSDATE,'YYYYMMDD')  
+                  ,MOD_ID  = 'BATCHSYS'       
+			 WHERE USER_ID = #{POBUSI_NO}
+			   AND COMP_CD = '1100'
+		   ]]>
+    </update>        
+    
+    <insert id="makeVendorData">
+    <![CDATA[
+	    --com.bat.BatchVendor.makeVendorData
+	    MERGE INTO VENDOR_INFO A 
+	    USING (
+	        SELECT VENDOR_CD
+                  ,VENDOR_NM
+                  ,FUND_TYPE
+                  ,POBUSI_NO
+                  ,CORP_NO
+                  ,PRESIDENT_NM
+                  ,BUSS_TYPE
+                  ,BUSIN
+                  ,ADDR1
+                  ,ADDR2
+                  ,ZIP_NO
+                  ,MAIN_EMAIL
+                  ,MAIN_TELL_NO
+                  ,MAIN_FAXNO
+                  ,CRE_DATE
+                  ,CRE_USER
+                  ,MOD_DATE
+                  ,MOD_USER
+                  ,DEL_YN
+	          FROM VENDOR_INFO_IF
+	         WHERE IF_FLAG = 'R'
+	          ) B
+	    ON (
+	        A.VENDOR_CD = B.VENDOR_CD
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.VENDOR_NM    = B.VENDOR_NM
+                  ,A.FUND_TYPE    = B.FUND_TYPE
+                  ,A.POBUSI_NO    = B.POBUSI_NO
+                  ,A.CORP_NO      = B.CORP_NO
+                  ,A.PRESIDENT_NM = B.PRESIDENT_NM
+                  ,A.BUSS_TYPE    = B.BUSS_TYPE
+                  ,A.BUSIN        = B.BUSIN
+                  ,A.ADDR1        = B.ADDR1
+                  ,A.ADDR2        = B.ADDR2
+                  ,A.ZIP_NO       = B.ZIP_NO
+                  ,A.MAIN_EMAIL   = B.MAIN_EMAIL
+                  ,A.MAIN_TELL_NO = B.MAIN_TELL_NO
+                  ,A.MAIN_FAXNO   = B.MAIN_FAXNO
+                  ,A.DEL_YN       = B.DEL_YN
+                  ,A.CRE_DATE     = B.CRE_DATE
+                  ,A.CRE_USER     = B.CRE_USER
+                  ,A.MOD_DATE     = B.MOD_DATE
+                  ,A.MOD_USER     = B.MOD_USER
+
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.VENDOR_CD
+	             ,A.VENDOR_NM   
+	             ,A.FUND_TYPE   
+	             ,A.POBUSI_NO   
+                 ,A.CORP_NO     
+                 ,A.PRESIDENT_NM
+                 ,A.BUSS_TYPE   
+                 ,A.BUSIN       
+                 ,A.ADDR1       
+                 ,A.ADDR2       
+                 ,A.ZIP_NO      
+                 ,A.MAIN_EMAIL  
+                 ,A.MAIN_TELL_NO
+                 ,A.MAIN_FAXNO  
+                 ,A.DEL_YN      
+                 ,A.CRE_DATE    
+                 ,A.CRE_USER    
+                 ,A.MOD_DATE    
+                 ,A.MOD_USER    
+	            ) VALUES ( B.VENDOR_CD
+	                      ,B.VENDOR_NM   
+	                      ,B.FUND_TYPE   
+	                      ,B.POBUSI_NO   
+                          ,B.CORP_NO     
+                          ,B.PRESIDENT_NM
+                          ,B.BUSS_TYPE   
+                          ,B.BUSIN       
+                          ,B.ADDR1       
+                          ,B.ADDR2       
+                          ,B.ZIP_NO      
+                          ,B.MAIN_EMAIL  
+                          ,B.MAIN_TELL_NO
+                          ,B.MAIN_FAXNO  
+                          ,B.DEL_YN      
+                          ,B.CRE_DATE    
+                          ,B.CRE_USER    
+                          ,B.MOD_DATE    
+                          ,B.MOD_USER    
+	                     )
+     ]]>
+    </insert>
+    
+    <update id="updateVendorFlag" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchVendor.updateVendorFlag
+	        UPDATE VENDOR_INFO_IF
+	           SET IF_FLAG = 'Z'
+			 WHERE IF_FLAG = 'R'
+		   ]]>
+    </update> 
+    
+	<select id="selectCountVendPurchorgInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchVendor.selectCountVendPurchorgInfo
+	    SELECT COUNT(*) CNT
+	      FROM VENDOR_PURCHORG_IF A
+	     WHERE 1 = 1
+	       AND VENDOR_CD   = #{VENDOR_CD}
+	       AND PURCHORG_CD = #{PURCHORG_CD}
+        ]]>
+	</select>
+	
+    <insert id="mergeVendPurchorgIfData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchVendor.mergeVendPurchorgIfData
+	    MERGE INTO VENDOR_PURCHORG_IF A 
+	    USING (
+	        SELECT #{TRANSACTION_NO} AS TRANSACTION_NO
+	              ,#{VENDOR_CD}      AS VENDOR_CD   
+	              ,#{PURCHORG_CD}    AS PURCHORG_CD 
+                  ,#{CURR_CD}        AS CURR_CD     
+                  ,#{PAY_COND}       AS PAY_COND    
+                  ,#{PAY_COND_NM}    AS PAY_COND_NM 
+                  ,#{USER_NM}        AS USER_NM     
+                  ,#{TEL_NO}         AS TEL_NO      
+                  ,#{EMAIL}          AS EMAIL       
+                  ,#{DEL_YN}         AS DEL_YN      
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.TRANSACTION_NO = B.TRANSACTION_NO
+	        AND A.VENDOR_CD      = B.VENDOR_CD
+	        AND A.PURCHORG_CD    = B.PURCHORG_CD
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.CURR_CD      = #{CURR_CD}    
+                  ,A.PAY_COND     = #{PAY_COND}   
+                  ,A.PAY_COND_NM  = #{PAY_COND_NM}
+                  ,A.USER_NM      = #{USER_NM}    
+                  ,A.TEL_NO       = #{TEL_NO}     
+                  ,A.EMAIL        = #{EMAIL}      
+                  ,A.DEL_YN       = #{DEL_YN}     
+                  ,A.IF_FLAG      = 'R'
+                  ,A.IF_MSG       = ''
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.TRANSACTION_NO
+	             ,A.VENDOR_CD  
+	             ,A.PURCHORG_CD
+	             ,A.CURR_CD    
+	             ,A.PAY_COND   
+	             ,A.PAY_COND_NM
+                 ,A.USER_NM    
+                 ,A.TEL_NO     
+                 ,A.EMAIL      
+                 ,A.DEL_YN     
+                 ,A.IF_FLAG    
+                 ,A.IF_MSG     
+	            ) VALUES ( B.TRANSACTION_NO
+	                      ,B.VENDOR_CD  
+	                      ,B.PURCHORG_CD
+	                      ,B.CURR_CD    
+	                      ,B.PAY_COND   
+                          ,B.PAY_COND_NM
+                          ,B.USER_NM    
+                          ,B.TEL_NO     
+                          ,B.EMAIL      
+                          ,B.DEL_YN     
+                          ,'R'
+                          ,''   
+	                     )
+     ]]>
+    </insert>	
+	
+	<insert id="insertVendPurchorgIfData" parameterType="map">
+		<![CDATA[
+		--com.bat.BatchVendor.insertVendPurchorgIfData
+		INSERT INTO VENDOR_PURCHORG_IF
+		(
+		   VENDOR_CD
+          ,PURCHORG_CD
+          ,CURR_CD
+          ,PAY_COND
+          ,PAY_COND_NM
+          ,USER_NM
+          ,TEL_NO
+          ,EMAIL
+          ,DEL_YN
+          ,IF_FLAG
+          ,IF_MSG
+		) VALUES (
+		           #{VENDOR_CD}
+                  ,#{PURCHORG_CD}
+                  ,#{CURR_CD}
+                  ,#{PAY_COND}
+                  ,#{PAY_COND_NM}
+                  ,#{USER_NM}
+                  ,#{TEL_NO}
+                  ,#{EMAIL}
+                  ,#{DEL_YN}
+                  ,'R'
+                  ,''
+		          )
+		]]>
+	</insert>
+	
+    <update id="updateVendPurchorgIfData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchVendor.updateVendPurchorgIfData
+	        UPDATE VENDOR_PURCHORG_IF
+	           SET CURR_CD      = #{CURR_CD}    
+                  ,PAY_COND     = #{PAY_COND}   
+                  ,PAY_COND_NM  = #{PAY_COND_NM}
+                  ,USER_NM      = #{USER_NM}    
+                  ,TEL_NO       = #{TEL_NO}     
+                  ,EMAIL        = #{EMAIL}      
+                  ,DEL_YN       = #{DEL_YN}     
+                  ,IF_FLAG      = 'R'
+                  ,IF_MSG       = ''
+			 WHERE VENDOR_CD    = #{VENDOR_CD}
+			   AND PURCHORG_CD  = #{PURCHORG_CD}
+		   ]]>
+    </update>
+    
+    <insert id="makeVendPurchorgData">
+    <![CDATA[
+	    --com.bat.BatchVendor.makeVendPurchorgData
+	    MERGE INTO VENDOR_PURCHORG A 
+	    USING (
+	        SELECT VENDOR_CD
+                  ,PURCHORG_CD
+                  ,CURR_CD
+                  ,PAY_COND
+                  ,PAY_COND_NM
+                  ,USER_NM
+                  ,TEL_NO
+                  ,EMAIL
+                  ,DEL_YN
+	          FROM VENDOR_PURCHORG_IF
+	         WHERE IF_FLAG = 'R'
+	          ) B
+	    ON (
+	            A.VENDOR_CD = B.VENDOR_CD
+	        AND A.PURCHORG_CD = B.PURCHORG_CD
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.CURR_CD     = B.CURR_CD    
+                  ,A.PAY_COND    = B.PAY_COND   
+                  ,A.PAY_COND_NM = B.PAY_COND_NM
+                  ,A.DEL_YN      = B.DEL_YN     
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.VENDOR_CD
+	             ,A.PURCHORG_CD
+	             ,A.CURR_CD
+                 ,A.PAY_COND
+                 ,A.PAY_COND_NM
+                 ,A.DEL_YN
+	            ) VALUES ( B.VENDOR_CD  
+	                      ,B.PURCHORG_CD
+	                      ,B.CURR_CD    
+                          ,B.PAY_COND   
+                          ,B.PAY_COND_NM
+                          ,B.DEL_YN     
+	                     )
+     ]]>
+    </insert>
+    
+    <insert id="makeVendUserData">
+    <![CDATA[
+	    --com.bat.BatchVendor.makeVendUserData
+	    MERGE INTO VENDOR_USER A 
+	    USING (
+	        SELECT VENDOR_CD
+                  ,USER_NM
+                  ,MAX(TEL_NO) TEL_NO
+                  ,MAX(EMAIL)  EMAIL
+                  ,MAX(DEL_YN) DEL_YN
+	          FROM VENDOR_PURCHORG_IF
+	         WHERE IF_FLAG = 'R'
+	           AND USER_NM IS NOT NULL
+	         GROUP BY VENDOR_CD
+	                 ,USER_NM
+	          ) B
+	    ON (
+	            A.VENDOR_CD   = B.VENDOR_CD
+	        AND A.SAP_RECV_YN = 'Y'
+	        AND A.USER_NM     = B.USER_NM
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.TEL_NO   = B.TEL_NO
+	              ,A.EMAIL    = B.EMAIL
+	              ,A.MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+	              ,A.MOD_USER = 'BATCHSYS'    
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.VENDOR_CD
+                 ,A.SEQ
+                 ,A.WORK_GUBUN
+                 ,A.USER_NM
+                 ,A.TEL_NO
+                 ,A.EMAIL
+                 ,A.SAP_RECV_YN
+                 ,A.EMAIL_YN
+                 ,A.SMS_YN
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( B.VENDOR_CD
+	                      ,SEQ_VENDOR_USER.NEXTVAL
+	                      ,'1'
+	                      ,B.USER_NM    
+                          ,B.TEL_NO   
+                          ,B.EMAIL
+                          ,'Y'
+                          ,'Y'
+                          ,'Y'
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,'BATCHSYS'
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,'BATCHSYS'
+	                     )
+	]]>
+    </insert>
+    
+    <update id="updateVendPurchorgFlag" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchVendor.updateVendPurchorgFlag
+	        UPDATE VENDOR_PURCHORG_IF
+	           SET IF_FLAG = 'Z'
+			 WHERE IF_FLAG = 'R'
+		   ]]>
+    </update>             
+</mapper>

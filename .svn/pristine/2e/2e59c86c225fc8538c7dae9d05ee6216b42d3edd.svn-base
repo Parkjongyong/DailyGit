@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.StockDueDateRegist">
+
+	<select id="selectWhrStockDueDateRegistList" parameterType="Map" resultType="Map">
+		--com.wrh.StockDueDateRegist.selectWhrStockDueDateRegistList
+		SELECT A.*
+		      ,A.PO_ITEM_QTY - NVL(A.ADD_GR_QTY, 0) AS NON_PAY_QTY
+		      ,CASE WHEN NVL(A.PLT_QTY, 0)  = 0 THEN NULL
+		            ELSE TRUNC((A.PO_ITEM_QTY - NVL(A.ADD_GR_QTY, 0)) / A.PLT_QTY, 1)
+		       END AS PLT_CAL_QTY
+		      ,(
+		      	SELECT SUM(ITEM_QTY)
+		      	  FROM GR_DELIVERY_ITEM B
+		      	      INNER JOIN
+		      	       GR_DELIVERY_HEAD C
+		      	      ON C.DOC_NO = B.DOC_NO
+		      	 WHERE B.PO_NUMBER = A.PO_NUMBER
+		      	   AND B.PO_SEQ    = A.PO_SEQ
+		      	   AND C.DOC_STATUS IN ('1', '2', '5')
+		       ) AS TOT_ITEM_QTY
+		  FROM (
+		        SELECT A.PO_NUMBER
+                      ,B.PO_SEQ
+                      ,A.PO_ORG
+                      ,A.PO_ORG_NM
+                      ,A.VENDOR_CD
+                      ,A.VENDOR_NM
+                      ,B.MAT_TYPE
+                      ,FUNC_GET_CODE_NAME('IG002', B.MAT_TYPE) AS MAT_TYPE_NM
+                      ,B.MAT_NUMBER
+                      ,B.MAT_DESC
+                      ,B.UNIT_MEASURE
+                      ,A.CURR_CD
+                      ,B.ITEM_QTY                              AS PO_ITEM_QTY
+                      ,NVL(B.ITEM_QTY, 0) + (NVL(B.ITEM_QTY, 0) * NVL(B.INV_PERCENT, 0)) AS CHK_ITEM_QTY
+                      ,B.INV_PERCENT
+                      ,B.UNIT_PER_MEASURE
+                      ,TRUNC(B.ITEM_QTY * B.INV_PERCENT / 100, 0) AS INV_ITEM_QTY
+                      ,NVL((
+                        SELECT SUM(CASE WHEN DC_INDICATOR = 'H' THEN ITEM_QTY * -1
+                                        ELSE ITEM_QTY
+                                   END)
+                          FROM GR_ITEM C
+                         WHERE C.PO_NUMBER = B.PO_NUMBER
+                           AND C.PO_SEQ    = B.PO_SEQ
+                       ), 0) ADD_GR_QTY
+                      ,A.PO_DATE
+                      ,TO_CHAR(TO_DATE(A.PO_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') AS PO_DATE_HEAD
+                      ,A.PO_DATE AS PO_DATE_GRID
+                      ,TO_CHAR(TO_DATE(B.RD_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') AS RD_DATE_HEAD
+                      ,B.RD_DATE AS RD_DATE_GRID
+                      ,B.RD_TIME
+                      ,B.RD_LOCATION_TXT
+                      ,B.COMP_CD
+                      ,FUNC_GET_CODE_NAME('SYS001', B.COMP_CD) AS COMP_NM
+                      ,B.PLANT_CODE
+                      ,FUNC_GET_PLANT_NAME(B.COMP_CD, B.PLANT_CODE ) AS PLANT_NAME
+                      ,B.LOCATION_TXT
+                      ,B.LOCATION
+                      ,A.ERP_ADD_USER_ID
+                      ,A.ERP_ADD_USER_NAME
+                      ,A.PAY_COND
+                      ,A.PAY_COND_NM
+                      ,B.UNIT_PRICE
+                      ,B.MINI_EXP_PER
+                      ,B.AREA_QTY
+                      ,B.HEIGH_QTY
+                      ,C.BOX_QTY
+                      ,C.PLT_QTY
+		          FROM PO_HEADER A
+		              LEFT OUTER JOIN
+		               PO_ITEM B
+                      ON     B.COMP_CD   = A.COMP_CD
+                         AND B.PO_NUMBER = A.PO_NUMBER
+                      LEFT OUTER JOIN
+                       MAT_PLANT C
+                      ON     C.MAT_NUMBER = B.MAT_NUMBER
+                         AND C.PLANT_CODE = B.PLANT_CODE 
+                 WHERE 1 = 1
+		        <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+    	           AND B.COMP_CD   = #{SB_COMP_CD}
+    	        </if>
+                   AND A.VENDOR_CD   = #{TB_VENDOR_CD}
+		        <if test="SB_PLANT_CD != null and SB_PLANT_CD != ''">
+    	           AND B.PLANT_CODE   = #{SB_PLANT_CD}
+    	        </if> 
+		        <if test="SB_STORAGE_CD != null and SB_STORAGE_CD != ''">
+    	           AND B.LOCATION   = #{SB_STORAGE_CD}
+    	        </if>  
+    	        <![CDATA[
+                   AND NVL(B.RETURN_ORDER_FLAG, ' ') <> 'X'
+                   AND NVL(B.DEL_FLAG         , ' ') <> 'L'
+                ]]>
+		        <if test="CB_COMPLETE_YN == null or CB_COMPLETE_YN == ''">
+					<![CDATA[AND NVL(B.COMPLETE_YN      , ' ') <> 'X']]>		        
+    	        </if>                 
+                
+                <if test="TB_START_DT != null and TB_START_DT != ''">
+		        	<choose>
+		        	    <when test="SB_COND_01=='PD'">
+		        	   		<![CDATA[AND A.PO_DATE   >= REPLACE(#{TB_START_DT}, '-', '')]]>
+		        	   	</when>
+		        	    <when test="SB_COND_01=='RD'">
+		        	   		<![CDATA[AND A.RD_DATE   >= REPLACE(#{TB_START_DT}, '-', '')]]>
+		        	   	</when>			   	
+		        	</choose>        
+  		        </if>
+                <if test="TB_END_DT != null and TB_END_DT != ''">
+		        	<choose>
+		        	    <when test="SB_COND_01=='PD'">
+		        	   		<![CDATA[AND A.PO_DATE   <= REPLACE(#{TB_END_DT}, '-', '')]]>
+		        	   	</when>
+		        	    <when test="SB_COND_01=='RD'">
+		        	   		<![CDATA[AND B.RD_DATE   <= REPLACE(#{TB_END_DT}, '-', '')]]>
+		        	   	</when>			   	
+		        	</choose>       
+  		        </if>
+                <if test="TB_START_NO != null and TB_START_NO != ''">
+                	<![CDATA[AND A.PO_NUMBER   >= #{TB_START_NO}]]>
+  		        </if>
+                <if test="TB_END_NO != null and TB_END_NO != ''">
+		        	<![CDATA[AND A.PO_NUMBER   <= #{TB_END_NO}]]>
+  		        </if>
+		        <if test="SB_MAT_TYPE != null and SB_MAT_TYPE != ''">
+    	           AND B.MAT_TYPE   = #{SB_MAT_TYPE}
+    	        </if>
+    	        ) A
+    	  WHERE 1 =1 
+    	    AND A.CHK_ITEM_QTY > A.ADD_GR_QTY
+        <if test="RD_SORT_GUBN1 != null and RD_SORT_GUBN1 != ''">
+        	ORDER BY A.PO_NUMBER DESC
+        </if>
+        <if test="RD_SORT_GUBN2 != null and RD_SORT_GUBN2 != ''">
+        	ORDER BY A.MAT_NUMBER
+        </if>    	        
+	</select>
+	
+	<select id="selectWhrStockDueDateRegistDetailList" parameterType="Map" resultType="Map">
+		--com.wrh.StockDueDateRegist.selectWhrStockDueDateRegistDetailList
+		SELECT B.DOC_NO
+		      ,B.DOC_SEQ
+		      ,B.PO_NUMBER        
+              ,B.PO_SEQ           
+              ,B.MAT_NUMBER       
+              ,B.MAT_DESC         
+              ,B.UNIT_MEASURE
+              ,B.CURR_CD     
+              ,'R' CRUD          
+              ,B.UNIT_PER_MEASURE 
+              ,B.PO_ITEM_QTY      
+              ,B.ADD_GR_QTY       
+              ,B.NON_PAY_QTY      
+              ,B.ITEM_QTY
+              ,B.UNIT_PRICE         
+              ,B.ITEM_QTY * B.UNIT_PRICE * NVL(B.UNIT_PER_MEASURE, 0) AS ITEM_AMT        
+              ,B.PRODUCT_NO       
+              ,B.PRODUCT_TXT      
+              ,B.MAKER_LOT_NO     
+              ,B.MAKER_DATE       
+              ,B.USE_BY_DATE      
+              ,B.BOX_WEIGHT       
+              ,B.PRODUCT_WEIGHT   
+              ,B.W_D_H            
+              ,B.INV_PERCENT      
+              ,B.INV_ITEM_QTY     
+              ,B.BOX_QTY          
+              ,B.AREA_QTY         
+              ,B.HEIGH_QTY        
+              ,B.PLT_QTY          
+              ,A.PO_ORG           
+              ,A.PO_ORG_NM        
+              ,A.PLANT_CODE       
+              ,A.VENDOR_CD        
+              ,A.VENDOR_NM
+              ,A.COMP_CD
+              ,A.PLANT_CODE
+              ,A.LOCATION
+              ,A.LOCATION  LOCATION_OLD
+              ,TO_CHAR(TO_DATE(A.GR_DELY_DATE, 'YYYYMMDD'), 'YYYY-MM-DD') AS GR_DELY_DATE
+              ,SUBSTR(A.GR_DELY_TIME, 0, 2) || ':' || SUBSTR(A.GR_DELY_TIME, 3) AS GR_DELY_TIME
+              ,A.GR_PERSON_NAME
+              ,A.GR_PERSON_TEL
+              ,A.VENDOR_DOC_TXT
+              ,A.APPROVE_DOC_TXT
+              ,A.LOC_RETURN_DESC
+              ,A.ORG_RETURN_DESC
+              ,A.DOC_STATUS
+              ,A.IMP_MAT_YN
+              ,B.MAT_TYPE
+              ,FUNC_GET_CODE_NAME('IG002', B.MAT_TYPE) AS MAT_TYPE_NM
+              ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD) AS COMP_NM
+              ,FUNC_GET_PLANT_NAME(A.COMP_CD, A.PLANT_CODE ) AS PLANT_NAME
+              ,CASE WHEN NVL(B.PLT_QTY, 0) = 0 THEN NULL
+                    ELSE TRUNC(B.ITEM_QTY / B.PLT_QTY, 1)
+               END  AS PLT_CAL_QTY
+              ,A.LOCATION_TXT
+          FROM GR_DELIVERY_HEAD A
+              INNER JOIN
+               GR_DELIVERY_ITEM B
+              ON A.DOC_NO = B.DOC_NO
+         WHERE A.DOC_NO = #{TB_DOC_NO}
+	</select>
+	
+	<select id="selectWhrStockDueDateRegistheaderInfo" parameterType="Map" resultType="Map">
+		--com.wrh.StockDueDateRegist.selectWhrStockDueDateRegistheaderInfo
+		SELECT A.DOC_NO
+		      ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD) AS COMP_NM
+              ,A.COMP_CD
+              ,A.PLANT_CODE
+              ,FUNC_GET_PLANT_NAME(A.COMP_CD, A.PLANT_CODE ) AS PLANT_NAME
+              ,A.VENDOR_CD
+              ,A.VENDOR_NM
+              ,A.LOCATION
+              ,A.LOCATION_TXT
+              ,TO_CHAR(TO_DATE(A.GR_DELY_DATE, 'YYYY-MM-DD'),'YYYY-MM-DD')      AS GR_DELY_DATE_OLD
+              ,TO_CHAR(TO_DATE(A.GR_DELY_DATE, 'YYYY-MM-DD'),'YYYY-MM-DD')      AS GR_DELY_DATE
+              ,SUBSTR(A.GR_DELY_TIME, 0, 2) || ':' || SUBSTR(A.GR_DELY_TIME, 3) AS GR_DELY_TIME
+              ,A.GR_PERSON_NAME
+              ,A.GR_PERSON_TEL
+              ,A.VENDOR_DOC_TXT
+              ,A.APPROVE_DOC_TXT
+              ,A.DOC_STATUS
+              ,A.LOC_RETURN_DESC
+              ,A.ORG_RETURN_DESC
+              ,A.PO_ORG
+              ,A.PO_ORG_NM
+              ,A.IMP_MAT_YN
+          FROM GR_DELIVERY_HEAD A
+         WHERE A.DOC_NO = #{TB_DOC_NO}
+	</select>
+	
+	<select id="selectStatusDueDateRegist" parameterType="Map" resultType="Map">
+		--com.wrh.StockDueDateRegist.selectStatusDueDateRegist
+		SELECT A.DOC_STATUS
+          FROM GR_DELIVERY_HEAD A
+         WHERE A.DOC_NO = #{TB_DOC_NO}
+	</select>
+	
+	<select id="checkStorageSpace" parameterType="Map" resultType="Map">
+		--com.wrh.StockDueDateRegist.checkStorageSpace
+<![CDATA[SELECT CASE WHEN NVL(B.STORAGE_SPACE, 50) - NVL(SUM_PLT_QTY, 0) <= 0 THEN 'N']]>
+		             ELSE 'Y'
+		        END AS CHK_YN
+		  FROM (
+		        SELECT SUM(CASE WHEN NVL(B.PLT_QTY, 0) = 0 THEN 0
+                                ELSE CEIL(B.ITEM_QTY/B.PLT_QTY)
+                            END
+		               ) AS SUM_PLT_QTY
+		              ,A.COMP_CD
+		              ,A.PLANT_CODE
+		              ,A.LOCATION
+		              ,A.GR_DELY_DATE
+		          FROM GR_DELIVERY_HEAD A
+		              LEFT OUTER JOIN
+		               GR_DELIVERY_ITEM B
+		              ON  B.DOC_NO = A.DOC_NO
+		         WHERE 1 = 1
+		           AND A.COMP_CD      = #{TB_COMP_CD}
+		           AND A.PLANT_CODE   = #{TB_PLANT_CODE}
+		           AND A.LOCATION     = #{TB_LOCATION}
+		           AND A.GR_DELY_DATE = REPLACE(#{TB_GR_DELY_DATE}, '-', '')
+		         GROUP BY A.COMP_CD
+		                 ,A.PLANT_CODE
+		                 ,A.LOCATION
+		                 ,A.GR_DELY_DATE 
+		       ) A
+		      LEFT OUTER JOIN
+               STORAGE_SPACE B
+              ON    B.COMP_CD    = A.COMP_CD
+		        AND B.PLANT_CD   = A.PLANT_CODE
+		        AND B.STORAGE_CD = A.LOCATION
+		        AND B.STRD_DATE  = A.GR_DELY_DATE
+	</select>
+	
+	<select id="selectPltQty" parameterType="Map" resultType="Map">
+		--com.wrh.StockDueDateRegist.selectPltQty
+		SELECT BOX_QTY
+		      ,PLT_QTY
+          FROM MAT_PLANT
+         WHERE 1 = 1
+           AND MAT_NUMBER = #{MAT_NUMBER}
+           AND PLANT_CODE = #{PLANT_CODE}
+	</select>
+	
+    <insert id="insertDeliveryHead" parameterType="Map">
+--com.wrh.StockDueDateRegist.insertDeliveryHead
+INSERT INTO GR_DELIVERY_HEAD 
+(
+  DOC_NO
+ ,COMP_CD
+ ,PLANT_CODE
+ ,VENDOR_CD
+ ,VENDOR_NM
+ ,LOCATION
+ ,LOCATION_TXT
+ ,GR_DELY_DATE
+ ,GR_DELY_TIME
+ ,GR_PERSON_NAME
+ ,GR_PERSON_TEL
+ ,VENDOR_DOC_TXT
+ ,DOC_STATUS
+ ,PO_ORG
+ ,PO_ORG_NM
+ ,CRE_DATE
+ ,CRE_USER
+ ,MOD_DATE
+ ,MOD_USER
+) VALUES (
+           #{TB_DOC_NO}
+          ,#{TB_COMP_CD}
+          ,#{TB_PLANT_CODE}
+          ,#{TB_VENDOR_CD}
+          ,#{TB_VENDOR_NM}
+          ,#{TB_LOCATION}
+          ,#{TB_LOCATION_TXT}
+          ,REPLACE(#{TB_GR_DELY_DATE}, '-', '')
+          ,REPLACE(#{TB_GR_DELY_TIME}, ':', '')
+          ,#{TB_GR_PERSON_NAME}
+          ,#{TB_GR_PERSON_TEL}
+          ,#{TB_VENDOR_DOC_TXT}
+          ,'1'
+          ,#{TB_PO_ORG}
+          ,#{TB_PO_ORG_NM}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{CRE_USER}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{MOD_USER}
+         )
+    </insert>
+    
+    <update id="updateDeliveryHead" parameterType="Map">
+--com.wrh.StockDueDateRegist.updateDeliveryHead
+UPDATE GR_DELIVERY_HEAD
+   SET COMP_CD        = #{TB_COMP_CD}              
+      ,PLANT_CODE     = #{TB_PLANT_CODE}           
+      ,VENDOR_CD      = #{TB_VENDOR_CD}            
+      ,VENDOR_NM      = #{TB_VENDOR_NM}            
+      ,LOCATION       = #{TB_LOCATION}             
+      ,LOCATION_TXT   = #{TB_LOCATION_TXT}         
+      ,GR_DELY_DATE   = REPLACE(#{TB_GR_DELY_DATE}, '-', '')         
+      ,GR_DELY_TIME   = REPLACE(#{TB_GR_DELY_TIME}, ':', '')        
+      ,GR_PERSON_NAME = #{TB_GR_PERSON_NAME}       
+      ,GR_PERSON_TEL  = #{TB_GR_PERSON_TEL}        
+      ,VENDOR_DOC_TXT = #{TB_VENDOR_DOC_TXT}       
+      ,DOC_STATUS     = '1'                    
+      ,PO_ORG         = #{TB_PO_ORG}                
+      ,PO_ORG_NM      = #{TB_PO_ORG_NM}             
+      ,MOD_DATE       = TO_CHAR(SYSDATE,'YYYYMMDD') 
+      ,MOD_USER       = #{MOD_USER}                  
+ WHERE DOC_NO         = #{TB_DOC_NO} 
+    </update> 
+    
+    <update id="updateDeliveryHeadStatus" parameterType="Map">
+--com.wrh.StockDueDateRegist.updateDeliveryHeadStatus
+UPDATE GR_DELIVERY_HEAD
+   SET DOC_STATUS     = #{TB_DOC_STATUS}                  
+      ,MOD_DATE       = TO_CHAR(SYSDATE,'YYYYMMDD') 
+      ,MOD_USER       = #{MOD_USER}                  
+ WHERE DOC_NO         = #{TB_DOC_NO} 
+    </update>        
+    
+    <insert id="insertDeliveryItem" parameterType="Map">
+--com.wrh.StockDueDateRegist.insertDeliveryItem
+INSERT INTO GR_DELIVERY_ITEM 
+(
+  DOC_NO
+ ,DOC_SEQ
+ ,PO_NUMBER
+ ,PO_SEQ
+ ,MAT_NUMBER
+ ,MAT_DESC
+ ,UNIT_MEASURE
+ ,CURR_CD
+ ,PO_ITEM_QTY
+ ,ADD_GR_QTY
+ ,NON_PAY_QTY
+ ,ITEM_QTY
+ ,UNIT_PRICE
+ ,PRODUCT_NO
+ ,PRODUCT_TXT
+ ,MAKER_LOT_NO
+ ,MAKER_DATE
+ ,USE_BY_DATE
+ ,BOX_WEIGHT
+ ,PRODUCT_WEIGHT
+ ,W_D_H
+ ,MINI_EXP_PER
+ ,INV_PERCENT
+ ,INV_ITEM_QTY
+ ,RD_DATE
+ ,RD_TIME
+ ,BOX_QTY
+ ,AREA_QTY
+ ,HEIGH_QTY
+ ,PLT_QTY
+ ,UNIT_PER_MEASURE
+ ,MAT_TYPE
+ ,CRE_DATE
+ ,CRE_USER
+ ,MOD_DATE
+ ,MOD_USER
+) VALUES (
+           #{TB_DOC_NO}
+          ,(SELECT NVL(MAX(DOC_SEQ), 0) + 1 FROM GR_DELIVERY_ITEM WHERE DOC_NO = #{TB_DOC_NO})
+          ,#{PO_NUMBER}
+          ,#{PO_SEQ}
+          ,#{MAT_NUMBER}
+          ,#{MAT_DESC}
+          ,#{UNIT_MEASURE}
+          ,#{CURR_CD}
+          ,#{PO_ITEM_QTY}
+          ,#{ADD_GR_QTY}
+          ,#{NON_PAY_QTY}
+          ,#{ITEM_QTY}
+          ,#{UNIT_PRICE}
+          ,#{PRODUCT_NO}
+          ,#{PRODUCT_TXT}
+          ,#{MAKER_LOT_NO}
+          ,#{MAKER_DATE}
+          ,#{USE_BY_DATE}
+          ,#{BOX_WEIGHT}
+          ,#{PRODUCT_WEIGHT}
+          ,#{W_D_H}
+          ,#{MINI_EXP_PER}
+          ,#{INV_PERCENT}
+          ,#{INV_ITEM_QTY}
+          ,#{RD_DATE}
+          ,#{RD_TIME}
+          ,#{BOX_QTY}
+          ,#{AREA_QTY}
+          ,#{HEIGH_QTY}
+          ,#{PLT_QTY}
+          ,#{UNIT_PER_MEASURE}
+          ,#{MAT_TYPE}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{CRE_USER}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{MOD_USER}
+         )
+    </insert>
+       	
+    <delete id="deleteAllDeliveryItem" parameterType="Map">
+--com.wrh.StockDueDateRegist.deleteDeliveryItem
+DELETE FROM GR_DELIVERY_ITEM
+ WHERE DOC_NO = #{TB_DOC_NO}     
+    </delete>
+    
+    <delete id="deleteDeliveryItem" parameterType="Map">
+--com.wrh.StockDueDateRegist.deleteDeliveryItem
+DELETE FROM GR_DELIVERY_ITEM
+ WHERE DOC_NO  = #{DOC_NO}   
+   AND DOC_SEQ = #{DOC_SEQ}
+    </delete>
+    
+    <insert id="mergeStorageSpace" parameterType="Map">
+    <![CDATA[
+	    --com.wrh.StockDueDateRegist.mergeStorageSpace
+	    MERGE INTO STORAGE_SPACE A 
+	    USING (
+	        SELECT #{COMP_CD}                      AS COMP_CD
+                  ,#{PLANT_CD}                     AS PLANT_CD
+                  ,#{STORAGE_CD}                   AS STORAGE_CD
+                  ,REPLACE(#{STRD_DATE}, '-', '')  AS STRD_DATE
+                  ,50                              AS STORAGE_SPACE
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.COMP_CD    = B.COMP_CD
+	        AND A.PLANT_CD   = B.PLANT_CD
+	        AND A.STORAGE_CD = B.STORAGE_CD
+	        AND A.STRD_DATE  = B.STRD_DATE
+	       )
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.COMP_CD
+                 ,A.PLANT_CD
+                 ,A.STORAGE_CD
+                 ,A.STRD_DATE
+                 ,A.STORAGE_SPACE
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( B.COMP_CD
+                          ,B.PLANT_CD
+                          ,B.STORAGE_CD   
+                          ,B.STRD_DATE   
+                          ,B.STORAGE_SPACE
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,#{CRE_USER}
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,#{MOD_USER}
+	                     )
+     ]]>
+    </insert>    
+    
+        
+	<select id="selectWhrStockDueDateReceiverList" parameterType="Map" resultType="Map">
+		--com.wrh.StockDueDateRegist.selectWhrStockDueDateReceiverList
+    SELECT C.EMAIL RECEIVER_EMAIL
+      FROM GR_DELIVERY_HEAD A
+          INNER JOIN
+           GR_DELIVERY_ITEM B
+          ON A.DOC_NO = B.DOC_NO
+          INNER JOIN
+           VENDOR_USER C
+          ON    C.VENDOR_CD = A.VENDOR_CD
+            AND C.EMAIL_YN  = 'Y'
+     WHERE A.DOC_NO  = #{DOC_NO}
+	</select>
+		
+	<select id="selectWhrStockDueDateReceiverSmsList" parameterType="Map" resultType="Map">
+		--com.wrh.StockDueDateRegist.selectWhrStockDueDateReceiverSmsList
+    SELECT SUBSTR(REPLACE(C.TEL_NO,'-',''),0,3)                RPHONE1
+          ,SUBSTR(REPLACE(C.TEL_NO,'-',''),4,4)                RPHONE2
+          ,SUBSTR(REPLACE(C.TEL_NO,'-',''),8,4)                RPHONE3
+          ,SUBSTR(REPLACE(#{MOBILE_NO},'-',''),0,3)            SPHONE1
+          ,SUBSTR(REPLACE(#{MOBILE_NO},'-',''),4,4)            SPHONE2
+          ,SUBSTR(REPLACE(#{MOBILE_NO},'-',''),8,4)            SPHONE3
+          ,C.USER_NM                                           USER_NM
+          ,A.DOC_NO                                            DOC_NO
+          ,#{STATUS_NM}                                        STATUS_NM
+      FROM GR_DELIVERY_HEAD A
+          INNER JOIN
+           GR_DELIVERY_ITEM B
+          ON A.DOC_NO = B.DOC_NO
+          INNER JOIN
+           VENDOR_USER C
+          ON    C.VENDOR_CD = A.VENDOR_CD
+            AND C.SMS_YN    = 'Y'
+     WHERE A.DOC_NO  = #{DOC_NO}
+	</select>
+
+	<insert id="insertSmsData" parameterType="Map">
+	<![CDATA[
+INSERT INTO smsdata@IDPROD 
+      (
+       SEQNO
+      ,SENDID
+      ,SENDNAME
+      ,RPHONE1
+      ,RPHONE2
+      ,RPHONE3
+      ,RECVNAME
+      ,SPHONE1
+      ,SPHONE2
+      ,SPHONE3
+      ,MSG
+      ,URL
+      ,RDATE
+      ,RTIME
+      ,RESULT
+      ,KIND
+      ,ERRCODE
+      ,RETRY1
+      ,RETRY2
+      ,LASTTIME
+      ,PO_NO
+      )
+SELECT SMSDATA_S.NEXTVAL@IDPROD
+      ,'ILDONG'
+      ,'일동제약'
+      ,#{RPHONE1}  	
+      ,#{RPHONE2}  	
+      ,#{RPHONE3}  	
+      ,#{USER_NM}
+      ,'02'   
+      ,'526'   
+      ,'3274'   
+      ,'귀사의 입고예정정보가 ' ||#{STATUS_NM}|| '되었습니다. 일동제약 ' || #{DOC_NO} 
+      ,NULL
+      ,NULL
+      ,NULL
+      ,'0'
+      ,'S'
+      ,0
+      ,0
+      ,0
+      ,TO_CHAR(SYSDATE,('YYYYMMDDHH24MISS'))
+      ,NULL
+  FROM DUAL
+	]]>
+	</insert>
+			
+</mapper>

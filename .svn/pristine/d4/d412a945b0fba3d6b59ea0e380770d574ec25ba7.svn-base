@@ -1,0 +1,52 @@
+## category Code config
+# category.groupId.codeId=value
+
+## common Code config
+# groupId.codeId=value
+
+## code
+# codeId=value
+
+# \ud14c\uc2a4\ud2b8\ucf54\ub4dc
+common.common.test1=codeTest1
+common.common.test3=codeTest3
+common.common.test2=codeTest2
+common.common.test4=codeTest4
+common.common.test5=codeTest5
+
+# Sample \uac8c\uc2dc\ud310 \ucf54\ub4dc: \uac80\uc0c9\uc870\uac74
+BIZ.C001.title=Title
+BIZ.C001.content=Content
+
+# \uba54\uc2dc\uc9c0\uad00\ub9ac
+SYS.C001.C0011=Error
+SYS.C001.C0012=Caution
+SYS.C001.C0013=Information
+SYS.C001.C0014=Confirm
+
+# C002\ucf54\ub4dc
+common.C002.1=Menu
+common.C002.2=Code
+common.C002.3=Message
+common.C002.4=Label
+
+# Test
+SYS.C010.C0101=All
+SYS.C010.C0102=Title
+
+# \uc0ac\uc6a9\uc5ec\ubd80
+C003.C0031=Y
+C003.C0032=N
+
+# WAS instance
+C005.C0051=Localhost
+C005.C0052=Dev
+C005.C0053=Production
+
+#\uc9c1\ucc45
+C006.C0063=Assisant
+C006.C0064=Manager
+C006.C0065=Conductor
+C006.C0066=Director
+C006.C0067=Adviser
+C006.C0068=Executives

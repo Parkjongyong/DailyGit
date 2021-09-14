@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.OrderStatus">
+
+	<select id="selectOrderStatusList" parameterType="Map" resultType="Map">
+--com.wrh.OrderStatus.selectOrderStatusList
+SELECT COMP_CD                 -- 회사코드
+      ,FUNC_GET_CODE_NAME('SYS001', COMP_CD) COMP_NM       
+      ,PO_NUMBER               -- 발주번호       
+      ,PO_ORG                  -- 구매조직(구매그룹) 
+      ,PO_ORG_NM               -- 구매그룹명      
+      ,ERP_ADD_USER_ID         -- ERP 발주생성자 I
+      ,ERP_ADD_USER_NAME       -- ERP 발주생성자 명
+      ,VENDOR_CD               -- 공급업체 코드    
+      ,VENDOR_NM               -- 공급업체명      
+      ,PO_YN                   -- 발주확인유무 
+      ,PO_CREATE_DATE          -- 발주생성일자      
+      ,PO_DATE                 -- 발주일(PO 증빙일) 
+      ,CONFIRM_DATE            -- 공급업체 확인일자   
+      ,CONFIRM_TIME            -- 공급업체 확인시간   
+      ,PAY_COND                -- 결재조건        
+      ,PAY_COND_NM             -- 결재조건 Text   
+      ,CURR_CD                 -- 화폐단위        
+      ,ATTACH_NO               -- 첨부파일번호      
+      ,PO_CHANGE_FLAG          -- 발주변경여부      
+      ,PO_CHANGE_DATE          -- 발주변경일       
+      ,PO_CHANGE_TIME          -- 발주변경시간
+      ,CRE_DATE                -- 등록일자        
+      ,CRE_USER                -- 등록자ID       
+      ,MOD_DATE                -- 수정일자        
+      ,MOD_USER                -- 수정자ID       
+      ,RNUM                    --
+      ,TOT_CNT                 -- 전체CNT
+  FROM (
+        SELECT COMP_CD               -- 회사코드
+              ,PO_NUMBER             -- 발주번호
+              ,PO_ORG                -- 구매조직(구매그룹)
+              ,PO_ORG_NM             -- 구매그룹명
+              ,ERP_ADD_USER_ID       -- ERP 발주생성자 ID
+              ,ERP_ADD_USER_NAME     -- ERP 발주생성자 명
+              ,VENDOR_CD             -- 공급업체 코드
+              ,VENDOR_NM             -- 공급업체명
+              ,CASE 
+                WHEN CONFIRM_DATE IS NOT NULL THEN '1' 
+                ELSE                          '2'
+               END PO_YN
+              ,PO_CREATE_DATE        -- 발주생성일자
+              ,PO_DATE               -- 발주일(PO 증빙일)
+              ,CONFIRM_DATE          -- 공급업체 확인일자
+              ,CONFIRM_TIME          -- 공급업체 확인시간
+              ,PAY_COND              -- 결재조건
+              ,PAY_COND_NM           -- 결재조건 Text
+              ,CURR_CD               -- 화폐단위
+              ,ATTACH_NO             -- 첨부파일번호
+              ,PO_CHANGE_FLAG        -- 발주변경여부
+              ,PO_CHANGE_DATE        -- 발주변경일
+              ,PO_CHANGE_TIME        -- 발주변경시간
+              ,CRE_DATE              -- 등록일자
+              ,CRE_USER              -- 등록자ID
+              ,MOD_DATE              -- 수정일자
+              ,MOD_USER              -- 수정자ID
+              ,ROW_NUMBER() OVER(ORDER BY PO_NUMBER DESC) AS RNUM
+              ,COUNT(0) OVER() TOT_CNT -- 건수
+          FROM PO_HEADER
+         WHERE 1=1
+         <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+           AND COMP_CD   = #{SB_COMP_CD}
+         </if>
+         <if test="TB_VENDOR_CD != null and TB_VENDOR_CD != ''">
+           AND VENDOR_CD LIKE '%'|| #{TB_VENDOR_CD} ||'%'
+         </if>
+         <if test="TB_VENDOR_NM != null and TB_VENDOR_NM != ''">
+           AND VENDOR_NM LIKE '%'|| #{TB_VENDOR_NM} ||'%'
+         </if>
+         <if test="TB_START_DT != null and TB_START_DT != ''">
+       	<![CDATA[
+           AND PO_DATE   >= REPLACE(#{TB_START_DT}, '-', '')
+       	]]>
+         </if>
+         <if test="TB_END_DT != null and TB_END_DT != ''">
+       	<![CDATA[
+           AND PO_DATE   <= REPLACE(#{TB_END_DT}, '-', '')
+       	]]>
+         </if>
+         <if test="SB_ORD_CD != null and SB_ORD_CD != ''">
+           AND PO_CHANGE_FLAG = #{SB_ORD_CD}
+         </if>
+         <if test="TB_START_PO_NUMBER != null and TB_START_PO_NUMBER != ''">
+       	<![CDATA[
+           AND PO_NUMBER   >= #{TB_START_PO_NUMBER}
+       	]]>
+         </if>
+         <if test="TB_END_PO_NUMBER != null and TB_END_PO_NUMBER != ''">
+       	<![CDATA[
+           AND PO_NUMBER   <= #{TB_END_PO_NUMBER}
+       	]]>
+         </if>
+         <if test="SB_PO_ORG != null and SB_PO_ORG != ''">
+           AND PO_ORG   = #{SB_PO_ORG}
+         </if>         
+         ORDER BY COMP_CD 
+                 ,PO_NUMBER
+	   )          
+   <![CDATA[
+   WHERE RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 50)
+   ]]> 
+   <if test="SB_ORD_YN != null and SB_ORD_YN != ''">
+     AND PO_YN     = #{SB_ORD_YN}
+   </if>
+
+	</select>
+	
+	
+	<select id="selectOrderStatusDetail" parameterType="Map" resultType="Map">
+--com.wrh.OrderStatus.selectOrderStatusDetail
+SELECT COMP_CD
+      ,PO_NUMBER
+      ,PO_SEQ
+      ,PO_CREATE_DATE
+      ,PLANT_CODE
+      ,PLANT_NM
+      ,COMPLETE_YN
+      ,RETURN_ORDER_FLAG
+      ,CASE WHEN NVL(RETURN_ORDER_FLAG, ' ') = 'X' THEN '반품'
+            ELSE ''
+       END RETURN_ORDER_FLAG_NM
+      ,NO_CHARGE_FLAG
+      ,CASE WHEN NVL(NO_CHARGE_FLAG, ' ') = 'X' THEN '무상'
+            ELSE ''
+       END NO_CHARGE_FLAG_NM
+      ,BATCH_FLAG
+      ,INV_PERCENT
+      ,REVLV
+      ,MAT_GROUP
+      ,MAT_GROUP_DESC
+      ,MAT_NUMBER
+      ,MAT_DESC
+      ,MAT_TYPE
+      ,UNIT_MEASURE
+      ,UNIT_PER_MEASURE
+      ,ITEM_QTY
+      ,UNIT_PRICE
+      ,ITEM_AMT
+      ,RD_DATE
+      ,RD_TIME
+      ,NVL(RQ_DATE, RD_DATE) RQ_DATE
+      ,REMARK
+      ,LOCATION
+      ,LOCATION_TXT
+      ,RD_LOCATION_TXT
+      ,MAKER_CODE
+      ,MAKER_NAME
+      ,MINI_EXP_PER
+      ,PO_CHG_DATE
+      ,DEL_FLAG
+      ,CASE WHEN NVL(DEL_FLAG, ' ') = 'X' THEN '삭제'
+            ELSE ''
+       END DEL_FLAG_NM
+      ,BOX_QTY
+      ,AREA_QTY
+      ,HEIGH_QTY
+      ,PLT_QTY
+      ,CRE_DATE
+      ,CRE_USER
+      ,MOD_DATE
+      ,MOD_USER
+      ,SUM_AMT
+      ,H_ITEM_QTY
+      ,H_UNIT_PRICE
+      ,H_ITEM_AMT
+      ,H_SUM_AMT
+      ,H_PLT_QTY
+      ,H_BOX_QTY
+      ,H_SUM_AMT
+      ,CURR_CD
+      ,VENDOR_CD
+      ,VENDOR_NM
+      ,PAY_COND
+      ,PAY_COND_NM
+      ,PO_YN
+      ,CONFIRM_DATE
+      ,PO_CHANGE_DATE
+      ,COMP_NM
+      ,PO_ORG
+      ,PO_ORG_NM
+      ,ERP_ADD_USER_ID
+      ,ERP_ADD_USER_NAME
+      ,PO_CHANGE_FLAG
+  FROM (
+        SELECT A.COMP_CD                      -- 회사코드
+              ,A.PO_NUMBER                    -- 발주번호
+              ,A.PO_SEQ                       -- 발주항번
+              ,B.PO_CREATE_DATE               -- 발주생성일자
+              ,A.PLANT_CODE                   -- 플랜트
+              ,C.PLANT_NM                     -- 플랜트명
+              ,A.COMPLETE_YN                  -- 완료여부(납품완료)
+              ,A.RETURN_ORDER_FLAG            -- 반품지시자
+              ,A.NO_CHARGE_FLAG               -- 무상지시자
+              ,A.BATCH_FLAG                   -- 배치관리대상
+              ,A.INV_PERCENT                  -- 초과납품 허용한도
+              ,A.REVLV                        -- 표시자재 버젼
+              ,A.MAT_GROUP                    -- 자재그룹코드
+              ,A.MAT_GROUP_DESC               -- 자재그룹내역
+              ,A.MAT_NUMBER                   -- 품목코드(자재 번호)
+              ,A.MAT_DESC                     -- 구매품목내역
+              ,A.MAT_TYPE                     -- 자재유형
+              ,A.UNIT_MEASURE                 -- 발주단위
+              ,A.UNIT_PER_MEASURE             -- 가격단위
+              ,A.ITEM_QTY                     -- 발주수량
+              ,A.UNIT_PRICE                   -- ITEM단가
+              ,A.ITEM_AMT                     -- 발주금액(통화기준의 금액)
+              ,A.RD_DATE                      -- 납기일자 (EKET-EINDT)
+              ,A.RD_TIME                      -- 납품시간 (EKET-UZEIT)
+              ,A.LOCATION                     -- 저장위치
+              ,A.LOCATION_TXT                 -- 저장위치내역
+              ,A.RD_LOCATION_TXT              -- 납품장소내역
+              ,A.MAKER_CODE                   -- 제조원코드
+              ,A.MAKER_NAME                   -- 제조원명
+              ,A.MINI_EXP_PER                 -- 최저잔존수명
+              ,A.PO_CHG_DATE                  -- 발주변경일
+              ,A.DEL_FLAG                     -- 삭제여부{Y/N}
+              ,D.BOX_QTY                      -- 박스입수
+              ,A.AREA_QTY                     -- 배면
+              ,A.HEIGH_QTY                    -- 배단
+              ,D.PLT_QTY                      -- PLT적재수량
+              ,A.CRE_DATE                     -- 등록일자
+              ,A.CRE_USER                     -- 등록자ID
+              ,A.MOD_DATE                     -- 수정일자
+              ,A.MOD_USER                     -- 수정자ID
+              ,SUM(A.ITEM_AMT) OVER() SUM_AMT -- 발주금액 합계
+              ,TO_CHAR(A.ITEM_QTY, 'FM9,999,999,999')             H_ITEM_QTY          -- 발주수량
+              ,TO_CHAR(A.UNIT_PRICE, 'FM9,999,999,999')           H_UNIT_PRICE        -- ITEM단가
+              ,TO_CHAR(A.ITEM_AMT, 'FM9,999,999,999')             H_ITEM_AMT          -- 발주금액(통화기준의 금액)
+              ,TO_CHAR(SUM(A.ITEM_AMT) OVER(), 'FM9,999,999,999') H_SUM_AMT           -- 발주금액 합계
+              ,TO_CHAR(D.PLT_QTY, 'FM9,999,999,999')              H_PLT_QTY           -- PLT적재수량
+              ,TO_CHAR(D.BOX_QTY, 'FM9,999,999,999')              H_BOX_QTY           -- 박스입수
+              ,B.CURR_CD                                          CURR_CD             
+              ,B.VENDOR_CD             -- 공급업체 코드
+              ,B.VENDOR_NM             -- 공급업체명
+              ,B.PAY_COND              -- 결재조건
+              ,B.PAY_COND_NM           -- 결재조건 Text
+              ,CASE 
+                WHEN B.CONFIRM_DATE IS NOT NULL THEN '1' 
+                ELSE                          '2'
+               END PO_YN
+              ,B.CONFIRM_DATE
+              ,B.PO_CHANGE_DATE
+              ,FUNC_GET_CODE_NAME('SYS001', B.COMP_CD) COMP_NM
+              ,B.PO_ORG
+              ,B.PO_ORG_NM
+              ,B.ERP_ADD_USER_ID
+              ,B.ERP_ADD_USER_NAME
+              ,B.PO_CHANGE_FLAG
+              ,A.RQ_DATE
+              ,A.REMARK
+          FROM PO_ITEM A
+              LEFT OUTER JOIN
+               PO_HEADER B
+              ON    B.COMP_CD   = A.COMP_CD
+                AND B.PO_NUMBER = A.PO_NUMBER
+              LEFT OUTER JOIN
+               PLANT_INFO C
+              ON    C.COMP_CD  = A.COMP_CD
+                AND C.PLANT_CD = A.PLANT_CODE
+              LEFT OUTER JOIN
+               MAT_PLANT D
+              ON     D.MAT_NUMBER = A.MAT_NUMBER
+                 AND D.PLANT_CODE = A.PLANT_CODE                 
+         WHERE 1=1
+          <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+            AND A.COMP_CD = #{SB_COMP_CD}
+          </if>
+          <if test="TB_VENDOR_CD != null and TB_VENDOR_CD != ''">
+            AND B.VENDOR_CD LIKE '%'|| #{TB_VENDOR_CD} ||'%'
+          </if>
+          <if test="TB_VENDOR_NM != null and TB_VENDOR_NM != ''">
+            AND B.VENDOR_NM LIKE '%'|| #{TB_VENDOR_NM} ||'%'
+          </if>
+          <if test="TB_START_DT != null and TB_START_DT != ''">
+         <![CDATA[
+            AND B.PO_DATE   >= REPLACE(#{TB_START_DT}, '-', '')
+         ]]>
+          </if>
+         <if test="SB_ORD_CD != null and SB_ORD_CD != ''">
+           AND B.PO_CHANGE_FLAG = #{SB_ORD_CD}
+         </if>
+         <if test="TB_START_PO_NUMBER != null and TB_START_PO_NUMBER != ''">
+       	<![CDATA[
+           AND B.PO_NUMBER   >= #{TB_START_PO_NUMBER}
+       	]]>
+         </if>
+         <if test="TB_END_PO_NUMBER != null and TB_END_PO_NUMBER != ''">
+       	<![CDATA[
+           AND B.PO_NUMBER   <= #{TB_END_PO_NUMBER}
+       	]]>
+         </if>
+         <if test="PO_NUMBER != null and PO_NUMBER != ''">
+       	<![CDATA[
+           AND B.PO_NUMBER   = #{PO_NUMBER}
+       	]]>
+         </if>         
+          <if test="TB_END_DT != null and TB_END_DT != ''">
+         <![CDATA[
+            AND B.PO_DATE   <= REPLACE(#{TB_END_DT}, '-', '')
+         ]]>
+           <![CDATA[AND NVL(A.DEL_FLAG, ' ') <> 'L']]>	
+         </if>
+      ) A
+WHERE 1=1
+   <if test="SB_ORD_YN != null and SB_ORD_YN != ''">
+     AND A.PO_YN     = #{SB_ORD_YN}
+   </if>
+ ORDER BY A.COMP_CD
+         ,A.PO_NUMBER
+         ,A.PO_SEQ
+	</select>
+	
+	<select id="selectOrderStatusDetailOne" parameterType="Map" resultType="Map">
+--. 발주현황상세 조회
+SELECT A.COMP_CD                      -- 회사코드
+      ,A.PO_NUMBER                    -- 발주번호
+      ,A.PO_SEQ                       -- 발주항번
+      ,A.PLANT_CODE                   -- 플랜트
+      ,A.COMPLETE_YN                  -- 완료여부(납품완료)
+      ,A.RETURN_ORDER_FLAG            -- 반품지시자
+      ,A.NO_CHARGE_FLAG               -- 무상지시자
+      ,A.BATCH_FLAG                   -- 배치관리대상
+      ,A.INV_PERCENT                  -- 초과납품 허용한도
+      ,A.REVLV                        -- 표시자재 버젼
+      ,A.MAT_GROUP                    -- 자재그룹코드
+      ,A.MAT_GROUP_DESC               -- 자재그룹내역
+      ,A.MAT_NUMBER                   -- 품목코드(자재 번호)
+      ,A.MAT_DESC                     -- 구매품목내역
+      ,A.MAT_TYPE                     -- 자재유형
+      ,A.UNIT_MEASURE                 -- 발주단위
+      ,A.UNIT_PER_MEASURE             -- 가격단위
+      ,A.ITEM_QTY                     -- 발주수량
+      ,A.UNIT_PRICE                   -- ITEM단가
+      ,A.ITEM_AMT                     -- 발주금액(통화기준의 금액)
+      ,A.RD_DATE                      -- 납기일자 (EKET-EINDT)
+      ,A.RD_TIME                      -- 납품시간 (EKET-UZEIT)
+      ,A.LOCATION                     -- 저장위치
+      ,A.LOCATION_TXT                 -- 저장위치내역
+      ,A.RD_LOCATION_TXT              -- 납품장소내역
+      ,A.MAKER_CODE                   -- 제조원코드
+      ,A.MAKER_NAME                   -- 제조원명
+      ,A.MINI_EXP_PER                 -- 최저잔존수명
+      ,A.PO_CHG_DATE                  -- 발주변경일
+      ,A.DEL_FLAG                     -- 삭제여부{Y/N}
+      ,B.BOX_QTY                      -- 박스입수
+      ,A.AREA_QTY                     -- 배면
+      ,A.HEIGH_QTY                    -- 배단
+      ,B.PLT_QTY                      -- PLT적재수량
+      ,A.CRE_DATE                     -- 등록일자
+      ,A.CRE_USER                     -- 등록자ID
+      ,A.MOD_DATE                     -- 수정일자
+      ,A.MOD_USER                     -- 수정자ID
+      ,SUM(A.ITEM_AMT) OVER() SUM_AMT -- 발주금액 합계
+  FROM PO_ITEM A
+      LEFT OUTER JOIN
+       MAT_PLANT B
+      ON     B.MAT_NUMBER = A.MAT_NUMBER
+         AND B.PLANT_CODE = A.PLANT_CODE   
+ WHERE 1=1
+  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+    AND COMP_CD = #{SB_COMP_CD}
+  </if>
+  <if test="TB_PO_NUMBER != null and TB_PO_NUMBER != ''">
+    AND PO_NUMBER = #{TB_PO_NUMBER}
+  </if>
+  <if test="TB_PO_SEQ != null and TB_PO_SEQ != ''">
+    AND PO_SEQ = #{TB_PO_SEQ}
+  </if>
+ ORDER BY COMP_CD
+         ,PO_NUMBER
+         ,PO_SEQ
+	</select>
+	
+    <update id="wrhOrderStatusHeaderConfirm" parameterType="Map">
+		--com.wrh.OrderStatus.wrhOrderStatusHeaderConfirm
+		UPDATE PO_HEADER
+		   SET CONFIRM_DATE = TO_CHAR(SYSDATE , 'YYYYMMDD')
+		      ,CONFIRM_TIME = TO_CHAR(SYSDATE , 'HH24MISS')
+		      ,MOD_DATE     = TO_CHAR(SYSDATE , 'YYYYMMDD')
+		      ,MOD_USER     = #{MOD_USER}
+		 WHERE COMP_CD      = #{COMP_CD}     
+		   AND PO_NUMBER    = #{PO_NUMBER}      
+    </update>
+    
+    <update id="wrhOrderStatusItemConfirm" parameterType="Map">
+		--com.wrh.OrderStatus.wrhOrderStatusItemConfirm
+		UPDATE PO_ITEM
+		   SET RQ_DATE      = REPLACE(#{RQ_DATE}, '-', '')
+		      ,REMARK       = #{REMARK}
+		      ,MOD_DATE     = TO_CHAR(SYSDATE , 'YYYYMMDD')
+		      ,MOD_USER     = #{MOD_USER}
+		 WHERE COMP_CD      = #{COMP_CD}     
+		   AND PO_NUMBER    = #{PO_NUMBER}
+		   AND PO_SEQ       = #{PO_SEQ}      
+    </update>    
+    
+    <update id="wrhOrderStatusDetailConfirmCancel" parameterType="Map">
+		--com.wrh.OrderStatus.wrhOrderStatusDetailConfirmCancel
+		UPDATE PO_HEADER
+		   SET CONFIRM_DATE = null
+		      ,CONFIRM_TIME = null
+		      ,MOD_DATE     = TO_CHAR(SYSDATE , 'YYYYMMDD')
+		      ,MOD_USER     = #{MOD_USER}		      
+		 WHERE COMP_CD      = #{COMP_CD}     
+		   AND PO_NUMBER    = #{PO_NUMBER}      
+    </update>
+    
+    
+    
+	
+</mapper>

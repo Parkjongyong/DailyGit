@@ -1,0 +1,134 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="org.springframework.web.bind.ServletRequestUtils" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<%
+    String url = ServletRequestUtils.getStringParameter(request, "URL_IN", "");
+    
+	String EPR_SEQ       = ServletRequestUtils.getStringParameter(request, "EPR_SEQ", "");
+	String EPR_NM        = ServletRequestUtils.getStringParameter(request, "EPR_NM", "");
+	String ITEM_NM       = ServletRequestUtils.getStringParameter(request, "ITEM_NM", "");
+	String TARGET_EQUIP  = ServletRequestUtils.getStringParameter(request, "TARGET_EQUIP", "");
+	String PLANT_NM      = ServletRequestUtils.getStringParameter(request, "PLANT_NM", "");
+	String REQ_DEPT_NM   = ServletRequestUtils.getStringParameter(request, "REQ_DEPT_NM", "");
+	String REQ_USER_NM   = ServletRequestUtils.getStringParameter(request, "REQ_USER_NM", "");
+	String VENDOR_NM     = ServletRequestUtils.getStringParameter(request, "VENDOR_NM", "");
+	String CMPLT_EXP_YMD = ServletRequestUtils.getStringParameter(request, "CMPLT_EXP_YMD", "");
+	String PR_EXP_YMD    = ServletRequestUtils.getStringParameter(request, "PR_EXP_YMD", "");
+	String END_REASON    = ServletRequestUtils.getStringParameter(request, "END_REASON", "");
+	/*
+	END_REQ_ID 종결요청자ID
+EDN_REQ_DT  종결요청일시
+END_RCPT_ID 종결확인ID
+END_RCPT_DT 종결확인일시
+END_REASON  종결사유
+	*/
+%>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>긴급구매 종결 알림</title>
+<style>
+    .th_class { text-align:left; color:#222; font-size:14px; border-bottom:1px solid #d7d7d7; mso-padding-alt: 10px 10px 0 10px; padding: 10px 10px 10px 15px; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-weight:600; background-color:#f6f6f6;}
+    .td_class { text-align:left; color:#666; font-size:14px; border-left:1px solid #d7d7d7; border-bottom:1px solid #d7d7d7; mso-padding-alt: 10px 10px 0 10px; padding: 10px 10px 10px 10px;font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; }
+</style>
+</head>
+<body>
+    <!-- 메일폼 시작 -->
+    <table align="center" border="0" cellspacing="0" cellpadding="0">
+        <tbody>
+
+            <tr>
+                <td style="padding-bottom:15px;">
+                    <a href="#none"><img src="<%=url%>/resources/images/common/logo_email.png" align="middle"></a>
+                </td>
+            </tr>
+
+            <tr>
+                <td style=" width:760px; border:1px solid #d8d8d8; border-top:3px solid #d0112b; ">
+                    <table border="0" cellspacing="0" cellpadding="0" style="width:100%; padding:25px 60px 18px 60px; border-bottom:0;">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <p style="color:#222; font-weight:600; font-size:25px; letter-spacing:-2px; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; margin:0 0 0 0; margin-top:30px; padding-bottom:30px; border-bottom:1px solid #d9d9d9;">
+                                        [PARUCNC] 긴급구매 종결 알림
+                                    </p>
+                                    <div style="line-height:30px; margin:40px 0 40px 0; color:#222; font-weight:500; font-size:15px; letter-spacing:-2px; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif;">
+                                        하기의 긴급구매요청이 종결되었습니다.<br>
+                                    </div>
+                                    
+                                    <div style="margin:0 0 0 0;">
+                                        <p style="margin:0 0 15px 0; color:#444; font-size:15px; font-weight:600;">긴급구매요청 내용</p>
+                                        <table border="0" cellspacing="0" cellpadding="0" style="width:100%;  margin:0 0 10px 0; border-top:1px solid #d7d7d7;">
+                                            <tbody>
+                                                <tr>
+                                                    <th height="15" width="120" class="th_class">긴급구매 작업No.</th>
+                                                    <td height="15" width="450" class="td_class"><%=EPR_SEQ%></td>
+                                                </tr>
+                                                <tr>
+                                                    <th height="15" width="120" class="th_class">작업 Order명</th>
+                                                    <td height="15" width="450"  class="td_class"><%=EPR_NM%></td>
+                                                </tr>
+                                                <tr>
+                                                    <th height="15" width="120" class="th_class">대상장비</th>
+                                                    <td height="15" width="450"  class="td_class"><%=TARGET_EQUIP%></td>
+                                                </tr>
+                                                <tr>
+                                                    <th height="15" width="120" class="th_class">공장</th>
+                                                    <td height="15" width="450"  class="td_class"><%=PLANT_NM%></td>
+                                                </tr>
+                                                <tr>
+                                                    <th height="15" width="120" class="th_class">요청부서</th>
+                                                    <td height="15" width="450"  class="td_class"><%=REQ_DEPT_NM%></td>
+                                                </tr>
+                                                <tr>
+                                                    <th height="15" width="120" class="th_class">요청자</th>
+                                                    <td height="15" width="450"  class="td_class"><%=REQ_USER_NM%></td>
+                                                </tr>
+                                                <tr>
+                                                    <th height="15" width="120" class="th_class">대응업체</th>
+                                                    <td height="15" width="450"  class="td_class"><%=VENDOR_NM%></td>
+                                                </tr>
+                                                <tr>
+                                                    <th height="15" width="120" class="th_class">종결사유</th>
+                                                    <td height="15" width="450"  class="td_class"><textarea style="width:100%" rows="5"><%=END_REASON%></textarea></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <br><br>
+                                    <table  border="0" cellspacing="0" cellpadding="0" style="width:100%;">
+                                        <tbody>
+                                            <tr>
+                                                <td style="color:#999; font-size:13px; 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-weight:500;">
+                                                    * 해당 메일은 발신 전용 메일로 회신되지 않습니다.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="height:45px;"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table border="0" cellspacing="0" cellpadding="0" style="width:100%; background-color:#fff;   border-top:1px solid #e9e9e9; padding:20px 60px;">
+                        <tbody>
+                            <tr>
+                                <td style="font-size:13px; color:#ccc; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif;">
+                                    COPYRIGHT ⓒ PARUCNC. ALL RIGHT RESERVED.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <!-- 메일폼 끝 -->
+</body>
+
+</html>

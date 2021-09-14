@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchOrderMst">
+
+    <insert id="mergeOrderMastData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchOrderMst.mergeOrderMastData
+	    MERGE INTO CO_ORDER_MST A 
+	    USING (
+               SELECT TRIM(#{BUKRS})  AS COMP_CD
+                     ,TRIM(#{AUFNR})  AS ORDER_NO
+                     ,TRIM(#{AUART})  AS ORDER_GUBUN
+                     ,TRIM(#{ZINVNR}) AS INVEST_NO
+                     ,TRIM(#{KOSTV})  AS CCTR_CD
+                     ,CASE WHEN NVL(TRIM(#{KSTAR}), ' ') <> ' ' THEN '00' || TRIM(#{KSTAR}) ELSE NULL END   AS ACCOUNT_NO
+                     ,TRIM(#{KTEXT})  AS ORDER_DESC
+                 FROM DUAL
+	          ) B
+	    ON (
+	            A.COMP_CD     = B.COMP_CD
+	        AND A.ORDER_NO    = B.ORDER_NO
+	        AND A.ORDER_GUBUN = B.ORDER_GUBUN
+	        AND A.CCTR_CD     = B.CCTR_CD
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.ORDER_DESC = B.ORDER_DESC
+                  ,A.INVEST_NO  = B.INVEST_NO 
+                  ,A.ACCOUNT_NO = B.ACCOUNT_NO
+                  ,A.MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,A.MOD_USER   = 'BATCHSYS'
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.COMP_CD
+                 ,A.ORDER_NO
+                 ,A.ORDER_GUBUN
+                 ,A.CCTR_CD
+                 ,A.ORDER_DESC
+                 ,A.INVEST_NO
+                 ,A.ACCOUNT_NO
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( B.COMP_CD
+                          ,B.ORDER_NO
+                          ,B.ORDER_GUBUN
+                          ,B.CCTR_CD
+                          ,B.ORDER_DESC
+                          ,B.INVEST_NO
+                          ,B.ACCOUNT_NO
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,'BATCHSYS'
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,'BATCHSYS'
+	                     )
+     ]]>
+    </insert>
+</mapper>

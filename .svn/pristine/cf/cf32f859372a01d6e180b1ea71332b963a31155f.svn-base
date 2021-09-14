@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="js_system" default="buildwar" basedir=".">
+    <description> Compile, Package and Deploy dev Project</description>
+    <!-- set global properties for this build -->
+    <property name="project_id" value="js_system" />
+    
+    <property name="src" value="./src" />
+    <property name="target" value="./target" />
+    <property name="classes" value="${target}/classes" />
+	<property name="lib" value="${target}/lib" />
+	<property name="jar" value="./jar" />
+	
+
+    <path id="project-classpath">
+        <!-- Libraries inside project lib folder like, Spring, Logging, Hibernate -->
+        <fileset dir="${src}/main/webapp/WEB-INF/lib" includes="*.jar" excludes="servlet.jar"/>
+    	<fileset dir="${jar}/lib" includes="*.jar" excludes="servlet.jar"/>
+        <!-- Libraries inside server lib folder like, Servlet, JSP -->
+        <fileset dir="C:\dev_pjt\apache-tomcat-8.5.40\lib" includes="*.jar" />
+    </path>
+
+    <target name="clean">
+        <delete dir="${target}" />
+    	<mkdir dir="${target}" />
+        <echo> Cleaned old build folder !</echo>
+    </target>
+    
+    <target name="compile" depends="clean" description="compile the source ">
+        <mkdir dir="${classes}" />
+    
+    	<!-- <copydir src="${src}/main/resources" dest="${classes}">                                                            -->
+    	<!-- 	<exclude name="sso_LOCAL.properties"/>                                                                          -->
+        <!--     <exclude name="sso_DEV.properties"/>                                                                           -->
+        <!--     <exclude name="sso_REAL.properties"/>                                                                          -->
+    	<!-- </copydir>                                                                                                         -->
+    	<!-- <copy file="${src}/main/resources/sso_LOCAL.properties" tofile="${classes}/sso.properties" overwrite="true"/>      -->
+    	
+        <javac includeantruntime="false" srcdir="${src}/main/java" destdir="${classes}" classpathref="project-classpath" encoding="UTF-8" debug="true"/>
+        <echo> Java file compiled and copied to classes folder !</echo>
+    </target>
+	
+	<target name="copy" description="jar File Copy ">
+		<mkdir dir="${lib}" />
+		
+    	<copy todir="${lib}">
+    	    <fileset dir="${jar}/lib" />
+    	</copy>
+		<echo> Jar file compiled and copied to classes folder !</echo>
+	</target>
+	
+    <target name="buildwar" description="Building War File" depends="compile, copy">
+        <war destfile="${target}/${project_id}.war" webxml="${src}/main/webapp/WEB-INF/web.xml">
+            <fileset dir="${src}/main/webapp" excludes="servlet.jar"/>
+            <classes dir="${classes}" />
+        	<lib dir="${lib}" />
+        </war>
+    </target>
+</project>

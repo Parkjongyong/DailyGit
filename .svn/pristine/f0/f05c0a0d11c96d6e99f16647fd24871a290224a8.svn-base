@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	<!-- ========================= [START] Sprout JMX DEFINITIONS ======================== -->
+	<!--
+        Exporter that exposes the CallMonitoringAspect via JMX,
+        based on the @ManagedResource, @ManagedAttribute, and @ManagedOperation annotations.
+    -->
+    <context:mbean-export server="mbeanServer"  />
+    
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+		<property name="locateExistingServerIfPossible" value="true" />
+	</bean>
+	<bean id="rmiRegistry" class="org.springframework.remoting.rmi.RmiRegistryFactoryBean">
+		<property name="port" value="${jmx.port:10099}" />
+	</bean>
+	<bean id="serverConnector"   class="org.springframework.jmx.support.ConnectorServerFactoryBean" depends-on="rmiRegistry">
+	  <property name="objectName" value="connector:name=rmi"/>
+	  <property name="serviceUrl"   value="service:jmx:rmi://localhost/jndi/rmi://localhost:${jmx.port:10099}/${jmx.serviceurl:sprout}"/>
+	  <property name="threaded"   value="true"/>
+	</bean>
+    <!-- ========================= [END] Sprout JMX DEFINITIONS ======================== -->
+	<beans profile="test">
+		<!-- 서버가 기동중인 상황에서 Junit을 실행하면 포트충돌이 발생함으로 JMX 관련 bean 을 재정의함 -->
+		<context:mbean-export server="mbeanServer"/>
+		<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+			<property name="locateExistingServerIfPossible" value="false" />
+		</bean>
+		<bean id="rmiRegistry" class="org.springframework.remoting.rmi.RmiRegistryFactoryBean">
+			<property name="port" value="7099" />
+		</bean>
+		<bean id="serverConnector"   class="org.springframework.jmx.support.ConnectorServerFactoryBean" depends-on="rmiRegistry">
+		  <property name="objectName" value="connector:name=rmi"/>
+		  <property name="serviceUrl"   value="service:jmx:rmi://localhost/jndi/rmi://localhost:7099/sprout_test"/>
+		</bean>
+	</beans>
+	<!-- ========================= [END] Access Log DEFINITIONS ======================== -->
+</beans>

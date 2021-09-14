@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.SysCmmCodeMgmtDAO">
+
+    <select id="selectGrpCdList" parameterType="Map" resultType="Map">
+    --SysCmmCodeMgmtMapper.selectGrpCdList
+    SELECT COUNT(1) OVER() AS TOT_CNT
+         , CODE_GRP
+         , CODE_GRP_NM
+         , CODE_GRP_EN_NM
+         , USE_YN
+         , 'R' CRUD
+      FROM COM_CODE_GRP
+     WHERE 1=1
+    <if test="S_CODE_GRP != null and S_CODE_GRP != ''">
+        AND    CODE_GRP LIKE  '%' || #{S_CODE_GRP} ||  '%'
+    </if>
+    <if test="S_CODE_GRP_NM != null and S_CODE_GRP_NM != ''">
+        AND    CODE_GRP_NM LIKE '%' || #{S_CODE_GRP_NM} || '%'
+    </if>
+    <if test="S_USE_YN != null and S_USE_YN != ''">
+        AND    USE_YN = #{S_USE_YN}
+    </if>
+    ORDER BY CODE_GRP ASC
+    </select>
+    
+    <select id="selectDetlCdList" parameterType="Map" resultType="Map">
+    --SysCmmCodeMgmtMapper.selectDetlCdList
+    SELECT COUNT(1) OVER() AS TOT_CNT
+         , B.CODE_GRP
+         , B.CODE
+         , B.CODE_NM
+         , B.CODE_EN_NM
+         , B.EXPL 
+         , B.ATTR01
+         , B.ATTR02
+         , B.ATTR03
+         , B.ATTR04
+         , B.ORD_NO
+         , B.USG_YN
+         , B.MOD_ID
+         , 'R' CRUD 
+      FROM COM_CODE B
+     WHERE 1=1
+    <if test="S_CODE_GRP != null and S_CODE_GRP != ''">
+        AND    CODE_GRP = #{S_CODE_GRP}
+    </if>
+    <if test="S_CODE != null and S_CODE != ''">
+        AND    CODE = #{S_CODE}
+    </if>
+    <if test="S_CODE_NM != null and S_CODE_NM != ''">
+        AND    CODE_NM LIKE '%' ||  #{S_CODE_NM} || '%'
+    </if>
+    <if test="S_USG_YN != null and S_USG_YN != ''">
+        AND    USG_YN = #{S_USG_YN}
+    </if>
+    <if test="S_ATTR01 != null and S_ATTR01 != ''">
+        AND    ATTR01 = #{S_ATTR01}
+    </if>
+    ORDER BY ORD_NO,CODE
+    </select>    
+    
+    <select id="selectCheckGrpCdExist" parameterType="Map" resultType="int">
+    --SysCmmCodeMgmtMapper.selectCheckGrpCdExist
+    SELECT COUNT(1) AS CNT
+      FROM COM_CODE_GRP
+     WHERE 1=1
+     AND CODE_GRP = #{CODE_GRP} 
+    </select>
+    
+    <select id="selectCheckDetlCdExist" parameterType="Map" resultType="int">
+    --SysCmmCodeMgmtMapper.selectCheckDetlCdExist
+    SELECT COUNT(1) AS CNT
+      FROM COM_CODE
+     WHERE 1=1
+       AND CODE_GRP    = #{CODE_GRP}
+       AND CODE    = #{CODE}    
+    </select>
+    
+    <insert id="insertGrpCd" parameterType="Map">
+    --SysCmmCodeMgmtMapper.insertGrpCd
+    INSERT INTO COM_CODE_GRP (
+          CODE_GRP
+        , CODE_GRP_NM
+        , CODE_GRP_EN_NM
+        , USE_YN
+        , INS_ID
+        , INS_DT
+        , MOD_ID
+        , MOD_DT
+    ) VALUES (
+          #{CODE_GRP}
+        , #{CODE_GRP_NM}
+        , #{CODE_GRP_EN_NM}
+        , #{USE_YN}
+        , #{INS_ID}
+        , SYSDATE
+        , #{MOD_ID}
+        , SYSDATE
+    )
+    </insert>
+
+    <update id="updateGrpCd" parameterType="Map">
+    --SysCmmCodeMgmtMapper.updateGrpCd
+    UPDATE COM_CODE_GRP
+       SET CODE_GRP_NM    = #{CODE_GRP_NM}
+         , CODE_GRP_EN_NM = #{CODE_GRP_EN_NM}       
+         , USE_YN         = #{USE_YN}
+         , MOD_ID         = #{MOD_ID}
+         , MOD_DT         = SYSDATE
+     WHERE 1=1
+       AND CODE_GRP    = #{CODE_GRP}    
+    </update>
+    
+    <delete id="deleteGrpCd" parameterType="Map">
+    --SysCmmCodeMgmtMapper.deleteGrpCd
+    DELETE  FROM COM_CODE_GRP
+     WHERE 1=1
+       AND CODE_GRP = #{CODE_GRP}    
+    </delete>
+
+    <insert id="insertDetlCd" parameterType="Map">
+    --SysCmmCodeMgmtMapper.insertDetlCd
+    INSERT INTO COM_CODE (
+          CODE_GRP
+        , CODE
+        , CODE_NM
+        , CODE_EN_NM
+        , CODE_NM_ALT
+        , EXPL
+        , ORD_NO
+        , USG_YN
+        , ATTR01
+        , ATTR02
+        , ATTR03
+        , ATTR04
+        , INS_ID
+        , INS_DT
+        , MOD_ID
+        , MOD_DT
+    ) VALUES (
+          #{CODE_GRP}
+        , #{CODE}
+        , #{CODE_NM}
+        , #{CODE_EN_NM}
+        , #{CODE_NM_ALT}
+        , #{EXPL}
+        , #{ORD_NO}
+        , #{USG_YN}
+        , #{ATTR01}
+        , #{ATTR02}
+        , #{ATTR03}
+        , #{ATTR04}
+        , #{INS_ID}
+        , SYSDATE
+        , #{MOD_ID}
+        , SYSDATE
+    )
+    </insert>
+
+    <update id="updateDetlCd" parameterType="Map">
+    --SysCmmCodeMgmtMapper.updateDetlCd
+      UPDATE COM_CODE
+         SET CODE_NM    = #{CODE_NM}
+            ,CODE_EN_NM = #{CODE_EN_NM} 
+            ,EXPL       = #{EXPL}
+            ,USG_YN     = #{USG_YN}
+            ,ORD_NO     = #{ORD_NO}
+            ,ATTR01     = #{ATTR01}
+            ,ATTR02     = #{ATTR02}
+            ,ATTR03     = #{ATTR03}
+            ,ATTR04     = #{ATTR04}
+            ,MOD_ID     = #{MOD_ID}
+            ,MOD_DT     =  SYSDATE
+     WHERE 1=1
+       AND CODE_GRP     = #{CODE_GRP}
+       AND CODE         = #{CODE}  
+    </update>
+
+    <delete id="deleteDetlCd" parameterType="Map">
+    --SysCmmCodeMgmtMapper.deleteDetlCd
+    DELETE  FROM COM_CODE
+     WHERE 1=1
+       AND CODE_GRP = #{CODE_GRP}  
+       AND CODE     = #{CODE}  
+    </delete>
+
+    <delete id="deleteDetlGrp" parameterType="Map">
+    --SysCmmCodeMgmtMapper.deleteDetlGrp
+    DELETE  FROM COM_CODE
+     WHERE 1=1
+       AND CODE_GRP = #{CODE_GRP}  
+    </delete>
+
+</mapper>

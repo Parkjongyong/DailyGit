@@ -1,0 +1,80 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+		 pageEncoding="UTF-8"%>
+<%@ page import="org.springframework.web.bind.ServletRequestUtils" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>PCN 취소 알림</title>
+	<%
+		String url = ServletRequestUtils.getStringParameter(request, "URL_OUT", "");
+
+		String pcnNo  = ServletRequestUtils.getStringParameter(request, "PCN_NO", "");
+		String answerContents  = ServletRequestUtils.getStringParameter(request, "ANSWER_CONTENTS", "");
+	%>
+</head>
+<body>
+<!-- 메일폼 시작 -->
+<table align="center" border="0" cellspacing="0" cellpadding="0">
+	<tbody>
+	<!-- header : S -->
+	<tr>
+		<td height="60">
+			<a href="#" style="display:inline-block;"><img src="<%=url%>/resources/images/common/logo_email.png" alt="middle"></a>
+		</td>
+	</tr>
+	<!-- header : E -->
+	<!-- content : S -->
+	<tr>
+		<td style="border:1px solid #ddd; border-top:4px solid #e51937;">
+			<table width="680" align="center" border="0" cellspacing="0" cellpadding="0">
+				<tbody>
+				<tr>
+					<td style="padding-left:40px">
+						<h2 style="mcolor:#222; font-weight:600; font-size:25px; letter-spacing:-2px; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; margin:0 0 0 0; margin-top:30px; padding-bottom:30px;">[PARUCNC] PCN No : <%=pcnNo %>  Approve</h2>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2" style="padding:0 40px 20px">
+						<p style="margin:0; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-size:14px; line-height:24px; color:#666; border-top:1px solid #ddd; padding-top:20px;">
+							<%=pcnNo %> 의 승인이 완료 되었습니다.<br>초도 PO# 및 LOT# 입력 바랍니다.
+						</p>
+						<p style="margin:25px 0 10px;"><strong style="margin:0; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-size:14px;">[PCN 내용]</strong></p>
+						<table border="0" cellspacing="0" cellpadding="0" style="width:100%;  margin:0 0 10px 0; border-top:1px solid #d7d7d7;">
+							<tbody>
+							<tr>
+								<th height="15" width="100" style="font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-size:14px; border-left:1px solid #ddd; border-bottom:1px solid #ddd; text-align:left; padding:5px 10px; background:#fdfdfd;">통지번호</th>
+								<td height="15" width="450"  style="font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-size:14px; border-left:1px solid #ddd; border-bottom:1px solid #ddd; border-right: 1px solid #ddd; text-align:left; padding:5px 10px;"><%=pcnNo %></td>
+							</tr>
+							<tr>
+								<th height="15" width="100" style="font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-size:14px; border-left:1px solid #ddd; border-bottom:1px solid #ddd; text-align:left; padding:5px 10px; background:#fdfdfd;">승인 내용</th>
+								<td height="15" width="450"  style="font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-size:14px; border-left:1px solid #ddd; border-bottom:1px solid #ddd; border-right: 1px solid #ddd; text-align:left; padding:5px 10px;"><%=answerContents %></td>
+							</tr>
+							</tbody>
+						</table>
+						<!--
+									<div style="text-align:center; margin-top:20px;">
+										<a target="_blank" href="<%=url%>"><img src="<%=url%>/resources/images/common/linkbtnimg.png" alt="바로가기"></a>
+									</div>
+									-->
+						<p style="margin:0; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-size:12px; line-height:24px; color:#999; padding-top:20px;">
+							※ 이 메일은 발신 전용으로 회신되지 않습니다.
+						</p>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</td>
+	</tr>
+	<!-- content : E -->
+	<!-- footer : S -->
+	<tr>
+		<td style="padding:20px 40px; background:#fdfdfd; border:1px solid #ddd; border-top:0; font-family:'맑은고딕', 'Malgun Gothic','돋움', 'Dotum', sans-serif; font-size:12px; color:#ccc;">COPYRIGHT Ⓒ 2019 ⓒ PARUCNC. ALL RIGHTS RESERVED.</td>
+	</tr>
+	<!-- footer : E -->
+	</tbody>
+</table>
+<!-- 메일폼 끝 -->
+</body>
+</html>

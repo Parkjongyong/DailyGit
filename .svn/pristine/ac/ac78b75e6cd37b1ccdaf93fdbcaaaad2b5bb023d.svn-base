@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.PurchaseRecAppr">
+
+	<select id="selectPurchaseRecAppr" parameterType="Map" resultType="Map">
+--com.wrh.PurchaseRecAppr.selectPurchaseRecAppr
+SELECT DOC_NO          -- 문서번호
+      ,COMP_CD         -- 회사코드
+      ,FUNC_GET_CODE_NAME('SYS001', COMP_CD)     AS COMP_NM         -- 회사명
+      ,PLANT_CODE      -- 플랜트
+      ,FUNC_GET_PLANT_NAME(COMP_CD, PLANT_CODE ) AS PLANT_NAME
+      ,VENDOR_CD       -- 업체코드
+      ,VENDOR_NM       -- 업체명
+      ,LOCATION        -- 저장위치
+      ,LOCATION_TXT    -- 저장위치내역
+      ,GR_DELY_DATE    -- 입고예정일
+      ,GR_DELY_TIME    -- 입고예정시간
+      ,GR_DATE_TIME    -- 입고예정일시
+      ,GR_PERSON_NAME  -- 입고담당자
+      ,GR_PERSON_TEL   -- 입고담당자 연락처
+      ,VENDOR_DOC_TXT  -- 업체비고
+      ,APPROVE_DOC_TXT -- 승인자 COMMENT
+      ,DOC_STATUS      -- 진행상태
+      ,LOC_RETURN_DESC -- 물류반려사유
+      ,ORG_RETURN_DESC -- 구매반려사유
+      ,PO_ORG          -- 구매조직(구매그룹)
+      ,PO_ORG_NM       -- 구매그룹명
+      ,IMP_MAT_YN      -- 중요자재여부
+      ,CRE_DATE        -- 등록일자
+      ,CRE_USER        -- 등록자ID
+      ,MOD_DATE        -- 수정일자
+      ,MOD_USER        -- 수정자ID
+      ,MAIN_EMAIL      -- 업체 이메일
+      ,FULL_LOCATION   -- 납품처 풀네임
+      ,RNUM
+      ,'R'             CRUD
+      ,TOT_CNT         -- 전체CNT
+      ,'1'             CODEMAPPING1
+  FROM (
+       SELECT A.DOC_NO                                                                           DOC_NO          -- 문서번호
+             ,COUNT(A.DOC_NO) OVER()                                                             TOT_CNT         -- 건수
+             ,A.COMP_CD                                                                          COMP_CD         -- 회사코드
+             ,A.PLANT_CODE                                                                       PLANT_CODE      -- 플랜트
+             ,A.VENDOR_CD                                                                        VENDOR_CD       -- 업체코드
+             ,A.VENDOR_NM                                                                        VENDOR_NM       -- 업체명
+             ,A.LOCATION                                                                         LOCATION        -- 저장위치
+             ,A.LOCATION_TXT                                                                     LOCATION_TXT    -- 저장위치내역
+             ,A.GR_DELY_DATE                                                                     GR_DELY_DATE    -- 입고예정일
+             ,A.GR_DELY_TIME                                                                     GR_DELY_TIME    -- 입고예정시간
+             ,TO_CHAR(TO_DATE(A.GR_DELY_DATE, 'YYYY-MM-DD'), 'YYYY-MM-DD')
+              ||' '
+              ||SUBSTR(A.GR_DELY_TIME,0,2)
+              ||':'
+              ||SUBSTR(A.GR_DELY_TIME,3,5)                                                       GR_DATE_TIME    -- 입고예정일시
+             ,A.GR_PERSON_NAME                                                                   GR_PERSON_NAME  -- 입고담당자
+             ,A.GR_PERSON_TEL                                                                    GR_PERSON_TEL   -- 입고담당자 연락처
+             ,A.VENDOR_DOC_TXT                                                                   VENDOR_DOC_TXT  -- 업체비고
+             ,A.APPROVE_DOC_TXT                                                                  APPROVE_DOC_TXT -- 승인자 COMMENT
+             ,A.DOC_STATUS                                                                       DOC_STATUS      -- 진행상태
+             ,A.LOC_RETURN_DESC                                                                  LOC_RETURN_DESC -- 물류반려사유
+             ,A.ORG_RETURN_DESC                                                                  ORG_RETURN_DESC -- 구매반려사유
+             ,A.PO_ORG                                                                           PO_ORG          -- 구매조직(구매그룹)
+             ,A.PO_ORG_NM                                                                        PO_ORG_NM       -- 구매그룹명
+             ,A.IMP_MAT_YN                                                                       IMP_MAT_YN      -- 중요자재여부
+             ,A.CRE_DATE                                                                         CRE_DATE        -- 등록일자
+             ,A.CRE_USER                                                                         CRE_USER        -- 등록자ID
+             ,A.MOD_DATE                                                                         MOD_DATE        -- 수정일자
+             ,A.MOD_USER                                                                         MOD_USER        -- 수정자ID
+             ,C.MAIN_EMAIL                                                                       MAIN_EMAIL      -- 업체 이메일
+             ,  FUNC_GET_CODE_NAME('SYS001', A.COMP_CD) ||' '
+              ||FUNC_GET_PLANT_NAME(A.COMP_CD, A.PLANT_CODE ) ||' '
+              ||A.LOCATION_TXT                                                                   FULL_LOCATION             
+             ,ROW_NUMBER() OVER(ORDER BY A.DOC_NO DESC)                                          RNUM
+         FROM GR_DELIVERY_HEAD A
+             INNER JOIN
+              COM_CODE B
+             ON    B.CODE_GRP = 'IG007'
+               AND B.CODE     = A.DOC_STATUS
+               AND B.ATTR01   = 'ALL'
+               AND B.ATTR02   = 'ATTR01'
+               AND B.ATTR03   = 'ATTR02'
+             LEFT OUTER JOIN
+              VENDOR_INFO C
+             ON C.VENDOR_CD = A.VENDOR_CD
+        WHERE 1 = 1
+	  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+	      AND COMP_CD = #{SB_COMP_CD}
+	  </if>
+	  <if test="SB_PLANT_CD != null and SB_PLANT_CD != ''">
+	      AND PLANT_CODE = #{SB_PLANT_CD}
+	  </if>
+	  <if test="SB_STORAGE_CD != null and SB_STORAGE_CD != ''">
+	      AND LOCATION = #{SB_STORAGE_CD}
+	  </if>
+	  <if test="TB_VENDOR_CD != null and TB_VENDOR_CD != ''">
+	      AND VENDOR_CD LIKE '%' || #{TB_VENDOR_CD} || '%'
+	  </if>
+	  <if test="TB_VENDOR_NM != null and TB_VENDOR_NM != ''">
+	      AND VENDOR_NM LIKE '%' || #{TB_VENDOR_NM} || '%'
+	  </if>
+	  
+	  <if test="TB_START_DATE != null and TB_START_DATE != ''">
+	  <![CDATA[
+	      AND GR_DELY_DATE >= REPLACE(#{TB_START_DATE},'-','')
+	   ]]>
+	  </if>
+	  <if test="TB_END_DATE != null and TB_END_DATE != ''">
+	  <![CDATA[
+	      AND GR_DELY_DATE <= REPLACE(#{TB_END_DATE},'-','')
+	   ]]>
+	  </if>
+	  <if test="TB_DOC_NO != null and TB_DOC_NO != ''">
+	      AND DOC_NO LIKE '%' || #{TB_DOC_NO} || '%'
+	  </if>
+	  <if test="SB_STAT_CD != null and SB_STAT_CD != ''">
+	      AND DOC_STATUS = #{SB_STAT_CD}
+	  </if>
+	  <if test="SB_PO_ORG != null and SB_PO_ORG != ''">
+	      AND PO_ORG   = #{SB_PO_ORG}
+	  </if>	          
+       )
+   <![CDATA[
+   WHERE RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 50)
+   ]]>
+
+  ORDER BY DOC_NO DESC
+  </select>
+
+
+	<select id="checkPurchaseUser" parameterType="Map" resultType="Map">
+		--com.wrh.PurchaseRecAppr.checkPurchaseUser
+        SELECT COUNT(*) CNT
+		  FROM PURCHASER_INFO A
+		 WHERE 1 = 1
+		   AND A.COMP_CD      = #{COMP_CD}
+		   AND A.PO_ORG       = #{PO_ORG}
+		   AND A.ORG_CD       = #{ORG_CD}
+		   AND A.PURCHASER_ID = #{MOD_USER}
+	</select>
+
+	
+	
+    <update id="apprPurchaseReceived" parameterType="Map">
+--com.wrh.PurchaseRecAppr.apprPurchaseReceived
+UPDATE GR_DELIVERY_HEAD 
+   SET DOC_STATUS      = '5'
+      ,APPROVE_DOC_TXT = #{APPROVE_DOC_TXT}
+      ,MOD_DATE        = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER        = #{MOD_USER}
+ WHERE DOC_NO = #{DOC_NO}
+    </update>
+	
+    <update id="returnReceived" parameterType="Map">
+--com.wrh.PurchaseRecAppr.returnPurchaseRecAppr
+UPDATE GR_DELIVERY_HEAD 
+   SET DOC_STATUS      = '4'
+      ,ORG_RETURN_DESC = #{ORG_RETURN_DESC}
+      ,MOD_DATE        = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER        = #{MOD_USER}
+ WHERE DOC_NO = #{DOC_NO}
+    </update>
+	
+</mapper>

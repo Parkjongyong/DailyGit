@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchGRItem">
+
+	<select id="selectCountGRItemInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchGRItem.selectCountGRItemInfo
+	    SELECT COUNT(*) CNT
+	      FROM GR_ITEM A
+	     WHERE 1 = 1
+	       AND A.GR_NUMBER = #{MBLNR}
+           AND A.GR_YEAR   = #{MJAHR}
+           AND A.GR_SEQ    = #{ZEILE}
+        ]]>
+	</select>
+	
+    <insert id="mergeGRItemIfData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchGRItem.mergeGRItemIfData
+	    MERGE INTO GR_ITEM A 
+	    USING (
+	        SELECT #{MBLNR}  AS GR_NUMBER    
+	              ,#{MJAHR}  AS GR_YEAR      
+                  ,#{ZEILE}  AS GR_SEQ       
+                  ,#{BUDAT}  AS GR_DATE      
+                  ,#{BWART}  AS MV_GUBUN     
+                  ,#{BTEXT}  AS MV_TXT       
+                  ,#{MATNR}  AS MAT_NUMBER   
+                  ,#{TXZ01}  AS MAT_DESC     
+                  ,#{WERKS}  AS PLANT_CODE   
+                  ,#{LGORT}  AS LOCATION     
+                  ,#{LGOBE}  AS LOCATION_TXT 
+                  ,#{LIFNR}  AS VENDOR_CD    
+                  ,#{SHKZG}  AS DC_INDICATOR 
+                  ,#{MENGE}  AS ITEM_QTY     
+                  ,#{MEINS}  AS UNIT_MEASURE 
+                  ,#{WRBTR}  AS GR_AMT       
+                  ,#{WAERS}  AS CURR_CD      
+                  ,#{CHARG}  AS BATCH_NO     
+                  ,#{EBELN}  AS PO_NUMBER    
+                  ,#{EBELP}  AS PO_SEQ       
+                  ,#{SJAHR}  AS BFR_GR_YY    
+                  ,#{SMBLN}  AS BFR_GR_NUMBER
+                  ,#{LSMBLP} AS BFR_GR_SEQ   
+                  ,#{CPUDT}  AS CRE_DATE     
+                  ,#{CPUTM}  AS CRE_TIME     
+                  ,#{ERNAM}  AS CRE_USER     
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.GR_NUMBER = B.GR_NUMBER
+            AND A.GR_YEAR   = B.GR_YEAR
+            AND A.GR_SEQ    = B.GR_SEQ
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.GR_DATE       = B.GR_DATE      
+                  ,A.MV_GUBUN      = B.MV_GUBUN     
+                  ,A.MV_TXT        = B.MV_TXT       
+                  ,A.MAT_NUMBER    = B.MAT_NUMBER   
+                  ,A.MAT_DESC      = B.MAT_DESC     
+                  ,A.PLANT_CODE    = B.PLANT_CODE   
+                  ,A.LOCATION      = B.LOCATION     
+                  ,A.LOCATION_TXT  = B.LOCATION_TXT 
+                  ,A.VENDOR_CD     = B.VENDOR_CD    
+                  ,A.DC_INDICATOR  = B.DC_INDICATOR 
+                  ,A.ITEM_QTY      = B.ITEM_QTY     
+                  ,A.UNIT_MEASURE  = B.UNIT_MEASURE 
+                  ,A.GR_AMT        = B.GR_AMT       
+                  ,A.CURR_CD       = B.CURR_CD      
+                  ,A.BATCH_NO      = B.BATCH_NO     
+                  ,A.PO_NUMBER     = B.PO_NUMBER    
+                  ,A.PO_SEQ        = B.PO_SEQ       
+                  ,A.BFR_GR_YY     = B.BFR_GR_YY    
+                  ,A.BFR_GR_NUMBER = B.BFR_GR_NUMBER
+                  ,A.BFR_GR_SEQ    = B.BFR_GR_SEQ   
+                  ,A.CRE_DATE      = B.CRE_DATE     
+                  ,A.CRE_TIME      = B.CRE_TIME     
+                  ,A.CRE_USER      = B.CRE_USER     
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.GR_NUMBER    
+	             ,A.GR_YEAR      
+	             ,A.GR_SEQ       
+	             ,A.GR_DATE      
+	             ,A.MV_GUBUN     
+                 ,A.MV_TXT       
+                 ,A.MAT_NUMBER   
+                 ,A.MAT_DESC     
+                 ,A.PLANT_CODE   
+                 ,A.LOCATION     
+                 ,A.LOCATION_TXT 
+                 ,A.VENDOR_CD    
+                 ,A.DC_INDICATOR 
+                 ,A.ITEM_QTY     
+                 ,A.UNIT_MEASURE 
+                 ,A.GR_AMT       
+                 ,A.CURR_CD      
+                 ,A.BATCH_NO     
+                 ,A.PO_NUMBER    
+                 ,A.PO_SEQ       
+                 ,A.BFR_GR_YY    
+                 ,A.BFR_GR_NUMBER
+                 ,A.BFR_GR_SEQ   
+                 ,A.CRE_DATE     
+                 ,A.CRE_TIME     
+                 ,A.CRE_USER     
+	            ) VALUES ( B.GR_NUMBER    
+	                      ,B.GR_YEAR      
+	                      ,B.GR_SEQ       
+	                      ,B.GR_DATE      
+	                      ,B.MV_GUBUN     
+                          ,B.MV_TXT       
+                          ,B.MAT_NUMBER   
+                          ,B.MAT_DESC     
+                          ,B.PLANT_CODE   
+                          ,B.LOCATION     
+                          ,B.LOCATION_TXT 
+                          ,B.VENDOR_CD    
+                          ,B.DC_INDICATOR 
+                          ,B.ITEM_QTY     
+                          ,B.UNIT_MEASURE 
+                          ,B.GR_AMT       
+                          ,B.CURR_CD      
+                          ,B.BATCH_NO     
+                          ,B.PO_NUMBER    
+                          ,B.PO_SEQ       
+                          ,B.BFR_GR_YY    
+                          ,B.BFR_GR_NUMBER
+                          ,B.BFR_GR_SEQ   
+                          ,B.CRE_DATE     
+                          ,B.CRE_TIME     
+                          ,B.CRE_USER     
+	                     )
+     ]]>
+    </insert>	
+	
+	<insert id="insertGRItemIfData" parameterType="map">
+		<![CDATA[
+		--com.bat.BatchGRItem.insertGRItemIfData
+		INSERT INTO GR_ITEM
+		(
+		  GR_NUMBER
+         ,GR_YEAR
+         ,GR_SEQ
+         ,GR_DATE
+         ,MV_GUBUN
+         ,MV_TXT
+         ,MAT_NUMBER
+         ,MAT_DESC
+         ,PLANT_CODE
+         ,LOCATION
+         ,LOCATION_TXT
+         ,VENDOR_CD
+         ,DC_INDICATOR
+         ,ITEM_QTY
+         ,UNIT_MEASURE
+         ,GR_AMT
+         ,CURR_CD
+         ,BATCH_NO
+         ,PO_NUMBER
+         ,PO_SEQ
+         ,BFR_GR_YY
+         ,BFR_GR_NUMBER
+         ,BFR_GR_SEQ
+         ,CRE_DATE
+         ,CRE_TIME
+         ,CRE_USER
+		) VALUES (
+		           #{MBLNR}
+                  ,#{MJAHR}
+                  ,#{ZEILE}
+                  ,#{BUDAT}
+                  ,#{BWART}
+                  ,#{BTEXT}
+                  ,#{MATNR}
+                  ,#{TXZ01}
+                  ,#{WERKS}
+                  ,#{LGORT}
+                  ,#{LGOBE}
+                  ,#{LIFNR}
+                  ,#{SHKZG}
+                  ,#{MENGE}
+                  ,#{MEINS}
+                  ,#{WRBTR}
+                  ,#{WAERS}
+                  ,#{CHARG}
+                  ,#{EBELN}
+                  ,#{EBELP}
+                  ,#{SJAHR}
+                  ,#{SMBLN}
+                  ,#{LSMBLP}
+                  ,#{CPUDT}
+                  ,#{CPUTM}
+                  ,#{ERNAM}
+		          )
+		]]>
+	</insert>
+	
+    <update id="updateGRItemIfData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchGRItem.updateGRItemIfData
+	        UPDATE GR_ITEM A
+	           SET A.GR_DATE       = #{BUDAT}
+                  ,A.MV_GUBUN      = #{BWART}
+                  ,A.MV_TXT        = #{BTEXT}
+                  ,A.MAT_NUMBER    = #{MATNR}
+                  ,A.MAT_DESC      = #{TXZ01}
+                  ,A.PLANT_CODE    = #{WERKS}
+                  ,A.LOCATION      = #{LGORT}
+                  ,A.LOCATION_TXT  = #{LGOBE}
+                  ,A.VENDOR_CD     = #{LIFNR}
+                  ,A.DC_INDICATOR  = #{SHKZG}
+                  ,A.ITEM_QTY      = #{MENGE}
+                  ,A.UNIT_MEASURE  = #{MEINS}
+                  ,A.GR_AMT        = #{WRBTR}
+                  ,A.CURR_CD       = #{WAERS}
+                  ,A.BATCH_NO      = #{CHARG}
+                  ,A.PO_NUMBER     = #{EBELN}
+                  ,A.PO_SEQ        = #{EBELP}
+                  ,A.BFR_GR_YY     = #{SJAHR}
+                  ,A.BFR_GR_NUMBER = #{SMBLN}
+                  ,A.BFR_GR_SEQ    = #{LSMBLP}
+                  ,A.CRE_DATE      = #{CPUDT}
+                  ,A.CRE_TIME      = #{CPUTM}
+                  ,A.CRE_USER      = #{ERNAM}
+	         WHERE 1 = 1
+	           AND A.GR_NUMBER     = #{MBLNR}
+               AND A.GR_YEAR       = #{MJAHR}
+               AND A.GR_SEQ        = #{ZEILE}
+		   ]]>
+    </update>
+    
+</mapper>

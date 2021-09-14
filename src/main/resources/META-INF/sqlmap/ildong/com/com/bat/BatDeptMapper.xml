@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchDept">
+
+	<select id="selectCountDeptInfo" parameterType="Map" resultType="Map">
+	    --com.bat.BatchDept.selectCountDeptInfo
+	    SELECT COUNT(*) CNT
+	      FROM DEPARTMENT_IF A
+	     WHERE 1 = 1
+	       AND COMP_CD = #{COMP_CD}
+           AND ORG_CD  = #{ORG_CD}
+           AND SDATE   = #{SDATE}
+	</select>
+	
+	<insert id="insertDeptIfData" parameterType="map">
+	--com.bat.BatchDept.insertDeptIfData
+	INSERT INTO DEPARTMENT_IF
+	(
+	  COMP_CD
+     ,ORG_CD
+     ,ORG_NM
+     ,SDATE
+     ,EDATE
+     ,MANAGER_ID
+     ,MANAGER_NM
+     ,UP_ORG_CD
+     ,COST_CD
+     ,COST_NM
+     ,CRE_DATE_TIME
+     ,CRE_USER
+     ,UPD_DATE_TIME
+     ,UPD_USER
+     ,PRIOR_ORG
+	) VALUES (
+	           #{COMP_CD}
+              ,#{ORG_CD}
+              ,#{ORG_NM}
+              ,#{SDATE}
+              ,#{EDATE}
+              ,#{MANAGER_ID}
+              ,#{MANAGER_NM}
+              ,#{UP_ORG_CD}
+              ,#{COST_CD}
+              ,#{COST_NM}
+              ,SYSDATE
+              ,'BATCHSYS'
+              ,SYSDATE
+              ,'BATCHSYS'
+              ,#{PRIOR_ORG}
+	          )
+	</insert>
+	
+    <update id="updateDeptIfData" parameterType="Map">
+    --com.bat.BatchDept.updateDeptIfData
+        UPDATE DEPARTMENT_IF
+           SET ORG_NM        = #{ORG_NM}
+              ,EDATE         = #{EDATE}
+              ,MANAGER_ID    = #{MANAGER_ID}
+              ,MANAGER_NM    = #{MANAGER_NM}
+              ,UP_ORG_CD     = #{UP_ORG_CD}
+              ,COST_CD       = #{COST_CD}
+              ,COST_NM       = #{COST_NM}
+              ,CRE_DATE_TIME = SYSDATE
+              ,CRE_USER      = 'BATCHSYS'
+              ,UPD_DATE_TIME = SYSDATE
+              ,UPD_USER      = 'BATCHSYS'
+              ,PRIOR_ORG     = #{PRIOR_ORG}
+		 WHERE COMP_CD       = #{COMP_CD}
+		   AND ORG_CD        = #{ORG_CD}
+		   AND SDATE         = #{SDATE}
+    </update>
+    
+    <insert id="makeDeptData">
+    <![CDATA[
+	    --com.bat.BatchDept.makeDeptData
+	    MERGE INTO DEPT A 
+	    USING (
+	            SELECT COMP_CD
+	              ,ORG_CD
+	              ,ORG_NM
+	              ,SDATE
+	              ,EDATE
+	              ,MANAGER_ID
+	              ,MANAGER_NM
+	              ,UP_ORG_CD
+	              ,COST_CD
+	              ,COST_NM
+	              ,CRE_DATE_TIME
+	              ,CRE_USER
+	              ,UPD_DATE_TIME
+	              ,UPD_USER
+	              ,PRIOR_ORG
+	          FROM DEPARTMENT_IF
+	          ) B
+	    ON (
+	             A.COMP_CD = B.COMP_CD
+	         AND A.DEPT_CD = B.ORG_CD
+	         AND A.SDATE   = B.SDATE
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.DEPT_NM    = B.ORG_NM
+	              ,A.EDATE      = B.EDATE        
+	              ,A.MANAGER_ID = B.MANAGER_ID   
+	              ,A.MANAGER_NM = B.MANAGER_NM   
+	              ,A.UP_ORG_CD  = B.UP_ORG_CD    
+	              ,A.COST_CD    = B.COST_CD      
+	              ,A.COST_NM    = B.COST_NM      
+	              ,A.INS_DT     = B.CRE_DATE_TIME
+	              ,A.INS_ID     = B.CRE_USER     
+	              ,A.MOD_DT     = B.UPD_DATE_TIME
+	              ,A.MOD_ID     = B.UPD_USER  
+	              ,A.DEL_YN     = CASE WHEN B.EDATE <= B.SDATE THEN 'Y'
+	                                   WHEN B.EDATE <= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') THEN 'Y'
+	                                   ELSE 'N'
+	                              END
+	              ,A.PRIOR_ORG  = B.PRIOR_ORG              
+	    WHEN NOT MATCHED THEN
+	            INSERT ( 
+	                     A.COMP_CD
+	                    ,A.DEPT_CD
+	                    ,A.DEPT_NM
+	                    ,A.SDATE
+	                    ,A.EDATE
+	                    ,A.MANAGER_ID
+	                    ,A.MANAGER_NM
+	                    ,A.UP_ORG_CD
+	                    ,A.COST_CD
+	                    ,A.COST_NM
+	                    ,A.INS_DT
+	                    ,A.INS_ID
+	                    ,A.MOD_DT
+	                    ,A.MOD_ID
+	                    ,A.DEL_YN
+	                    ,A.PRIOR_ORG
+	                    ) VALUES ( B.COMP_CD
+	                              ,B.ORG_CD
+	                              ,B.ORG_NM
+	                              ,B.SDATE
+	                              ,B.EDATE
+	                              ,B.MANAGER_ID
+	                              ,B.MANAGER_NM
+	                              ,B.UP_ORG_CD
+	                              ,B.COST_CD
+	                              ,B.COST_NM
+	                              ,B.CRE_DATE_TIME
+	                              ,B.CRE_USER
+	                              ,B.UPD_DATE_TIME
+	                              ,B.UPD_USER
+	                              ,CASE WHEN B.EDATE <= B.SDATE THEN 'Y'
+	                                   WHEN B.EDATE <= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS') THEN 'Y'
+	                                   ELSE 'N'
+	                               END
+	                              ,B.PRIOR_ORG
+	                             )
+     ]]>
+    </insert>
+</mapper>

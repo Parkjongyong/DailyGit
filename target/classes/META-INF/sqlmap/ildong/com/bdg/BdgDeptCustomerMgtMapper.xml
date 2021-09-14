@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.DeptCustomerMgmt">
+
+	<select id="selectDeptCustomerMgmtList" parameterType="Map" resultType="Map">
+		--com.bdg.DeptCustomerMgmt.selectDeptCustomerMgmtList
+		SELECT A.COMP_CD                                                       AS COMP_CD       -- 회사코드          
+		      ,A.CUST_CD                                                       AS CUST_CD       -- 거래처 코드
+		      ,A.CUST_NAME1                                                    AS CUST_NAME1    -- 거래처명
+		      ,A.CUST_NAME2                                                    AS CUST_NAME2    -- 거래명세서명
+		      ,B.ORG_CD                                                        AS ORG_CD        -- 부서코드
+		      ,FUNC_GET_DEPT_NAME(A.COMP_CD, B.ORG_CD, '')                     AS ORG_NM        -- 부서명
+		      ,'1'                                                             AS CODEMAPPING1  -- 계정팝업용
+		      ,CASE WHEN B.COMP_CD IS NOT NULL THEN 'R'
+		            ELSE 'I'
+		       END                                                             AS CRUD          -- 행구분
+		  FROM SD_CUSTOMER_INFO A
+		      LEFT OUTER JOIN
+		       SD_CUSTOMER_MGMT B
+		      ON    B.COMP_CD = A.COMP_CD
+		        AND	B.CUST_CD = A.CUST_CD
+		 WHERE 1 = 1
+		  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND A.COMP_CD = #{SB_COMP_CD}
+		  </if>	
+		  <if test="TB_CUST_NAME != null and TB_CUST_NAME != ''">
+		   AND A.CUST_NAME1 LIKE '%' ||  #{TB_CUST_NAME} || '%'
+		  </if>	
+		   AND DISTRIB_CD = '99'
+		 ORDER BY A.COMP_CD
+		         ,A.CUST_CD
+	</select>
+	
+	<select id="selectDeptCustomerData" parameterType="Map" resultType="Map">
+		--com.bdg.DeptCustomerMgmt.selectDeptCustomerData
+		SELECT A.CUST_CD     AS CUST_CD
+		      ,B.CUST_NAME1  AS CUST_NM
+		  FROM SD_CUSTOMER_MGMT A
+		      LEFT OUTER JOIN
+		       SD_CUSTOMER_INFO B
+		      ON    B.COMP_CD = A.COMP_CD
+		        AND	B.CUST_CD = A.CUST_CD
+		 WHERE 1 = 1                        
+		   AND A.COMP_CD  = #{COMP_CD}  
+		   AND A.ORG_CD   = #{ORG_CD}
+	</select>	
+	
+	<select id="selectCountData" parameterType="Map" resultType="Map">
+		--com.bdg.DeptCustomerMgmt.selectCountData
+		SELECT COUNT(*) CNT
+		  FROM SD_CUSTOMER_MGMT
+		 WHERE 1 = 1                        
+		   AND COMP_CD  = #{COMP_CD}  
+		   AND CUST_CD  = #{CUST_CD}
+	</select>
+	
+    <insert id="insertDeptCustomerMgmt" parameterType="Map">
+		--com.bdg.DeptCustomerMgmt.insertDeptCustomerMgmt
+		INSERT INTO SD_CUSTOMER_MGMT
+		(
+		 COMP_CD     
+		,CUST_CD     
+		,ORG_CD    
+		,CRE_DATE    
+		,CRE_USER    
+		,MOD_DATE    
+		,MOD_USER
+		) VALUES (
+		           #{COMP_CD}
+		          ,#{CUST_CD}
+		          ,#{ORG_CD}
+		          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		          ,#{CRE_USER}
+		          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		          ,#{MOD_USER}
+		         )
+
+    </insert>
+    
+    <update id="updateDeptCustomerMgmt" parameterType="Map">
+		--com.bdg.DeptCustomerMgmt.updateDeptCustomerMgmt
+		UPDATE SD_CUSTOMER_MGMT
+		   SET ORG_CD = #{ORG_CD}
+		 WHERE 1 = 1                                    
+		   AND COMP_CD  = #{COMP_CD}     
+		   AND CUST_CD  = #{CUST_CD}  
+    </update>
+    
+    <delete id="deleteDeptCustomerMgmt" parameterType="Map">
+		--com.bdg.DeptCustomerMgmt.deleteDeptCustomerMgmt
+		DELETE FROM SD_CUSTOMER_MGMT
+		 WHERE 1 = 1                                    
+		   AND COMP_CD  = #{COMP_CD}     
+		   AND CUST_CD  = #{CUST_CD}  
+    </delete>
+
+</mapper>

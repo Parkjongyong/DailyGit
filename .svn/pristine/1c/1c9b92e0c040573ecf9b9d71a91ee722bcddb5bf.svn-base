@@ -1,0 +1,240 @@
+<%@ page language="java" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page import="java.util.*"%>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.app.ildong.common.util.StringUtil"%>
+<%@page import="org.apache.commons.collections.MapUtils"%>
+<%@page import="org.apache.commons.lang.*"%>
+<%@page import="com.app.ildong.common.util.StringUtilEx"%>
+<%@page import="org.springframework.web.bind.*"%>
+<%@page import="com.app.ildong.common.util.PropertiesUtil"%>
+
+<%@ taglib prefix="c"       uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring"  uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"     uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fmt"    uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%
+/*******************************************************************/
+// 클레임 결재폼.
+/*******************************************************************/
+String URL_IN = PropertiesUtil.getProperty("HTTP.SERVER.URL.IN");
+request.setAttribute("URL_IN" ,  URL_IN);
+/*******************************************************************
+  httpclient 호출로 파라미터 전송시 object 전송 불가
+  list,map => json string 유형으로 변환 전송 됨
+  json string 유형 데이터를 jstl 사용 가능하도록 object로 변경
+*******************************************************************/
+String CLAIM    = ServletRequestUtils.getStringParameter(request, "claimInfo",  "");
+String PO       = ServletRequestUtils.getStringParameter(request, "purOrdInfo", "");
+String PO_ITEM  = ServletRequestUtils.getStringParameter(request, "poItem",     "");
+String PR       = ServletRequestUtils.getStringParameter(request, "purReqInfo", "");
+
+Map<String, Object> blankMap = new HashMap<String, Object>();
+
+request.setAttribute("CLAIM" ,                                   com.app.ildong.common.util.JsonUtil.getMapFromJsonString(CLAIM)); //MAP
+request.setAttribute("PO" ,      "".equals(PO)      ? blankMap : com.app.ildong.common.util.JsonUtil.getMapFromJsonString(PO)); //MAP
+request.setAttribute("PO_ITEM" , "".equals(PO_ITEM) ? blankMap : com.app.ildong.common.util.JsonUtil.getMapFromJsonString(PO_ITEM)); //MAP
+request.setAttribute("PR" ,      "".equals(PR)      ? blankMap : com.app.ildong.common.util.JsonUtil.getMapFromJsonString(PR)); //MAP
+
+//포맷팅 관련 처리
+Map<String, Object> claim = (Map<String, Object>)request.getAttribute("CLAIM");
+claim.put("DELIVERY_QTY", StringUtilEx.digitFormat(MapUtils.getDoubleValue(claim, "DELIVERY_QTY", 0) ) );
+
+Map<String, Object> poItem = (Map<String, Object>)request.getAttribute("PO_ITEM");
+poItem.put("UNIT_PRICE", StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "UNIT_PRICE", 0) ) );
+poItem.put("PO_AMT",     StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "PO_AMT", 0) ) );
+
+//첨부파일
+String FILE_LIST       = request.getParameter("fileList");
+request.setAttribute("FILE_LIST" ,  com.app.ildong.common.util.JsonUtil.getListFromJsonString(FILE_LIST)); //LISTMAP
+
+
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<link href="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_reset.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_common.css'/>" rel="stylesheet"/>
+<!-- jquery -->
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-1.12.3/jquery-1.12.3.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/attach.js'/>"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	//fnInitFileUpload();
+
+    //전자결재 페이지에서 창에 높이 확인 가능하도록 수정
+    document.domain="parucnc.com";
+    //전자결재 부모창으로 높이 전송
+    var maxHeight = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight,document.documentElement.offsetHeight);
+    window.parent.postMessage(maxHeight, '*');	
+
+});
+</script>
+</head>
+<body>
+    <div class="pop-wrap">
+        <div class="pop-cont link">
+            <div class="section1 scrolls">
+                <div class="sub-tit first" id="section1">
+                    <h4>기본정보</h4>
+                </div>
+                <table  id="basicInfo" class="table-style">
+                    <colgroup>
+                        <col style="width: 15%;">
+                        <col>
+                        <col style="width: 15%;">
+                        <col>
+                    </colgroup>
+                    <tbody>
+	                    <tr>
+	                        <th style="text-align: left;"><span>거래명세서 번호</span></th>
+	                        <td>${CLAIM.TXN_GROUP_NO}</td>
+	                        <th style="text-align: left;"><span>계약번호</span></th>
+	                        <td>${CLAIM.PO_NO}</td>
+	                    </tr>
+	                    <tr>
+	                        <th style="text-align: left;"><span>BP번호</span></th>
+	                        <td>${CLAIM.VENDOR_CD}</td>
+	                        <th style="text-align: left;"><span>BP명</span></th>
+	                        <td>${CLAIM.VENDOR_NM}</td>
+	                    </tr>
+	                    <tr>
+	                        <th style="text-align: left;"><span>구매부서</span></th>
+	                        <td>${CLAIM.PO_DEPT_NM}</td>
+	                        <th style="text-align: left;"><span>구매담당자</span></th>
+	                        <td>${CLAIM.PO_USER_NM}</td>
+	                    </tr>
+	                    <tr>
+	                        <th style="text-align: left;"><span>구매요청부서</span></th>
+	                        <td>${PR.PR_DEPT_NM}</td>
+	                        <th style="text-align: left;"><span>구매요청자</span></th>
+	                        <td>${PR.PRER_NM}</td>
+	                    </tr>
+	                    <tr>
+	                        <th style="text-align: left;"><span>등록일</span></th>
+	                        <td>${CLAIM.REG_DATE}</td>
+	                        <th style="text-align: left;"><span>등록자</span></th>
+	                        <td>${CLAIM.REG_USER_NM}</td>
+	                    </tr>
+	                </tbody>
+                </table>
+            </div>
+
+            <div class="sub-tit">
+                <h4>클레임 내용</h4>
+            </div>
+            <table class="table-style">
+                <tbody>
+                    <tr>
+                        <td colspan="4">
+                            <pre>${CLAIM.CLAIM_REMARK}</pre>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="sub-tit">
+                <h4>클레임 원인</h4>
+            </div>
+            <table class="table-style">
+                <tbody>
+                    <tr>
+                        <td colspan="4">
+                            <pre>${CLAIM.CLAIM_CAUSE}</pre>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="section3 scrolls">
+                <div class="sub-tit"  id="section3">
+                    <h4>품목정보</h4>
+                </div>
+                <div>
+                    <table class="table-style">
+                        <colgroup>
+            				<col style="width:10%">
+            				<col>
+            				<col style="width:10%">
+            				<col style="width:10%">
+            				<col style="width:5%">
+            				<col style="width:10%">
+            				<col style="width:10%">
+            				<col style="width:5%">
+        				</colgroup>
+                        <thead>
+                            <tr>
+                				<th>SG</th>
+                				<th>품목명</th>
+                				<th>납품일</th>
+                				<th>납품수량</th>
+                				<th>단위</th>
+                				<th>단가</th>
+                				<th>금액</th>
+                				<th>통화</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            				<tr>
+                				<td>${PO_ITEM.SRC_GRP_NM}</td>
+                				<td>${CLAIM.ITEM_NM}</td>
+                				<td style="text-align: center;">${CLAIM.DELIVERY_DATE}</td>
+                				<td style="text-align: right;">${CLAIM.DELIVERY_QTY}</td>
+                				<td style="text-align: center;">${CLAIM.UNIT}</td>
+                				<td style="text-align: right;">${PO_ITEM.UNIT_PRICE}</td>
+                				<td style="text-align: right;">${PO_ITEM.PO_AMT}</td>
+                				<td style="text-align: center;">${PO_ITEM.CURRENCY_CD}</td>
+            				</tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <c:if test="${CLAIM.APP_SEQ != null and CLAIM.APP_SEQ != ''}">
+            <div class="section6 scrolls">
+                <div class="sub-tit" id="section6">
+                    <h4>첨부파일</h4>
+                    <input type="hidden" id="APP_SEQ" value="${CLAIM.APP_SEQ}">
+                </div>
+
+                <div id="fileUploadTable">
+                    <table class="table-style">
+                        <tbody>
+                            <tr>
+                                <th style="text-align: center;" width="10%">No</th>
+                                <th style="text-align: center;">파일명</th>
+                            </tr>
+                            <c:forEach var="FILE" items="${FILE_LIST}" varStatus="status">
+                            <tr class="F_File_ROW">
+                                <td style="text-align: center;">${status.count}</td>
+                                <td class="t_left">
+                                <a href="${URL_IN}/download.do?APP_SEQ=${FILE.APP_SEQ}&amp;ATTACHMENT_SEQ=${FILE.ATTACHMENT_SEQ}" title="${FILE.FILE_NAME}" style="color:blue;" download="${FILE.FILE_NAME}">${FILE.FILE_NAME}</a></td>
+                                <!-- <td class="t_center">2019-12-12</td>
+                                <td class="t_right">0.06 KB</td> -->
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </c:if>
+        </div>
+        <!-- //popCont -->
+    </div>
+<script>
+//첨부파일 조회
+function fnInitFileUpload() {
+    if ($("#APP_SEQ").val() != "") {
+        displayFileUpload({
+            KEY_ID : 'APP_SEQ',
+            DATA_FORMAT : 'table',
+            CALLBACK : 'fnFileUploadCallback'
+        });
+    }
+}
+
+//파일 업로드 콜백함수
+function fnFileUploadCallback(data) {
+    $('#fileUploadTable').empty().html(data);
+}
+</script>
+</body>

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"  
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd" >
+
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+	<mvc:resources mapping="/resources/**" 	location="/resources/" 	order="0" />
+	
+	<!-- Message Converter 등록 -->
+	<mvc:annotation-driven>
+		<mvc:argument-resolvers>
+			<bean class="com.app.ildong.common.model.bind.ParamMapArgumentResolver"/>
+		    <bean class="org.springframework.mobile.device.DeviceHandlerMethodArgumentResolver"/>     
+            <bean class="com.ecbank.framework.webmvc.method.UserAgentArgumentResolver"/>
+            <!-- <bean class="org.springframework.security.web.bind.support.AuthenticationPrincipalArgumentResolver"/> -->
+        </mvc:argument-resolvers>
+		<mvc:message-converters>
+			<!-- <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/html;charset=UTF-8</value>
+						<value>application/json;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean> -->
+			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>application/json;charset=UTF-8</value>
+					</list>
+				</property>			
+				<property name="objectMapper">
+					<!-- <bean class="com.fasterxml.jackson.databind.ObjectMapper">
+						<property name="serializationInclusion">
+							<value type="com.fasterxml.jackson.annotation.JsonInclude.Include">NON_NULL</value>
+						</property>
+					</bean> -->
+					<bean class="com.app.ildong.common.model.json.CustomObjectMapper">
+						<property name="serializationInclusion">
+							<value type="com.fasterxml.jackson.annotation.JsonInclude.Include">NON_NULL</value>
+						</property>
+					</bean>					
+				</property>
+			</bean>         
+		</mvc:message-converters>   
+
+	</mvc:annotation-driven>
+		
+	<!-- mvc:view-controller path="/" view-name="/loginView"/ -->
+	<!-- mvc:view-controller path="/template/mail/in/LOI_REQ.do" view-name="template/mail/in/LOI_REQ"/ -->
+	
+	<!-- MULTIPART RESOLVERS -->
+	<!-- regular spring resolver -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="100000000" />
+		<property name="maxInMemorySize" value="100000000" />
+	</bean>
+	
+	<!-- For Pagination Tag 설정-->
+    <bean id="imageRenderer" class="com.app.ildong.common.pagenation.ImagePaginationRenderer"/>
+    <bean id="paginationManager" class="com.app.ildong.common.pagenation.DefaultPaginationManager">
+        <property name="rendererType">
+            <map>
+                <entry key="image" value-ref="imageRenderer"/>
+            </map>
+        </property>
+    </bean>
+	
+	<!-- Locale Resolver 등록 -->
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver" >
+		<property name="defaultLocale" value="${spring.mvc.locale.default}"/>
+	</bean>
+
+	<!-- Interceptor 등록 -->
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/resources/**"/>
+			<bean class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
+				<property name="paramName" value="locale"/>
+			</bean>
+		</mvc:interceptor>
+<!-- 		<mvc:interceptor > -->
+<!-- 			<mvc:mapping path="/**"/> -->
+<!-- 			<mvc:exclude-mapping path="/resources/**"/> -->
+<!-- 			<bean id="deviceResolverHandlerInterceptor" class="org.springframework.mobile.device.DeviceResolverHandlerInterceptor"/> -->
+<!-- 		</mvc:interceptor> -->
+		<mvc:interceptor >
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/resources/**"/>
+			<bean id="commonFieldSetter" class="com.ecbank.framework.webmvc.interceptors.CommonFieldSetter"/>
+		</mvc:interceptor>
+		<mvc:interceptor >
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/resources/**"/>
+			<bean class="com.ecbank.framework.webmvc.interceptors.DuplicatedSubmitPreventInterceptor" /> 
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<!-- View Resolver -->
+<!-- 	<bean id="beanNameResolver" class="org.springframework.web.servlet.view.BeanNameViewResolver">
+	    <property name="order" value="0"/>
+	</bean> -->
+ 	
+    <!-- 화면처리용 JSP 파일명의  prefix, suffix 처리에 대한 mvc 설정  -->
+<!--     <bean class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+	    <property name="order" 		value="1"/>
+	    <property name="viewClass" 	value="org.springframework.web.servlet.view.JstlView"/>
+	    <property name="prefix" 	value="/WEB-INF/jsp/"/>
+	    <property name="suffix" 	value=".jsp"/>	    
+	</bean>	
+ -->	
+ 	<bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+		<property name="favorPathExtension" value="true" />
+		<property name="favorParameter" value="false" />
+		<property name="ignoreAcceptHeader" value="false" />
+		<property name="defaultContentType" value="application/json"/>
+		<property name="mediaTypes">
+			<map>
+				<entry key="json" value="application/json" />
+				<entry key="do" value="text/html" />
+				<entry key="frag" value="application/plain" />
+			</map>
+		</property>
+	</bean>
+	
+    <!-- ========================= Tiles DEFINITIONS ======================== -->
+    <bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
+        <property name="definitions">
+            <list>
+                <value>classpath:META-INF/tiles/*.xml</value>
+            </list>
+        </property>
+        <property name="preparerFactoryClass" value="org.springframework.web.servlet.view.tiles3.SpringBeanPreparerFactory" />
+    </bean>   
+	
+	<bean id="contentNegotiatingViewResolver" class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+		<property name="order" value="0" />
+		<property name="contentNegotiationManager" ref="contentNegotiationManager" />
+		<property name="viewResolvers">
+			<list>
+				<bean class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+					<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+					<property name="prefix" value="/WEB-INF/jsp/" />
+					<property name="suffix" value=".jsp" />
+					<property name="order" value="1" />
+				</bean>
+				
+				<bean class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+					<property name="viewClass" value="org.springframework.web.servlet.view.tiles3.TilesView" />
+					<property name="order" value="0" />
+				</bean>
+				
+				<bean id="fragView" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+					<property name="viewClass" value="org.springframework.web.servlet.view.tiles3.TilesView" />
+					<property name="prefix" value="/WEB-INF/jsp/" />
+					<property name="suffix" value=".frag" />
+					<property name="contentType" value="application/plain" />
+				</bean>
+			</list>
+		</property>
+		<property name="defaultViews">
+			<list>
+				<bean class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/>
+			</list>
+		</property>
+	</bean>
+	
+	
+	<beans profile="test">
+		<!-- View Resolver -->
+		<bean id="contentNegotiationManager" class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+			<property name="favorPathExtension" value="true" />
+			<property name="favorParameter" value="false" />
+			<property name="ignoreAcceptHeader" value="false" />
+			<property name="defaultContentType" value="application/json"/>
+			<property name="mediaTypes">
+				<map>
+					<entry key="json" value="application/json" />
+					<entry key="do"   value="application/json" />
+					<entry key="frag" value="application/json" />
+				</map>
+			</property>
+		</bean>
+	</beans>
+	 
+	<!-- Formatting -->
+<!-- 	<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean"> -->
+<!--         <property name="formatters"> -->
+<!--             <set> -->
+<!--                 <bean class="org.springframework.samples.petclinic.web.PetTypeFormatter"/> -->
+<!--             </set> -->
+<!--         </property> -->
+<!--     </bean> -->
+	
+</beans>

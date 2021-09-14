@@ -1,0 +1,775 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.ModifyMgt">
+	<select id="selectModifyMgtHeader" parameterType="Map" resultType="Map">
+--com.bdg.ModifyMgt.selectModifyMgtHeader
+SELECT A.COMP_CD                                            COMP_CD
+      ,A.CRTN_YY                                            CRTN_YY
+      ,A.CCTR_CD                                            CCTR_CD
+      ,FUNC_GET_COST_NAME(A.COMP_CD, A.CCTR_CD, A.CRE_DATE) CCTR_NM
+      ,A.ACCOUNT_NO                                         ACCOUNT_NO
+      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                  ACCOUNT_DESC
+      ,CASE WHEN NVL(#{MODIFY_GUBN}, 'N') = 'Y' THEN 'Y'
+            WHEN FUNC_GET_CODE_NAME('YS031', ACCOUNT_NO) IS NOT NULL THEN 'N'
+            ELSE 'Y'
+       END                                                  ACCOUNT_GUBN
+      ,A.PROCESS_TYPE                                       PROCESS_TYPE
+      ,A.STATUS                                             STATUS
+      ,A.DISTR_TYPE                                         DISTR_TYPE
+      ,A.WK_M01                                             WK_M01
+      ,A.WK_M02                                             WK_M02
+      ,A.WK_M03                                             WK_M03
+      ,A.WK_M04                                             WK_M04
+      ,A.WK_M05                                             WK_M05
+      ,A.WK_M06                                             WK_M06
+      , NVL(A.WK_M01,0)
+       +NVL(A.WK_M02,0)
+       +NVL(A.WK_M03,0)
+       +NVL(A.WK_M04,0)
+       +NVL(A.WK_M05,0)
+       +NVL(A.WK_M06,0)                                     A_SUM
+      ,A.WK_M07                                             WK_M07
+      ,A.WK_M08                                             WK_M08
+      ,A.WK_M09                                             WK_M09
+      ,A.WK_M10                                             WK_M10
+      ,A.WK_M11                                             WK_M11
+      ,A.WK_M12                                             WK_M12
+      , NVL(A.WK_M07,0)
+       +NVL(A.WK_M08,0)
+       +NVL(A.WK_M09,0)
+       +NVL(A.WK_M10,0)
+       +NVL(A.WK_M11,0)
+       +NVL(A.WK_M12,0)                                     B_SUM
+      , NVL(A.WK_M01,0)
+       +NVL(A.WK_M02,0)
+       +NVL(A.WK_M03,0)
+       +NVL(A.WK_M04,0)
+       +NVL(A.WK_M05,0)
+       +NVL(A.WK_M06,0)
+       +NVL(A.WK_M07,0)
+       +NVL(A.WK_M08,0)
+       +NVL(A.WK_M09,0)
+       +NVL(A.WK_M10,0)
+       +NVL(A.WK_M11,0)
+       +NVL(A.WK_M12,0)                                     C_SUM
+      ,A.REMARK                                             REMARK
+      ,A.EPS_DOC_NO                                         EPS_DOC_NO
+      ,A.CRE_DATE                                           CRE_DATE
+      ,A.CRE_USER                                           CRE_USER
+      ,A.MOD_DATE                                           MOD_DATE
+      ,A.MOD_USER                                           MOD_USER
+      ,B.SEND_CHASU                                         SEND_CHASU
+      ,B.SEND_YMD                                           SEND_YMD
+      ,(
+        SELECT MAX(CODE) CODE
+          FROM COM_CODE
+         WHERE CODE_GRP = 'SYS003'
+       )                                                    W_CODE
+  FROM CO_BUGT_MODIFY_HEAD A
+      LEFT OUTER JOIN
+       CO_BUGT_MODIFY_MASTER B
+      ON    B.COMP_CD = A.COMP_CD
+        AND B.CRTN_YY = A.CRTN_YY
+ WHERE 1=1
+ <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND A.COMP_CD   = #{SB_COMP_CD}
+ </if>   
+ <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+   AND A.CRTN_YY   = #{TB_CRTN_YY}
+ </if>    
+ <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+   AND A.CCTR_CD   = #{SB_CCTR_CD}
+ </if>   
+ <if test="SB_STATUS_CD != null and SB_STATUS_CD != ''">
+   AND A.STATUS  = #{SB_STATUS_CD}
+ </if>   
+ ORDER BY A.COMP_CD
+         ,A.CRTN_YY
+         ,A.CCTR_CD
+         ,A.ACCOUNT_NO 
+  </select>
+
+	<select id="selectModifyMgtDetail" parameterType="Map" resultType="Map">
+--com.bdg.ModifyMgt.selectModifyMgtDetail
+SELECT A.COMP_CD
+      ,A.CRTN_YY
+      ,A.CCTR_CD
+      ,A.ACCOUNT_NO
+      ,A.PROCESS_TYPE
+      ,A.SEQ_NO
+      ,A.DETAIL_DESC
+      ,A.BELONG_CCTR_CD
+      ,A.BELONG_CCTR_CD|| '-' || FUNC_GET_COST_NAME(A.COMP_CD , A.BELONG_CCTR_CD, TO_CHAR(SYSDATE,'YYYYMMDD')) BELONG_CCTR
+      ,A.PROJECT_CD
+      ,A.PROJECT_CD || '-' || CASE WHEN A.PROCESS_TYPE = '2' 
+                                     THEN FUNC_GET_ORDER_DESC(A.COMP_CD, A.PROJECT_CD, 'ZSAL', A.CCTR_CD)
+                                     ELSE FUNC_GET_ORDER_DESC2(A.COMP_CD, A.PROJECT_CD, 'ZPMS', A.CCTR_CD, A.ACCOUNT_NO)
+                               END PROJECT -- 프로젝명
+      ,A.UNIT_PRICE
+      ,A.UNIT_QTY
+      ,A.WK_M01
+      ,A.WK_M02
+      ,A.WK_M03
+      ,A.WK_M04
+      ,A.WK_M05
+      ,A.WK_M06
+      ,(
+        NVL(A.WK_M01,0)+NVL(A.WK_M02,0)+NVL(A.WK_M03,0)+NVL(A.WK_M04,0)+NVL(A.WK_M05,0)+NVL(A.WK_M06,0)
+       )                                                                                                                   A_SUM
+      ,A.WK_M07
+      ,A.WK_M08
+      ,A.WK_M09
+      ,A.WK_M10
+      ,A.WK_M11
+      ,A.WK_M12
+      ,(
+        NVL(A.WK_M07,0)+NVL(A.WK_M08,0)+NVL(A.WK_M09,0)+NVL(A.WK_M10,0)+NVL(A.WK_M11,0)+NVL(A.WK_M12,0)
+       )                                                                                                                   B_SUM
+      ,(
+        NVL(A.WK_M01,0)+NVL(A.WK_M02,0)+NVL(A.WK_M03,0)+NVL(A.WK_M04,0)+NVL(A.WK_M05,0)+NVL(A.WK_M06,0)
+       +NVL(A.WK_M07,0)+NVL(A.WK_M08,0)+NVL(A.WK_M09,0)+NVL(A.WK_M10,0)+NVL(A.WK_M11,0)+NVL(A.WK_M12,0)
+       )                                                                                                                   C_SUM
+      ,A.CRE_DATE
+      ,A.CRE_USER
+      ,A.MOD_DATE
+      ,A.MOD_USER
+      ,'1'                                                                CODEMAPPING1
+      ,'1'                                                                CODEMAPPING2
+      ,B.STATUS
+  FROM CO_BUGT_MODIFY_DETAIL A
+      LEFT OUTER JOIN
+       CO_BUGT_MODIFY_HEAD B
+      ON    B.COMP_CD      = A.COMP_CD
+        AND B.CRTN_YY      = A.CRTN_YY
+        AND B.CCTR_CD      = A.CCTR_CD
+        AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+ WHERE A.COMP_CD      = #{SB_COMP_CD}
+   AND A.CRTN_YY      = #{TB_CRTN_YY}
+   AND A.CCTR_CD      = #{SB_CCTR_CD}
+   AND A.ACCOUNT_NO   = #{TB_ACCOUNT_NO}
+   AND A.PROCESS_TYPE = #{TB_PROCESS_TYPE}
+ ORDER BY A.COMP_CD
+         ,A.CRTN_YY
+         ,A.CCTR_CD
+         ,A.ACCOUNT_NO 
+         ,A.SEQ_NO
+	</select>
+
+	
+	<insert id="saveModifyMgtHeader" parameterType="Map">
+	--com.bdg.ModifyMgt.saveModifyMgtHeader
+MERGE INTO CO_BUGT_MODIFY_HEAD A
+USING (
+       SELECT #{SB_COMP_CD}                COMP_CD
+             ,#{TB_CRTN_YY}                CRTN_YY
+             ,#{SB_CCTR_CD}                CCTR_CD
+             ,#{TB_ACCOUNT_NO}             ACCOUNT_NO
+             ,'1'                          PROCESS_TYPE
+             ,'1'                          STATUS
+             ,#{DISTR_TYPE}                DISTR_TYPE
+             ,B.WK_M01                     WK_M01
+             ,B.WK_M02                     WK_M02
+             ,B.WK_M03                     WK_M03
+             ,B.WK_M04                     WK_M04
+             ,B.WK_M05                     WK_M05
+             ,B.WK_M06                     WK_M06
+             ,B.WK_M07                     WK_M07
+             ,B.WK_M08                     WK_M08
+             ,B.WK_M09                     WK_M09
+             ,B.WK_M10                     WK_M10
+             ,B.WK_M11                     WK_M11
+             ,B.WK_M12                     WK_M12
+             ,#{TB_REMARK}                 REMARK
+             ,#{EPS_DOC_NO}                EPS_DOC_NO
+             ,TO_CHAR(SYSDATE,'YYYYMMDD')  CRE_DATE
+             ,#{CRE_USER}                  CRE_USER
+             ,TO_CHAR(SYSDATE,'YYYYMMDD')  MOD_DATE
+             ,#{MOD_USER}                  MOD_USER
+         FROM DUAL A
+             LEFT OUTER JOIN
+             (
+              SELECT COMP_CD   
+                     ,CRTN_YY   
+                     ,CCTR_CD    
+                     ,ACCOUNT_NO
+                     ,PROCESS_TYPE
+                     ,SUM(WK_M01) WK_M01
+                     ,SUM(WK_M02) WK_M02
+                     ,SUM(WK_M03) WK_M03
+                     ,SUM(WK_M04) WK_M04
+                     ,SUM(WK_M05) WK_M05
+                     ,SUM(WK_M06) WK_M06
+                     ,SUM(WK_M07) WK_M07
+                     ,SUM(WK_M08) WK_M08
+                     ,SUM(WK_M09) WK_M09
+                     ,SUM(WK_M10) WK_M10
+                     ,SUM(WK_M11) WK_M11
+                     ,SUM(WK_M12) WK_M12
+                FROM CO_BUGT_MODIFY_DETAIL
+               GROUP BY COMP_CD
+                       ,CRTN_YY
+                       ,CCTR_CD
+                       ,PROCESS_TYPE
+                       ,ACCOUNT_NO
+             ) B
+             ON    B.COMP_CD      = #{SB_COMP_CD}
+               AND B.CRTN_YY      = #{TB_CRTN_YY}
+               AND B.CCTR_CD      = #{SB_CCTR_CD}
+               AND B.ACCOUNT_NO   = #{TB_ACCOUNT_NO}
+               AND B.PROCESS_TYPE = '1'
+      ) B
+ON (
+        A.COMP_CD      = B.COMP_CD
+    AND A.CRTN_YY      = B.CRTN_YY
+    AND A.CCTR_CD       = B.CCTR_CD
+    AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+    AND A.PROCESS_TYPE = B.PROCESS_TYPE
+   )
+WHEN MATCHED THEN
+    UPDATE
+       SET WK_M01     = B.WK_M01
+          ,WK_M02     = B.WK_M02
+          ,WK_M03     = B.WK_M03
+          ,WK_M04     = B.WK_M04
+          ,WK_M05     = B.WK_M05
+          ,WK_M06     = B.WK_M06
+          ,WK_M07     = B.WK_M07
+          ,WK_M08     = B.WK_M08
+          ,WK_M09     = B.WK_M09
+          ,WK_M10     = B.WK_M10
+          ,WK_M11     = B.WK_M11
+          ,WK_M12     = B.WK_M12
+          ,REMARK     = #{TB_REMARK}
+          ,EPS_DOC_NO = #{EPS_DOC_NO}
+          ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,MOD_USER   = #{MOD_USER}
+WHEN NOT MATCHED THEN
+        INSERT
+        (
+          A.COMP_CD
+         ,A.CRTN_YY
+         ,A.CCTR_CD
+         ,A.ACCOUNT_NO
+         ,A.PROCESS_TYPE
+         ,A.STATUS
+         ,A.DISTR_TYPE
+         ,A.WK_M01
+         ,A.WK_M02
+         ,A.WK_M03
+         ,A.WK_M04
+         ,A.WK_M05
+         ,A.WK_M06
+         ,A.WK_M07
+         ,A.WK_M08
+         ,A.WK_M09
+         ,A.WK_M10
+         ,A.WK_M11
+         ,A.WK_M12
+         ,A.REMARK
+         ,A.EPS_DOC_NO
+         ,A.CRE_DATE
+         ,A.CRE_USER
+         ,A.MOD_DATE
+         ,A.MOD_USER
+        ) VALUES (
+                   B.COMP_CD
+                  ,B.CRTN_YY
+                  ,B.CCTR_CD
+                  ,B.ACCOUNT_NO
+                  ,B.PROCESS_TYPE
+                  ,B.STATUS
+                  ,B.DISTR_TYPE
+                  ,B.WK_M01
+                  ,B.WK_M02
+                  ,B.WK_M03
+                  ,B.WK_M04
+                  ,B.WK_M05
+                  ,B.WK_M06
+                  ,B.WK_M07
+                  ,B.WK_M08
+                  ,B.WK_M09
+                  ,B.WK_M10
+                  ,B.WK_M11
+                  ,B.WK_M12
+                  ,B.REMARK
+                  ,B.EPS_DOC_NO
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,B.CRE_USER
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,B.MOD_USER
+                 )
+	</insert>
+	
+	<insert id="saveModifyMgtDetail" parameterType="Map">
+	--com.bdg.ModifyMgt.saveModifyMgtDetail
+MERGE INTO CO_BUGT_MODIFY_DETAIL A
+USING (
+       SELECT #{COMP_CD}        COMP_CD
+             ,#{CRTN_YY}        CRTN_YY
+             ,#{CCTR_CD}        CCTR_CD
+             ,#{ACCOUNT_NO}     ACCOUNT_NO
+             ,'1'               PROCESS_TYPE
+             ,#{SEQ_NO}         SEQ_NO
+             ,#{DETAIL_DESC}    DETAIL_DESC
+             ,#{BELONG_CCTR_CD} BELONG_CCTR_CD
+             ,#{PROJECT_CD}     PROJECT_CD
+             ,#{UNIT_PRICE}     UNIT_PRICE
+             ,#{UNIT_QTY}       UNIT_QTY
+             ,#{WK_M01}         WK_M01
+             ,#{WK_M02}         WK_M02
+             ,#{WK_M03}         WK_M03
+             ,#{WK_M04}         WK_M04
+             ,#{WK_M05}         WK_M05
+             ,#{WK_M06}         WK_M06
+             ,#{WK_M07}         WK_M07
+             ,#{WK_M08}         WK_M08
+             ,#{WK_M09}         WK_M09
+             ,#{WK_M10}         WK_M10
+             ,#{WK_M11}         WK_M11
+             ,#{WK_M12}         WK_M12
+             ,#{CRE_USER}       CRE_USER
+             ,#{MOD_USER}       MOD_USER
+         FROM DUAL
+      ) B
+ON (
+        A.COMP_CD      = B.COMP_CD
+    AND A.CRTN_YY      = B.CRTN_YY
+    AND A.CCTR_CD      = B.CCTR_CD
+    AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+    AND A.PROCESS_TYPE = B.PROCESS_TYPE
+    AND A.SEQ_NO       = B.SEQ_NO
+   )
+WHEN MATCHED THEN
+    UPDATE
+       SET DETAIL_DESC    = #{DETAIL_DESC}
+          ,BELONG_CCTR_CD = #{BELONG_CCTR_CD}
+          ,PROJECT_CD     = #{PROJECT_CD}
+          ,UNIT_PRICE     = #{UNIT_PRICE}
+          ,UNIT_QTY       = #{UNIT_QTY}
+          ,WK_M01         = #{WK_M01}
+          ,WK_M02         = #{WK_M02}
+          ,WK_M03         = #{WK_M03}
+          ,WK_M04         = #{WK_M04}
+          ,WK_M05         = #{WK_M05}
+          ,WK_M06         = #{WK_M06}
+          ,WK_M07         = #{WK_M07}
+          ,WK_M08         = #{WK_M08}
+          ,WK_M09         = #{WK_M09}
+          ,WK_M10         = #{WK_M10}
+          ,WK_M11         = #{WK_M11}
+          ,WK_M12         = #{WK_M12}
+          ,MOD_DATE       = TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,MOD_USER       = #{MOD_USER}
+WHEN NOT MATCHED THEN
+        INSERT
+        (
+          A.COMP_CD
+         ,A.CRTN_YY
+         ,A.CCTR_CD
+         ,A.ACCOUNT_NO
+         ,A.PROCESS_TYPE
+         ,A.SEQ_NO
+         ,A.DETAIL_DESC
+         ,A.BELONG_CCTR_CD
+         ,A.PROJECT_CD
+         ,A.UNIT_PRICE
+         ,A.UNIT_QTY
+         ,A.WK_M01
+         ,A.WK_M02
+         ,A.WK_M03
+         ,A.WK_M04
+         ,A.WK_M05
+         ,A.WK_M06
+         ,A.WK_M07
+         ,A.WK_M08
+         ,A.WK_M09
+         ,A.WK_M10
+         ,A.WK_M11
+         ,A.WK_M12
+         ,A.CRE_DATE
+         ,A.CRE_USER
+         ,A.MOD_DATE
+         ,A.MOD_USER
+        ) VALUES (
+                   B.COMP_CD
+                  ,B.CRTN_YY
+                  ,B.CCTR_CD
+                  ,B.ACCOUNT_NO
+                  ,B.PROCESS_TYPE
+                  ,B.SEQ_NO
+                  ,B.DETAIL_DESC
+                  ,B.BELONG_CCTR_CD
+                  ,B.PROJECT_CD
+                  ,B.UNIT_PRICE
+                  ,B.UNIT_QTY
+                  ,B.WK_M01
+                  ,B.WK_M02
+                  ,B.WK_M03
+                  ,B.WK_M04
+                  ,B.WK_M05
+                  ,B.WK_M06
+                  ,B.WK_M07
+                  ,B.WK_M08
+                  ,B.WK_M09
+                  ,B.WK_M10
+                  ,B.WK_M11
+                  ,B.WK_M12
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,B.CRE_USER
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,B.MOD_USER
+                 )
+	</insert>
+	
+	<delete id="delModifyH" parameterType="map">
+	--com.bdg.ModifyMgt.delModifyH
+DELETE FROM CO_BUGT_MODIFY_HEAD
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YY      = #{CRTN_YY}
+   AND CCTR_CD      = #{CCTR_CD}
+   AND ACCOUNT_NO   = #{ACCOUNT_NO}
+   AND PROCESS_TYPE = #{PROCESS_TYPE}
+	</delete>
+	
+	<delete id="delModifyD" parameterType="map">
+	--com.bdg.ModifyMgt.delModifyD
+DELETE FROM CO_BUGT_MODIFY_DETAIL
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YY      = #{CRTN_YY}
+   AND CCTR_CD      = #{CCTR_CD}
+   AND ACCOUNT_NO   = #{ACCOUNT_NO}
+   AND PROCESS_TYPE = #{PROCESS_TYPE}
+	</delete>
+	
+	<delete id="delModifyMgtDetail" parameterType="map">
+	--com.bdg.ModifyMgt.delModifyMgtDetail
+DELETE FROM CO_BUGT_MODIFY_DETAIL
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YY      = #{CRTN_YY}
+   AND CCTR_CD      = #{CCTR_CD}
+   AND ACCOUNT_NO   = #{ACCOUNT_NO}
+   AND PROCESS_TYPE = #{PROCESS_TYPE}
+   AND SEQ_NO       = #{SEQ_NO}
+	</delete>
+	
+	<update id="apprModifyMgtHeader" parameterType="map">
+		--com.bdg.ModifyMgt.apprModifyMgtHeader
+		UPDATE CO_BUGT_MODIFY_HEAD
+		   SET STATUS     = '2'
+		      ,EPS_DOC_NO = #{EPS_DOC_NO}
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER   = #{MOD_USER}
+		 WHERE COMP_CD    = #{SB_COMP_CD}
+		   AND CRTN_YY    = #{TB_CRTN_YY}
+		   AND CCTR_CD    = #{SB_CCTR_CD}
+	</update>
+
+	<update id="returnModifyMgtHeader" parameterType="map">
+		--com.bdg.ModifyMgt.returnModifyMgtHeader
+		UPDATE CO_BUGT_MODIFY_HEAD
+		   SET STATUS     = '1'
+		      ,EPS_DOC_NO = '' 
+		      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER = #{MOD_USER}
+		 WHERE COMP_CD  = #{SB_COMP_CD}
+		   AND CRTN_YY  = #{TB_CRTN_YY}
+		   AND CCTR_CD  = #{SB_CCTR_CD}
+	</update>
+
+	<update id="saveModifyRemark" parameterType="Map">
+	--com.bdg.ModifyMgt.saveModifyRemark
+		UPDATE CO_BUGT_MODIFY_HEAD
+		   SET REMARK = #{TB_REMARK}
+		 WHERE COMP_CD    = #{SB_COMP_CD}
+           AND CRTN_YY    = #{TB_CRTN_YY}
+           AND CCTR_CD    = #{SB_CCTR_CD}
+           AND ACCOUNT_NO = #{TB_ACCOUNT_NO}
+	</update>
+	
+	<insert id="createModifyMgt" parameterType="Map">
+	--com.bdg.ModifyMgt.createModifyMgt
+BEGIN
+
+  DELETE FROM CO_BUGT_MODIFY_HEAD
+   WHERE COMP_CD = #{SB_COMP_CD}
+     AND CRTN_YY = #{TB_CRTN_YY}
+   ;
+   
+  DELETE FROM CO_BUGT_MODIFY_DETAIL
+   WHERE COMP_CD = #{SB_COMP_CD}
+     AND CRTN_YY = #{TB_CRTN_YY}
+   ;
+  DELETE FROM CO_BUGT_MODIFY_MGMT
+   WHERE COMP_CD = #{SB_COMP_CD}
+     AND CRTN_YY = #{TB_CRTN_YY}
+   ;  
+   
+   INSERT INTO CO_BUGT_MODIFY_HEAD
+   SELECT COMP_CD
+         ,CRTN_YY
+         ,CCTR_CD
+         ,ACCOUNT_NO
+         ,PROCESS_TYPE
+         ,'5' AS STATUS
+         ,DISTR_TYPE
+         ,WK_M01
+         ,WK_M02
+         ,WK_M03
+         ,WK_M04
+         ,WK_M05
+         ,WK_M06
+         ,WK_M07
+         ,WK_M08
+         ,WK_M09
+         ,WK_M10
+         ,WK_M11
+         ,WK_M12
+         ,REMARK
+         ,'' EPS_DOC_NO
+         ,CRE_DATE
+         ,CRE_USER
+         ,MOD_DATE
+         ,MOD_USER
+     FROM CO_BUGT_BASIC_HEAD
+    WHERE COMP_CD      = #{SB_COMP_CD}
+      AND CRTN_YY      = #{TB_CRTN_YY}
+      AND PROCESS_TYPE = '1'
+  ;
+  
+  
+  INSERT INTO CO_BUGT_MODIFY_DETAIL
+  SELECT COMP_CD
+        ,CRTN_YY
+        ,CCTR_CD
+        ,ACCOUNT_NO
+        ,PROCESS_TYPE
+        ,SEQ_NO
+        ,DETAIL_DESC
+        ,BELONG_CCTR_CD
+        ,PROJECT_CD
+        ,UNIT_PRICE
+        ,UNIT_QTY
+        ,WK_M01
+        ,WK_M02
+        ,WK_M03
+        ,WK_M04
+        ,WK_M05
+        ,WK_M06
+        ,WK_M07
+        ,WK_M08
+        ,WK_M09
+        ,WK_M10
+        ,WK_M11
+        ,WK_M12
+        ,CRE_DATE
+        ,CRE_USER
+        ,MOD_DATE
+        ,MOD_USER
+    FROM CO_BUGT_BASIC_DETAIL
+   WHERE COMP_CD      = #{SB_COMP_CD}
+     AND CRTN_YY      = #{TB_CRTN_YY}
+     AND PROCESS_TYPE = '1'
+   ;
+   
+   INSERT INTO CO_BUGT_MODIFY_MGMT
+   SELECT COMP_CD         
+         ,CRTN_YY
+         ,BELONG_CCTR_CD
+         ,CLAUSE_CD
+         ,LEVEL_CD
+         ,ITEM_CD
+         ,ITEM_DESC
+         ,DISTRIB_CD
+         ,ACCOUNT_NO
+         ,CCTR_CD
+         ,PROJECT_CD
+         ,'1'     STATUS
+         ,WK_M01
+         ,WK_M02
+         ,WK_M03
+         ,WK_M04
+         ,WK_M05
+         ,WK_M06
+         ,WK_M07
+         ,WK_M08
+         ,WK_M09
+         ,WK_M10
+         ,WK_M11
+         ,WK_M12
+         ,'M' CRE_GUBN
+         ,CRE_DATE
+         ,CRE_USER
+         ,MOD_DATE
+         ,MOD_USER
+     FROM CO_BUGT_BASIC_MGMT
+    WHERE COMP_CD = #{SB_COMP_CD}
+      AND CRTN_YY = #{TB_CRTN_YY}     
+    ;
+END;
+	</insert>
+	
+	<insert id="saveModifyMaster" parameterType="Map">
+	--com.bdg.ModifyMgt.saveModifyMaster
+	BEGIN
+		MERGE INTO CO_BUGT_MODIFY_MASTER A
+		USING (
+		       SELECT #{SB_COMP_CD}       COMP_CD
+		             ,#{TB_CRTN_YY}       CRTN_YY
+		         FROM DUAL
+		       ) B
+		ON (
+		        A.COMP_CD = B.COMP_CD
+		    AND A.CRTN_YY = B.CRTN_YY
+		   )
+		WHEN MATCHED THEN
+		    UPDATE
+		       SET SEND_CHASU = '00'
+		          ,SEND_YMD   = TO_CHAR(SYSDATE,'YYYYMMDD')
+		WHEN NOT MATCHED THEN
+		        INSERT
+		        (
+		          A.COMP_CD
+		         ,A.CRTN_YY
+		         ,A.SEND_CHASU
+		         ,A.SEND_YMD
+		        ) VALUES (
+		                   B.COMP_CD
+		                  ,B.CRTN_YY
+		                  ,'00'
+		                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+		                 )
+		;
+		
+		UPDATE CO_BUGT_MODIFY_HEAD
+		   SET STATUS   = '5' 
+		      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER = #{MOD_USER}
+		 WHERE COMP_CD  = #{SB_COMP_CD}
+		   AND CRTN_YY  = #{TB_CRTN_YY}
+		;
+	END;
+
+	</insert>
+
+	<select id="selectModifyMgtHeaderPop" parameterType="Map" resultType="Map">
+--com.bdg.ModifyMgt.selectModifyMgtHeaderPop
+SELECT A.COMP_CD                                            COMP_CD
+      ,A.CRTN_YY                                            CRTN_YY
+      ,A.CCTR_CD                                            CCTR_CD
+      ,FUNC_GET_COST_NAME(A.COMP_CD, A.CCTR_CD, A.CRE_DATE) CCTR_NM
+      ,A.ACCOUNT_NO                                         ACCOUNT_NO
+      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                  ACCOUNT_DESC
+      ,A.PROCESS_TYPE                                       PROCESS_TYPE
+      ,A.STATUS                                             STATUS
+      ,A.DISTR_TYPE                                         DISTR_TYPE
+      ,A.WK_M01                                             WK_M01
+      ,A.WK_M02                                             WK_M02
+      ,A.WK_M03                                             WK_M03
+      ,A.WK_M04                                             WK_M04
+      ,A.WK_M05                                             WK_M05
+      ,A.WK_M06                                             WK_M06
+      , NVL(A.WK_M01,0)                                     
+       +NVL(A.WK_M02,0)                                     
+       +NVL(A.WK_M03,0)                                     
+       +NVL(A.WK_M04,0)                                     
+       +NVL(A.WK_M05,0)                                     
+       +NVL(A.WK_M06,0)                                     A_SUM
+      ,A.WK_M07                                             WK_M07
+      ,A.WK_M08                                             WK_M08
+      ,A.WK_M09                                             WK_M09
+      ,A.WK_M10                                             WK_M10
+      ,A.WK_M11                                             WK_M11
+      ,A.WK_M12                                             WK_M12
+      , NVL(A.WK_M07,0)                                     
+       +NVL(A.WK_M08,0)                                     
+       +NVL(A.WK_M09,0)                                     
+       +NVL(A.WK_M10,0)                                     
+       +NVL(A.WK_M11,0)                                     
+       +NVL(A.WK_M12,0)                                     B_SUM
+      , NVL(A.WK_M01,0)                                     
+       +NVL(A.WK_M02,0)                                     
+       +NVL(A.WK_M03,0)                                     
+       +NVL(A.WK_M04,0)                                     
+       +NVL(A.WK_M05,0)                                     
+       +NVL(A.WK_M06,0)                                     
+       +NVL(A.WK_M07,0)                                     
+       +NVL(A.WK_M08,0)                                     
+       +NVL(A.WK_M09,0)                                     
+       +NVL(A.WK_M10,0)                                     
+       +NVL(A.WK_M11,0)                                     
+       +NVL(A.WK_M12,0)                                     C_SUM
+      ,A.REMARK                                             REMARK
+      ,A.EPS_DOC_NO                                         EPS_DOC_NO
+      ,A.CRE_DATE                                           CRE_DATE
+      ,A.CRE_USER                                           CRE_USER
+      ,A.MOD_DATE                                           MOD_DATE
+      ,A.MOD_USER                                           MOD_USER
+      ,B.SEND_CHASU                                         SEND_CHASU
+      ,B.SEND_YMD                                           SEND_YMD
+      ,(
+        SELECT MAX(CODE) CODE
+          FROM COM_CODE
+         WHERE CODE_GRP = 'SYS003'
+       )                                                    W_CODE      
+  FROM CO_BUGT_MODIFY_HEAD A
+      LEFT OUTER JOIN
+       CO_BUGT_MODIFY_MASTER B
+      ON    B.COMP_CD = A.COMP_CD
+        AND B.CRTN_YY = A.CRTN_YY
+ WHERE 1=1
+   AND A.EPS_DOC_NO = #{EPS_DOC_NO}
+ ORDER BY A.COMP_CD
+         ,A.CRTN_YY
+         ,A.CCTR_CD
+         ,A.ACCOUNT_NO 
+  </select>
+  
+  	<update id="updateHeader" parameterType="Map">
+	--com.bdg.ModifyMgt.updateHeader
+		UPDATE CO_BUGT_MODIFY_HEAD
+		   SET STATUS     = #{STATUS}
+		      ,EPS_DOC_NO = CASE WHEN #{STATUS} = '1' THEN ''
+		                         ELSE EPS_DOC_NO
+		                    END
+		      ,REMARK     = #{APPROVAL_DESC}
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER   = #{APPROVAL_ID}
+		 WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+	</update>
+	
+	<select id="selectStatusHeader" parameterType="Map" resultType="Map">
+	--com.bdg.ModifyMgt.selectStatusHeader
+		SELECT MAX(STATUS) STATUS
+		  FROM CO_BUGT_MODIFY_HEAD
+		 WHERE 1 = 1
+		   AND COMP_CD = #{SB_COMP_CD}
+	       AND CRTN_YY = #{TB_CRTN_YY}
+	       AND CCTR_CD = #{SB_CCTR_CD} 		
+	</select>
+	
+	<select id="selectStatusHeader2" parameterType="Map" resultType="Map">
+	    --com.bdg.ModifyMgt.selectStatusHeader2
+	    SELECT MAX(NVL(A.STATUS, '1')) STATUS
+	          ,#{TB_PROCESS_TYPE}      PROCESS_TYPE
+          FROM (
+				SELECT MAX(STATUS) STATUS
+				  FROM CO_BUGT_MODIFY_HEAD
+				 WHERE 1 = 1
+				   AND COMP_CD    = #{SB_COMP_CD}
+			       AND CRTN_YY    = #{TB_CRTN_YY}
+			       AND CCTR_CD    = #{SB_CCTR_CD}
+			    UNION ALL
+			    SELECT '1' STATUS
+			      FROM DUAL	          
+               ) A
+	</select>
+	
+	 	<select id="selectEpsInfoData" parameterType="Map" resultType="Map">
+	    --com.bdg.ExecBudget.selectEpsInfoData
+		SELECT COUNT(*) CNT
+		  FROM CO_BUGT_MODIFY_HEAD 
+		 WHERE 1 = 1
+		   AND EPS_DOC_NO = #{EPS_DOC_NO}
+	</select>
+</mapper>

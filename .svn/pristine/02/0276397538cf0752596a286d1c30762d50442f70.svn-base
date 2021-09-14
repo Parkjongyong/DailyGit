@@ -1,0 +1,224 @@
+<%@ page language="java" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.app.common.util.StringUtil"%>
+<%@page import="com.app.common.util.StringUtilEx"%>
+<%@ taglib prefix="c"       uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring"  uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"     uri="http://www.springframework.org/tags"%>
+<%
+
+/*******************************************************************
+  httpclient 호출로 파라미터 전송시 object 전송 불가
+  list,map => json string 유형으로 변환 전송 됨
+  json string 유형 데이터를 jstl 사용 가능하도록 object로 변경
+*******************************************************************/
+String AP_HEADER = request.getParameter("rfxInfo");
+String AP_ITEM = request.getParameter("itemList");
+String AP_VENDOR = request.getParameter("vendorList");
+
+request.setAttribute("AP_HEADER" ,  com.app.common.util.JsonUtil.getMapFromJsonString(AP_HEADER)); //MAP
+request.setAttribute("AP_ITEM" ,  com.app.common.util.JsonUtil.getListFromJsonString(AP_ITEM));//LISTMAP
+request.setAttribute("AP_VENDOR" ,  com.app.common.util.JsonUtil.getListFromJsonString(AP_VENDOR));//LISTMAP
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<link href="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_reset.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_common.css'/>" rel="stylesheet"/>
+<!-- jquery -->
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-1.12.3/jquery-1.12.3.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/attach.js'/>"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	//fnInitFileUpload1();
+	//fnInitFileUpload2();
+    //전자결재 페이지에서 창에 높이 확인 가능하도록 수정
+    document.domain="parucnc.com";
+    //전자결재 부모창으로 높이 전송
+    var maxHeight = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight,document.documentElement.offsetHeight);
+    window.parent.postMessage(maxHeight, '*');	
+
+});
+/* 
+//첨부파일 조회
+function fnInitFileUpload1() {
+    if ($("#APP_SEQ_4").val() != "") { 
+        displayFileUpload({
+            KEY_ID      : 'APP_SEQ_4',
+            DATA_FORMAT : 'table',
+            CALLBACK    : 'fnFileUploadCallback1'
+        });
+    }
+}
+function fnInitFileUpload2() {
+    if ($("#APP_SEQ_2").val() != "") { 
+        displayFileUpload({
+            KEY_ID      : 'APP_SEQ_2',
+            DATA_FORMAT : 'table',
+            CALLBACK    : 'fnFileUploadCallback2'
+        });
+    }
+}
+
+//파일 업로드 콜백함수
+function fnFileUploadCallback1(data) {
+    $('#fileUploadTable1').empty().html(data);
+}
+function fnFileUploadCallback2(data) {
+    $('#fileUploadTable2').empty().html(data);
+} */
+</script>
+</head>
+<body>
+    <div class="pop-wrap">
+        <div class="pop-cont link">
+            <div class="section1 scrolls">
+                <div class="sub-tit first" id="section1">
+                    <h4>기본정보</h4>
+                </div>
+                <table  id="basicInfo" class="table-style">
+                    <colgroup>
+                        <col style="width: 15%;">
+                        <col>
+                        <col style="width: 15%;">
+                        <col>
+                    </colgroup>
+                    <tbody>
+                        <tr>
+	                        <th style="text-align:left">RFQ 번호</th>
+	                        <td>
+	                           ${AP_HEADER.RFX_NO }
+	                        </td>
+	                        <th style="text-align:left">RFQ 건명</th>
+	                        <td>
+	                           ${AP_HEADER.RFX_NAME }
+	                        </td>
+	                    </tr>
+                        <tr>
+	                        <th style="text-align:left">담당부서</th>
+	                        <td>
+	                           ${AP_HEADER.PUR_DEPT_NM }
+	                        </td>
+	                        <th style="text-align:left">구매담당자</th>
+	                        <td>
+	                           ${AP_HEADER.PUR_USER_NM }
+	                        </td>
+	                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="sub-tit">
+                    <h4>구매요청 개요 및 특이사항</h4>
+                </div>
+                <table class="table-style">
+                    <tbody>
+                        <tr>
+                            <td colspan="4">
+                                <pre>${AP_HEADER.CHARGER_OPINION}</pre>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section2 scrolls">
+                <div class="sub-tit" id="section2">
+                    <h4>공급단가 정보</h4>
+                </div>
+                <div id="itemTable">
+                    <table class="table-style">
+                        <colgroup>
+                            <col style="width:25px;">
+                            <col style="width:70px">
+                            <col style="width:50px">
+                            <col style="width:70px">
+                            <col>
+                            <col style="width:50px">
+                            <col style="width:100px">
+                            <c:if test="${AP_HEADER.RFQ_TYPE eq '10' }">
+                            <col style="width:140px">
+                            </c:if>
+                            <col style="width:40px;">
+                            <col style="width:65px;">
+                            <col style="width:65px;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th style="text-align:center">No</th>
+                                <th style="text-align:center">SG</th>
+                                <th style="text-align:center">PLANT</th>
+                                <th style="text-align:center">품목번호</th>
+                                <th style="text-align:center">품목명</th>
+                                <th style="text-align:center">BP번호</th>
+                                <th style="text-align:center">BP명</th>
+                                <c:if test="${AP_HEADER.RFQ_TYPE eq '10' }">
+                                <th style="text-align:center">적용기간</th>
+                                </c:if>
+                                <th style="text-align:center">통화</th>
+                                <th style="text-align:center">단가</th>
+                                <th style="text-align:center">이전단가</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="item" items="${AP_ITEM}" varStatus="status">
+                            <tr>
+                                <td style="text-align:center">${item.RNUM}</td>
+                                <td style="text-align:left">${item.SRC_GRP_NM}</td>
+                                <td style="text-align:center">${item.PLANT_CD}</td>
+                                <td style="text-align:center">${item.ITEM_CD}</td>
+                                <td style="text-align:left">${item.ITEM_NM}</td>
+                                <td style="text-align:center">${item.VENDOR_CD}</td>
+                                <td style="text-align: left;">${item.VENDOR_NM}</td>
+                                <c:if test="${AP_HEADER.RFQ_TYPE eq '10' }">
+                                <td style="text-align:center">${item.PRICE_ST_DATE} ~ ${item.PRICE_ED_DATE}</td>
+                                </c:if>
+                                <td style="text-align:center">${item.CURRENCY_CD}</td>
+                                <td style="text-align: right;">${item.AMT}</td>
+                                <td style="text-align: right;">${item.BF_UNIT_PRICE}</td>
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+	        <!-- ****************************************** 첨부파일 ****************************************** -->
+	        <c:if test="${AP_HEADER.APP_SEQ_2 != null and AP_HEADER.APP_SEQ_2 != ''}">
+	        <div class="section9 scrolls">
+	            <div class="sub-tit" id="section9">
+	                <input type="hidden" id="APP_SEQ_2" name="APP_SEQ_2" value="${AP_HEADER.APP_SEQ_2 }">
+	                <h4>첨부파일</h4>
+	                <div class="right">
+	                    <button type="button" id="btnMultiFile2" class="btn" style="display: none;">첨부파일</button><!-- style="display: none;" -->
+	                </div>
+	            </div>
+	            <div id="fileUploadTable2" class="jqGridArea m_t5">
+                    <table class="table-style">
+                        <tbody>
+                            <tr>
+                                <th style="text-align: center;" width="10%">No</th>
+                                <th style="text-align: center;">파일명</th>
+                                <!-- <th class="center">등록일자</th>
+                                <th class="center">파일크기</th> -->
+                            </tr>
+                            <c:forEach var="FILE" items="${FILE_LIST}" varStatus="status">
+                            <tr class="F_File_ROW">
+                                <td style="text-align: center;">${status.count}</td>
+                                <td class="t_left">
+                                <a href="${URL_IN}/download.do?APP_SEQ=${FILE.APP_SEQ}&amp;ATTACHMENT_SEQ=${FILE.ATTACHMENT_SEQ}" title="${FILE.FILE_NAME}" style="color:blue;" download="${FILE.FILE_NAME}">${FILE.FILE_NAME}</a></td>
+                                <!-- <td class="t_center">2019-12-12</td>
+                                <td class="t_right">0.06 KB</td> -->
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+	                </table>
+	            </div>
+	        </div>
+            </c:if>
+        </div>
+        <!-- //popCont -->
+    </div>
+</body>

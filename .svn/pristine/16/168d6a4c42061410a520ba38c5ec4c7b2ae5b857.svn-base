@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.ExcelForm">
+
+    <select id="selectExcelFormList" parameterType="Map" resultType="Map">
+--MenuMapper.selectExcelFormList
+SELECT A.MENU_CD     MENU_CD
+      ,A.MENU_NM     MENU_NM
+      ,B.ATTACHMENT  ATTACHMENT
+  FROM SYS_MENU A
+      LEFT OUTER JOIN
+       EXCEL_MGMT B
+      ON B.MENU_CD = A.MENU_CD
+ WHERE 1=1
+ <![CDATA[ AND A.UP_MENU_CD <> 'ROOT']]>
+   AND A.LINK_URL IS NOT NULL
+		<if test="TB_MENU_NM != null and TB_MENU_NM != ''">
+   AND A.MENU_NM LIKE '%'|| #{TB_MENU_NM} ||'%'
+		</if>
+ ORDER BY A.MENU_CD
+         ,A.ORD_NO
+    </select>
+    
+    <select id="selectExcelForm" parameterType="Map" resultType="Map">
+--MenuMapper.selectExcelForm
+SELECT A.MENU_CD     MENU_CD
+      ,A.MENU_NM     MENU_NM
+      ,B.ATTACHMENT  ATTACHMENT
+      ,C.ATTACH_SEQ  ATTACH_SEQ
+  FROM SYS_MENU A
+      LEFT OUTER JOIN
+       EXCEL_MGMT B
+      ON B.MENU_CD = A.MENU_CD
+      LEFT OUTER JOIN
+       COM_ATTACH C
+      ON    C.APP_SEQ = B.ATTACHMENT
+        AND C.DEL_YN = 'N'
+ WHERE 1=1
+   AND A.MENU_CD = #{G_MENU_CD}
+ ORDER BY A.MENU_CD
+         ,A.ORD_NO
+    </select>
+    
+    <insert id="saveExcelForm" parameterType="Map">
+MERGE INTO EXCEL_MGMT A
+USING (
+       SELECT #{MENU_CD}    MENU_CD
+             ,#{APP_SEQ}    ATTACHMENT
+         FROM DUAL
+      ) B
+ON (
+        A.MENU_CD      = B.MENU_CD
+   )
+WHEN MATCHED THEN
+    UPDATE
+       SET ATTACHMENT = B.ATTACHMENT
+WHEN NOT MATCHED THEN
+        INSERT
+        (
+          A.MENU_CD
+         ,A.ATTACHMENT
+        ) VALUES (
+                   B.MENU_CD
+                  ,B.ATTACHMENT
+                 )
+    
+    </insert>
+
+</mapper>

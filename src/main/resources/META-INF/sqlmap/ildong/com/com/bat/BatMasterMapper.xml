@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchMaster">
+
+	<select id="selectBatchMaster" parameterType="Map" resultType="Map">
+    --BatMasterMapper.selectBatchMaster
+	SELECT BATCH_ID
+	     , RUN_IP
+	     , BATCH_YN
+	     , BATCH_DESC
+	     , BATCH_ARG1
+	     , BATCH_ARG2
+	     , BATCH_ARG3
+	     , BATCH_ARG4
+	     , BATCH_ARG5
+	     , BATCH_ARG6
+	     , BATCH_ARG7
+	     , BATCH_ARG8
+	     , BATCH_ARG9
+	     , BATCH_ARG10
+	  FROM SYS_BATCH_MASTER
+	 WHERE BATCH_ID		= #{BATCH_ID}
+	   AND RUN_IP    	= #{RUN_IP}
+	   AND BATCH_YN 	= #{BATCH_YN}
+	</select>
+	
+	<select id="selectCompCd" parameterType="Map" resultType="Map">
+    --BatMasterMapper.selectCompCd
+SELECT CODE
+  FROM COM_CODE
+ WHERE CODE_GRP = #{CODE_GRP}
+	</select>
+</mapper>

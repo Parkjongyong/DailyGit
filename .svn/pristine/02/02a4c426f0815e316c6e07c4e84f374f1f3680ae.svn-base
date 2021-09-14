@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="common.CommonSendMsg">
+
+	<insert id="insertMailSmsLog" parameterType="Map">
+	--CommonSendMsgMapper.insertMailSmsLog
+	SELECT 
+	       CODE_GRP
+	     , CODE			
+	     , CODE_NM		
+	     , CODE_NM_ALT
+	     , EXPL
+	     , ORD_NO
+	     , USG_YN
+	     , ATTR01
+	     , ATTR02
+	     , ATTR03
+	     , MOD_ID
+	  FROM COM_CODE
+	 WHERE CODE_GRP = #{CODE_GRP}
+	ORDER BY MOD_ID
+	</insert>
+</mapper>

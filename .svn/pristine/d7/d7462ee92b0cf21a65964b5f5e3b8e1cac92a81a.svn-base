@@ -1,0 +1,872 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.SysBoardDAO">
+	<select id="selectBoardInfo" parameterType="Map" resultType="Map">
+	--SysBoardMapper.selectBoardInfo
+	SELECT B.BOARD_ID
+		,B.BOARD_NM
+		,B.BOARD_TYPE
+		,B.EXPL
+		,B.REPLY_YN
+    	,B.DISPLAY_SITE
+		,B.DISPLAY_YN
+		,B.CLOSED_YN
+		,B.MEMO
+	FROM BBS_INFO B
+	WHERE BOARD_ID = #{BOARD_ID}
+	</select>
+	
+	<select id="selectBoardInfoAll" parameterType="Map" resultType="Map">
+	--SysBoardMapper.selectBoardInfoAll
+	
+	SELECT COUNT(1) OVER() AS TOT_CNT
+	    ,B.BOARD_ID
+		,B.BOARD_NM
+		,B.BOARD_TYPE
+		,B.EXPL
+		,B.REPLY_YN
+		,B.DISPLAY_SITE
+		,B.DISPLAY_YN
+		,B.CLOSED_YN
+		,B.MEMO
+	FROM BBS_INFO B 
+	
+	</select>
+	
+	<select id="selectBoardList" parameterType="Map" resultType="Map">
+	--SysBoardMapper.selectBoardList
+	SELECT '1' AS PAGE
+        , (SELECT COUNT(*) FROM BBS_REPLY D WHERE(D.PARENT=C.POST_SEQ AND C.BOARD_ID = D.BOARD_ID) AND D.DEL_YN = 'N') AS REPLY_CNT
+        , C.ROWNUM1
+        , C.POST_SEQ AS SEQ
+        , C.USER_ID
+        , C.USER_NM
+        , C.DEPT_CD
+        , C.DEPT_NM
+        , DECODE(C.NOTICE, 1, '공지', '일반') NOTICE_NM
+        , C.NOTICE
+        , C.SUBJECT
+        , C.CONTENTS
+        , C.HIT_CNT
+        , C.STATUS
+        , DECODE(C.STATUS, '1', '게시', '임시저장') STATUS_NM
+        , C.BOARD_ID
+        , C.CLOSED_YN
+        , DECODE(C.CLOSED_YN, 'Y', '익명', '기명') CLOSED_NM
+        , C.ATTACHMENT
+        , C.INS_IP
+        , C.INS_DT
+        , C.INS_DT2
+        , C.MOD_IP
+        , C.MOD_DT
+        , C.DEL_YN
+        , C.APPLY_DT
+        , C.ISNEW
+        , C.CONTENTS_CLS
+        , FUNC_GET_CODE_NAME('ADM002', C.CONTENTS_CLS) AS CONTENTS_CLS_NM
+    FROM (
+        SELECT
+        ROWNUM AS ROWNUM1 
+        , B.POST_SEQ
+        , B.USER_ID
+        , B.USER_NM
+        , B.DEPT_CD
+        , B.DEPT_NM
+        , B.NOTICE
+        , B.SUBJECT
+        , B.CONTENTS
+        , B.HIT_CNT
+        , B.STATUS
+        , B.BOARD_ID
+        , B.CLOSED_YN
+        , B.ATTACHMENT
+        , B.INS_IP
+        , B.MOD_IP
+        , B.INS_DT
+        , B.INS_DT2
+        , B.MOD_DT
+        , B.DEL_YN
+        , B.APPLY_DT
+        , B.ISNEW
+        , B.CONTENTS_CLS
+        FROM (
+	            SELECT
+                  A.POST_SEQ
+                , A.USER_ID
+                , A.USER_NM
+                , A.DEPT_CD
+                , A.DEPT_NM
+                , A.NOTICE
+                , A.SUBJECT
+                , ' ' CONTENTS
+                , A.HIT_CNT
+                , A.STATUS
+                , A.BOARD_ID
+                , NVL(A.CLOSED_YN,'N') CLOSED_YN
+                , A.ATTACHMENT
+                , A.INS_IP
+                , A.MOD_IP
+                , A.INS_DT
+                , TO_CHAR(TO_DATE(A.INS_DT,'YYYYMMDDHH24MISS'),'YYYY-MM-DD') INS_DT2
+                , A.MOD_DT
+                , A.DEL_YN
+                , A.APPLY_DT
+                , NULL ISNEW
+                , A.CONTENTS_CLS
+                FROM BBS_BOARD A 
+                WHERE 1=1
+                      AND A.BOARD_ID =  #{BOARD_ID}
+                      AND (A.DEL_YN = 'N' OR A.DEL_YN IS NULL)
+                
+			  	<if test="srchGrp != null and srchGrp != ''">
+			   		<if test="srchTxt != null and srchTxt != ''">
+			   			<choose>
+			   				<when test="srchGrp=='01'">
+			   					<![CDATA[AND A.SUBJECT like '%' || #{srchTxt} || '%']]>
+			   				</when>
+			   				<when test="srchGrp=='02'">
+			   					<![CDATA[AND A.CONTENTS like '%' || #{srchTxt} || '%']]>
+			   				</when>
+			   				<when test="srchGrp=='03'">
+			   					<![CDATA[AND A.USER_NM like '%' || #{srchTxt} || '%']]>
+			   				</when>
+			   			</choose>
+			   		</if>
+		   		</if>
+		   		<choose>
+		   		  <when test="status != '' and status != null">
+		   		      AND A.STATUS = #{status}
+		   		  </when>
+		   		  <otherwise>
+		   		      AND ( A.STATUS = '1'
+		   		      <if test="userId != '' and userId != null">
+		   		         OR A.USER_ID = #{userId}
+		   		      </if>
+		   		      )
+		   		  </otherwise>
+		   		</choose>
+		  ORDER BY A.NOTICE DESC, A.POST_SEQ DESC) B 
+	   ) C
+    WHERE 1=1
+	<if test="startRow != null and pageSize != null">
+        AND C.ROWNUM1 BETWEEN #{startRow} AND #{pageSize}
+    </if>
+	</select>
+	
+	<select id="selectSysOutBoardList" parameterType="Map" resultType="Map">
+    --SysBoardMapper.selectSysOutBoardList
+    SELECT A.*
+         , A.TOT_CNT - A.RNUM + 1 AS TNUM
+      FROM (
+            SELECT COUNT(*) OVER() AS TOT_CNT
+                 , ROW_NUMBER() OVER(ORDER BY SEQ DESC) AS RNUM  
+                 , SEQ
+                 , SUBJECT
+                 , HIT_CNT
+                 , INS_DT
+                 , BOARD_ID
+                 , CONTENTS_CLS_NM
+                 , NOTICE_NM
+                 , STATUS_NM
+                 , CLOSED_NM
+                 , USER_NM
+                 , DEPT_NM
+              FROM (
+                    SELECT POST_SEQ AS SEQ
+		                 , SUBJECT
+		                 , NVL(HIT_CNT, '0') AS HIT_CNT
+		                 , TO_CHAR(TO_DATE(INS_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS INS_DT
+		                 , BOARD_ID
+		                 , FUNC_GET_CODE_NAME('ADM002', CONTENTS_CLS) AS CONTENTS_CLS_NM
+		                 , DECODE(NOTICE, 1, '공지', '일반') AS NOTICE_NM
+		                 , DECODE(STATUS, '1', '게시', '임시저장') AS STATUS_NM
+		                 , DECODE(CLOSED_YN, 'N', '공개', '비공개') AS CLOSED_NM
+		                 , USER_NM
+		                 , DEPT_NM
+		            FROM BBS_BOARD
+		           WHERE BOARD_ID = #{BOARD_ID}
+		             AND (DEL_YN = 'N' OR DEL_YN IS NULL)
+		             AND STATUS = '1'
+		             
+		            UNION
+		            
+		            SELECT POST_SEQ AS SEQ
+		                 , SUBJECT
+		                 , NVL(HIT_CNT, '0') AS HIT_CNT
+		                 , TO_CHAR(TO_DATE(INS_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS INS_DT
+		                 , BOARD_ID
+		                 , FUNC_GET_CODE_NAME('ADM002', CONTENTS_CLS) AS CONTENTS_CLS_NM
+		                 , DECODE(NOTICE, 1, '공지', '일반') AS NOTICE_NM
+		                 , DECODE(STATUS, '1', '게시', '임시저장') AS STATUS_NM
+		                 , DECODE(CLOSED_YN, 'N', '공개', '비공개') AS CLOSED_NM
+		                 , USER_NM
+		                 , DEPT_NM
+		            FROM BBS_BOARD
+		           WHERE BOARD_ID = #{BOARD_ID}
+		             AND (DEL_YN = 'N' OR DEL_YN IS NULL)
+		             AND STATUS = '0'
+		             AND USER_ID = #{userId}
+                   )   
+            WHERE 1=1
+            <if test="srchGrp != null and srchGrp != ''">
+                <if test="srchTxt != null and srchTxt != ''">
+                    <choose>
+                        <when test="srchGrp=='01'">
+                            <![CDATA[AND UPPER(SUBJECT) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                        </when>
+                        <when test="srchGrp=='02'">
+                            <![CDATA[AND UPPER(CONTENTS_CLS_NM) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                        </when>
+                        <when test="srchGrp=='03'">
+                            <![CDATA[AND UPPER(USER_NM) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                        </when>
+                    </choose>
+                </if>
+            </if>
+           ) A
+      <![CDATA[WHERE RNUM BETWEEN (NVL(#{page}, '1') - 1) * 10 + 1 AND NVL(#{page}, '1') * 10]]>
+    </select>
+    
+    <select id="selectSysOutVosBoardList" parameterType="Map" resultType="Map">
+    --SysBoardMapper.selectSysOutVosBoardList
+    SELECT A.*
+         , A.TOT_CNT - A.RNUM + 1 AS TNUM
+      FROM (
+            SELECT COUNT(*) OVER() AS TOT_CNT
+                 , ROW_NUMBER() OVER(ORDER BY SEQ DESC) AS RNUM  
+                 , SEQ
+                 , SUBJECT
+                 , INS_DT
+                 , BOARD_ID
+                 , USER_NM
+                 , VENDOR_CD
+                 , WRITE_NM
+              FROM (
+                    SELECT A.POST_SEQ AS SEQ
+                         , A.SUBJECT
+                         , TO_CHAR(TO_DATE(A.INS_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS INS_DT
+                         , A.BOARD_ID
+                         , A.USER_NM
+                         , ( SELECT VENDOR_CD FROM VENDOR_MASTER WHERE VENDOR_ID = ( SELECT VENDOR_ID FROM VENDOR_USERS WHERE USER_ID = A.USER_ID ) ) AS VENDOR_CD
+                         , ( SELECT USER_NM FROM VENDOR_USERS WHERE USER_ID = A.USER_ID ) AS WRITE_NM
+                    FROM BBS_BOARD A
+                   WHERE A.BOARD_ID = #{BOARD_ID}
+                   )   
+            WHERE 1=1
+            <if test="srchGrp != null and srchGrp != ''">
+                <if test="srchTxt != null and srchTxt != ''">
+                    <choose>
+                        <when test="srchGrp=='01'">
+                            <![CDATA[AND UPPER(SUBJECT) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                        </when>
+                        <when test="srchGrp=='02'">
+                            <![CDATA[AND UPPER(CONTENTS) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                        </when>
+                        <when test="srchGrp=='03'">
+                            <![CDATA[AND UPPER(USER_NM) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                        </when>
+                    </choose>
+                </if>
+            </if>
+           ) A
+      <![CDATA[WHERE RNUM BETWEEN (NVL(#{page}, '1') - 1) * 10 + 1 AND NVL(#{page}, '1') * 10]]>
+    </select>
+	
+	<select id="selectBoardListFaq" parameterType="Map" resultMap="selectBoardList">
+    --SysBoardMapper.selectBoardListFaq
+    SELECT COUNT(1) OVER() AS TOT_CNT
+        , 1 AS PAGE
+        , (SELECT COUNT(*) FROM BBS_REPLY C WHERE(C.PARENT=A.POST_SEQ AND BOARD_ID=BOARD_ID) AND C.DEL_YN = 'N') AS REPLY_CNT
+        , ROWNUM  ROWNUM1
+        , A.POST_SEQ AS SEQ
+        , A.USER_ID
+        , A.USER_NM
+        , A.DEPT_CD
+        , A.DEPT_NM
+        , DECODE(A.NOTICE, 1, '공지', '일반') NOTICE_NM
+        , A.NOTICE
+        , A.SUBJECT
+        , A.CONTENTS
+        , A.HIT_CNT
+        , A.STATUS
+        , A.BOARD_ID
+        , A.CLOSED_YN
+        , DECODE(A.CLOSED_YN, 'N', '공개', '비공개') CLOSED_NM
+        , A.ATTACHMENT
+        , A.INS_IP
+        , A.INS_DT
+        , A.MOD_IP
+        , A.MOD_DT
+        , A.DEL_YN
+        , A.APPLY_DT
+        , A.ISNEW
+        , A.CONTENTS_CLS
+        , FUNC_GET_CODE_NAME('ADM003', A.CONTENTS_CLS) AS CONTENTS_CLS_NM
+    FROM (
+        SELECT
+          B.POST_SEQ
+        , B.USER_ID
+        , B.USER_NM
+        , B.DEPT_CD
+        , B.DEPT_NM
+        , B.NOTICE
+        , B.SUBJECT
+        , B.CONTENTS
+        , B.HIT_CNT
+        , B.STATUS
+        , B.BOARD_ID
+        , NVL(B.CLOSED_YN,'N') CLOSED_YN
+        , B.ATTACHMENT
+        , B.INS_IP
+        , B.MOD_IP
+        , TO_CHAR(TO_DATE(B.INS_DT,'YYYYMMDDHH24MISS'),'YYYY-MM-DD') INS_DT
+        , TO_CHAR(TO_DATE(B.MOD_DT,'YYYYMMDDHH24MISS'),'YYYY-MM-DD') MOD_DT
+        , B.DEL_YN
+        , TO_CHAR(TO_DATE(B.APPLY_DT,'YYYYMMDDHH24MISS'),'YYYY-MM-DD') APPLY_DT
+        , SYSDATE  - TO_DATE(B.INS_DT, 'YYYYMMDDHH24MISS') ISNEW
+        , B.CONTENTS_CLS
+        FROM BBS_BOARD B
+        WHERE 1=1
+            AND B.BOARD_ID = #{BOARD_ID}
+            AND NVL(B.DEL_YN, 'N') = 'N'
+--            AND ( STATUS = '1' OR STATUS =
+--                    CASE
+--                        WHEN USER_ID = #{userId}
+--                        THEN '0'
+--                    END )
+            <if test="srchTxt != null and srchTxt != ''">
+                <![CDATA[AND B.CONTENTS like '%' || #{srchTxt} || '%']]>
+            </if>
+            <if test="CONTENTS_CLS != '' and CONTENTS_CLS != null">
+                AND CONTENTS_CLS = #{CONTENTS_CLS}
+            </if>
+        ORDER BY notice DESC, post_seq DESC)  A
+    WHERE 1=1
+    ORDER BY ROWNUM1 ASC
+    </select>
+	
+	<select id="selectBoardListCount" parameterType="Map" resultType="int">
+	--SysBoardMapper.selectBoardListCount
+	   SELECT COUNT(1) AS TOT_CNT
+	   FROM (  SELECT ROWNUM AS ROWNUM1 
+			   FROM BBS_BOARD 
+			   WHERE 1 = 1 
+			   AND BOARD_ID =  #{BOARD_ID}
+			   AND NVL(DEL_YN, 'N') = 'N' 
+			   <if test="srchGrp != null and srchGrp != ''">
+                   <if test="srchTxt != null and srchTxt != ''">
+                       <choose>
+                           <when test="srchGrp=='01'">
+                               <![CDATA[AND SUBJECT like '%' || #{srchTxt} || '%']]>
+                           </when>
+                           <when test="srchGrp=='02'">
+                               <![CDATA[AND CONTENTS like '%' || #{srchTxt} || '%']]>
+                           </when>
+                           <when test="srchGrp=='03'">
+                               <![CDATA[AND USER_NM like '%' || #{srchTxt} || '%']]>
+                           </when>
+                        </choose>
+                    </if>
+                </if>
+                <choose>
+                    <when test="status != '' and status != null">
+                        AND STATUS = #{status}
+                    </when>
+                    <otherwise>
+                      AND ( STATUS = '1'
+                      <if test="userId != '' and userId != null">
+                         OR USER_ID = #{userId}
+                      </if>
+                      )
+                    </otherwise>
+                </choose>
+		  )
+        WHERE 1=1
+        <if test="startRow != null and pageSize != null">
+	       AND ROWNUM1 BETWEEN #{startRow} AND #{pageSize}
+	    </if>
+	</select>
+	
+	<select id="selectBoardListCountFaq" parameterType="Map" resultType="int">
+	--SysBoardMapper.selectBoardListCountFaq
+       SELECT COUNT(1) AS TOT_CNT
+       FROM (  SELECT ROWNUM AS ROWNUM1 
+               FROM BBS_BOARD 
+               WHERE 1 = 1 
+               AND BOARD_ID =  #{BOARD_ID}
+               AND (DEL_YN = 'N' OR DEL_YN IS NULL)
+               <if test="srchTxt != null and srchTxt != ''">
+                  <![CDATA[AND CONTENTS like '%' || #{srchTxt} || '%']]>
+	           </if>
+	           <if test="CONTENTS_CLS != '' and CONTENTS_CLS != null">
+	                AND CONTENTS_CLS = #{CONTENTS_CLS}
+	           </if>
+          )
+        WHERE 1=1
+        <if test="startRow != null and pageSize != null">
+           AND ROWNUM1 BETWEEN #{startRow} AND #{pageSize}
+        </if>
+    </select>
+	
+	<resultMap id="selectBoardList" type="Map">
+      	<result property="CONTENTS" column="CONTENTS" jdbcType="CLOB" javaType="java.lang.String" />
+   	</resultMap>
+   	
+	<select id="selectBoard" parameterType="Map" resultMap="selectBoardList">
+	--SysBoardMapper.selectBoard
+		SELECT 
+		  B.POST_SEQ AS SEQ
+	    , B.USER_ID
+		, B.USER_NM
+		, B.DEPT_CD
+		, B.DEPT_NM
+		, B.NOTICE
+		, B.SUBJECT
+		, B.CONTENTS
+		, B.HIT_CNT
+		, B.STATUS
+		, B.BOARD_ID
+		, NVL(B.CLOSED_YN,'N') CLOSED_YN
+		, B.ATTACHMENT
+		, B.INS_IP
+		, B.MOD_IP
+		, B.CONTENTS_CLS
+        , TO_CHAR(TO_DATE(B.INS_DT,'YYYYMMDDHH24MISS'),'YYYY-MM-DD') INS_DT
+        , TO_CHAR(TO_DATE(B.MOD_DT,'YYYYMMDDHH24MISS'),'YYYY-MM-DD') MOD_DT
+		, B.DEL_YN
+--		, TO_CHAR(B.APPLY_DT,'YYYY-MM-DD') APPLY_DT
+--		, TO_CHAR(SYSDATE,'YYYYMMDD') -- TO_CHAR(B.INS_DT,'YYYYMMDD') ISNEW
+--		, TO_CHAR(B.APPLY_DT,'YYYY-MM-DD') APPLY_DT
+--		, SYSDATE -- B.INS_DT ISNEW
+	FROM BBS_BOARD B
+	WHERE 1=1
+		AND B.BOARD_ID = #{BOARD_ID}
+		AND B.POST_SEQ = #{SEQ}
+	</select>
+	
+	<select id="selectPrevBoard" parameterType="Map" resultType="Map">
+	--SysBoardMapper.selectPrevBoard
+	<![CDATA[
+		SELECT
+		 B.POST_SEQ AS SEQ
+	    , B.USER_ID
+		, B.USER_NM
+		, B.DEPT_CD
+		, B.DEPT_NM
+		, B.NOTICE
+		, B.SUBJECT
+		, B.CONTENTS
+		, B.HIT_CNT
+		, B.STATUS
+		, B.BOARD_ID
+		, NVL(B.CLOSED_YN,'N') CLOSED_YN
+		, B.ATTACHMENT
+		, B.INS_IP
+		, B.MOD_IP
+--		, TO_CHAR(B.INS_DT,'YYYY-MM-DD') INS_DT
+--		, TO_CHAR(B.MOD_DT,'YYYY-MM-DD') MOD_DT
+		, TO_CHAR(B.INS_DT,'YYYY-MM-DD') INS_DT
+		, TO_CHAR(B.MOD_DT,'YYYY-MM-DD') MOD_DT
+		, B.DEL_YN
+--		, TO_CHAR(B.APPLY_DT,'YYYY-MM-DD') APPLY_DT
+--		, TO_CHAR(SYSDATE,'YYYYMMDD') - TO_CHAR(B.INS_DT,'YYYYMMDD') ISNEW
+		, TO_CHAR(B.APPLY_DT,'YYYY-MM-DD') APPLY_DT
+		, SYSDATE -- B.INS_DT ISNEW
+	FROM BBS_BOARD B
+	WHERE 1=1
+		AND B.BOARD_ID = #{BOARD_ID}
+		AND B.POST_SEQ < #{SEQ}
+		AND (B.DEL_YN = 'N' OR B.DEL_YN IS NULL)
+		AND ( STATUS = '1' OR STATUS =
+		  			CASE
+		  				WHEN USER_ID = #{userId}
+		  				THEN '0'
+		  			END )
+	ORDER BY B.POST_SEQ DESC
+	LIMIT 1
+	]]>
+	</select>
+	
+	<select id="selectNextBoard" parameterType="Map" resultType="Map">
+	--SysBoardMapper.selectNextBoard
+	<![CDATA[
+	SELECT 
+		 B.POST_SEQ
+	    , B.USER_ID
+		, B.USER_NM
+		, B.DEPT_CD
+		, B.DEPT_NM
+		, B.NOTICE
+		, B.SUBJECT
+		, B.CONTENTS
+		, B.HIT_CNT
+		, B.STATUS
+		, B.BOARD_ID
+		, NVL(B.CLOSED_YN,'N') CLOSED_YN
+		, B.ATTACHMENT
+		, B.INS_IP
+		, B.MOD_IP
+--		, TO_CHAR(B.INS_DT,'YYYY-MM-DD') INS_DT
+--		, TO_CHAR(B.MOD_DT,'YYYY-MM-DD') MOD_DT
+		, TO_CHAR(B.INS_DT,'YYYY-MM-DD') INS_DT
+		, TO_CHAR(B.MOD_DT,'YYYY-MM-DD') MOD_DT
+		, B.DEL_YN
+--		, TO_CHAR(B.APPLY_DT,'YYYY-MM-DD') APPLY_DT
+--		, TO_CHAR(SYSDATE,'YYYYMMDD') - TO_CHAR(B.INS_DT,'YYYYMMDD') ISNEW
+		, TO_CHAR(B.APPLY_DT,'YYYY-MM-DD') APPLY_DT
+		, SYSDATE - B.INS_DT  ISNEW
+	FROM BBS_BOARD B
+	WHERE 1=1
+		AND B.BOARD_ID = #{BOARD_ID}
+		AND B.POST_SEQ > #{SEQ}
+		AND (B.DEL_YN = 'N' OR B.DEL_YN IS NULL)
+		
+		<if test="USER_ID != '' and USER_ID != null">
+		
+		AND ( STATUS = '1' OR STATUS =
+		  			CASE
+		  				WHEN USER_ID = #{userId}
+		  				THEN '0'
+		  			END )
+	ORDER BY B.POST_SEQ ASC
+	-- LIMIT 1
+	]]>
+	</select>
+	
+	
+	<update id="updateBoardHit" parameterType="Map">
+	--SysBoardMapper.updateBoardHit
+	UPDATE BBS_BOARD
+		SET HIT_CNT = NVL(HIT_CNT, 0) + 1
+	WHERE 1=1
+		AND BOARD_ID = #{BOARD_ID}
+		AND POST_SEQ = #{SEQ}
+	</update>
+	
+	
+	<update id="deleteBoard" parameterType="Map">
+	--SysBoardMapper.deleteBoard
+	UPDATE BBS_BOARD
+		SET DEL_YN = 'Y'
+	WHERE 1=1
+		AND BOARD_ID = #{BOARD_ID}
+		AND POST_SEQ = #{SEQ}
+	</update>
+	
+	
+	<insert id="insertBoard" parameterType="Map">
+		INSERT INTO BBS_BOARD
+			( 
+			 POST_SEQ
+			,USER_ID
+			,USER_NM
+			,DEPT_CD
+			,DEPT_NM
+			,SUBJECT
+			,CONTENTS
+			,NOTICE
+			,CLOSED_YN
+			,INS_IP
+			,MOD_IP
+			,STATUS
+			,BOARD_ID
+			,DEL_YN
+			,ATTACHMENT
+			,HIT_CNT
+			,INS_DT
+			,MOD_DT
+			,APPLY_DT
+			,CONTENTS_CLS
+	
+			)VALUES(
+			 SEQ_BBS_BOARD.NEXTVAL
+			,#{userId}
+			,#{userName}
+			,#{deptCode}
+			,#{deptName}
+			,#{subject}
+			,#{contents}
+			,#{notice}
+			,#{closed_yn}
+			,#{regIp}
+			,#{modIp}
+			,NVL(#{status}, '1')
+			,#{BOARD_ID}
+			,'N'
+			,#{APP_SEQ}
+			,0
+			,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			,(CASE
+				WHEN #{status} = '0'
+				THEN null
+				ELSE TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			  END)
+			,#{contents_cls}
+			
+			)
+	</insert>
+	
+	
+	<update id="applyBoard" parameterType="Map">
+	--SysBoardMapper.applyBoard
+	UPDATE BBS_BOARD
+		SET STATUS = NVL(#{status}, '1')
+		,APPLY_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+	WHERE 1=1
+		AND BOARD_ID = #{BOARD_ID}
+		AND POST_SEQ = #{SEQ}	
+	</update>
+	
+	
+	<update id="updateBoard" parameterType="Map">
+	--SysBoardMapper.updateBoard
+	UPDATE BBS_BOARD
+		SET CONTENTS = #{contents}
+		,SUBJECT = #{subject}
+		,NOTICE = #{notice}
+		,MOD_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+		,MOD_IP = #{modIp}
+		,CLOSED_YN = #{closed_yn}
+		,STATUS = NVL(#{status}, '1')
+		,ATTACHMENT = #{APP_SEQ}
+		,APPLY_DT = 
+			(CASE
+				WHEN #{status} = '0'
+				THEN null
+				ELSE TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			END)
+		,CONTENTS_CLS = #{contents_cls}
+	WHERE 1=1
+		AND BOARD_ID = #{BOARD_ID}
+		AND POST_SEQ = #{SEQ}
+	</update>
+	
+	
+	
+	<insert id="insertReply" parameterType="Map" useGeneratedKeys="true" keyProperty="SEQ">
+	--SysBoardMapper.insertReply
+	INSERT INTO BBS_REPLY
+		(
+		 POST_SEQ
+		,BOARD_ID
+		,PARENT
+		,MOTHER
+		,COMMENTS
+		,DEL_YN
+		,REG_ID
+		,REG_NM
+		,REG_DT
+		,REG_IP
+		,DEPT_CD
+		,DEPT_NM
+		
+		)VALUES(
+		(SELECT NVL(MAX(A.POST_SEQ),0)+1 FROM BBS_REPLY A)
+		,#{BOARD_ID}
+		,#{parent}
+		,#{mother}
+		,#{comments}
+		,'N'
+		,#{regId}
+		,#{regName}
+		,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+		,#{regIp}
+		,#{deptCode}
+		,#{deptName}
+		
+		)
+	
+	
+        <selectKey keyProperty="SEQ" resultType="int">
+            SELECT NVL(MAX(POST_SEQ),0) FROM BBS_REPLY
+    	</selectKey>
+	</insert>
+	
+	
+	<update id="updateReply" parameterType="Map">
+	--SysBoardMapper.updateReply
+	UPDATE BBS_REPLY
+		SET COMMENTS = #{comments}
+	WHERE 1=1
+		AND BOARD_ID = #{BOARD_ID}
+		AND POST_SEQ = #{rseq}
+		AND (DEL_YN = 'N' OR DEL_YN IS NULL)
+	</update>
+	
+	
+	<update id="deleteReply" parameterType="Map">
+	--SysBoardMapper.deleteReply
+	UPDATE BBS_REPLY
+		SET DEL_YN = 'Y'
+	WHERE 1=1
+		AND BOARD_ID = #{BOARD_ID}
+		AND POST_SEQ = #{rseq}
+	</update>
+	
+	<select id="selectFaqGrp" parameterType="Map" resultType="Map">
+	--SysBoardMapper.selectFaqGrp
+	SELECT
+		 CODE
+		,CODE_NM
+	FROM
+		COM_CODE
+	WHERE 1=1
+		AND CODE_GRP = 'ADM002'
+		AND USG_YN = 'Y'
+	ORDER BY MOD_ID ASC
+	</select>
+	
+	<select id="selectAccessLogList" parameterType="Map" resultType="Map">
+	--SysBoardMapper.selectAccessLogList
+	SELECT *
+      FROM (
+			SELECT
+				 COUNT(*) OVER() AS TOT_CNT
+			    ,ROW_NUMBER() OVER(ORDER BY ACCESS_SEQ DESC) AS RNUM
+				,ACCESS_SEQ as SNO
+				,SERVER_IP
+				,SYS_ID
+				,ACCESS_TYPE as TYPE_ID
+				,USER_ID
+				,USER_IP
+				,SUCC_YN
+				,ERR_MSG
+				,TO_CHAR(INS_DT,'YYYY-MM-DD') REG_DATE
+				,URL
+				,MENU_CD
+				,SESSION_ID
+				,TO_CHAR(PROC_START_TIME,'YYYY-MM-DD HH24:MI:SS') PROC_START_TIME
+				,TO_CHAR(PROC_END_TIME,'YYYY-MM-DD HH24:MI:SS') PROC_END_TIME
+				,PROC_DELAY_TIME
+			FROM SYS_ACCESS_LOG
+			WHERE 1=1
+				<if test="USER_ID != '' and USER_ID != null">
+				AND USER_ID = #{USER_ID}
+				</if>
+			ORDER BY ACCESS_SEQ DESC
+		)
+    <![CDATA[WHERE RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 500)]]>		
+			
+	</select>
+	
+	<select id="selectSubBoard" parameterType="Map" resultType="Map">
+    SELECT * 
+      FROM (
+            SELECT POST_SEQ AS SEQ
+                 , SUBJECT
+                 , LEAD(POST_SEQ,1) OVER (ORDER BY POST_SEQ) AS NEXT_SEQ
+                 , LEAD(SUBJECT,1) OVER (ORDER BY POST_SEQ) AS NEXT_SUBJECT
+                 , TO_CHAR(TO_DATE(LEAD(INS_DT, 1) OVER (ORDER BY POST_SEQ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS NEXT_INS_DT
+                 , LAG(POST_SEQ, 1) OVER (ORDER BY POST_SEQ ) AS PRE_SEQ
+                 , LAG(SUBJECT, 1) OVER (ORDER BY POST_SEQ ) AS PRE_SUBJECT
+                 , TO_CHAR(TO_DATE(LEAD(INS_DT, 1) OVER (ORDER BY POST_SEQ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS PRE_INS_DT
+              FROM (
+                    SELECT *
+                      FROM (
+                              SELECT A.POST_SEQ
+	                               , A.SUBJECT
+	                               , A.CONTENTS
+	                               , A.INS_DT
+	                               , DECODE(A.BOARD_ID, '304', ( SELECT B.VENDOR_NM FROM VENDOR_INFO B WHERE B.POBUSI_NO = A.USER_ID ), USER_NM ) AS USER_NM
+	                               , A.BOARD_ID
+	                               , A.DEL_YN
+	                               , A.STATUS
+	                            FROM BBS_BOARD A
+                            )
+                     WHERE BOARD_ID = #{BOARD_ID}
+                       AND (DEL_YN = 'N' OR DEL_YN IS NULL)
+                       AND STATUS != '0'
+                        <if test="srchGrp != null and srchGrp != ''">
+                            <if test="srchTxt != null and srchTxt != ''">
+                                <choose>
+                                    <when test="srchGrp=='01'">
+                                        <![CDATA[AND UPPER(SUBJECT) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                                    </when>
+                                    <when test="srchGrp=='02'">
+                                        <![CDATA[AND UPPER(CONTENTS) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                                    </when>
+                                    <when test="srchGrp=='03'">
+                                        <![CDATA[AND UPPER(USER_NM) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                                    </when>
+                                </choose>
+                            </if>
+                        </if>
+                       )
+            )
+      WHERE SEQ = #{SEQ}
+    </select>
+    
+    <select id="selectNoticeList" parameterType="Map" resultType="Map">
+    SELECT A.*
+         , A.TOT_CNT - A.RNUM + 1 AS TNUM
+      FROM ( 
+            SELECT COUNT(*) OVER() AS TOT_CNT
+                 , ROW_NUMBER() OVER(ORDER BY POST_SEQ DESC) AS RNUM  
+                 , POST_SEQ
+                 , USER_NM
+                 , SUBJECT
+                 , NVL(HIT_CNT, '0') AS HIT_CNT
+                 , TO_CHAR(TO_DATE(INS_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS INS_DT
+                 , BOARD_ID
+            FROM BBS_BOARD
+           WHERE BOARD_ID = #{BOARD_ID}
+             AND (DEL_YN = 'N' OR DEL_YN IS NULL)
+             AND STATUS != '0'
+            <if test="srchGrp != null and srchGrp != ''">
+                <if test="srchTxt != null and srchTxt != ''">
+                    <choose>
+                        <when test="srchGrp=='01'">
+                            <![CDATA[AND UPPER(SUBJECT) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                        </when>
+                        <when test="srchGrp=='02'">
+                            <![CDATA[AND UPPER(CONTENTS) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                        </when>
+                        <when test="srchGrp=='03'">
+                            <![CDATA[AND UPPER(USER_NM) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                        </when>
+                    </choose>
+                </if>
+            </if>
+           ) A
+      <![CDATA[WHERE RNUM BETWEEN (NVL(#{page}, '1') - 1) * 10 + 1 AND NVL(#{page}, '1') * 10]]>
+    </select>
+    
+    <select id="selectSubNotice" parameterType="Map" resultType="Map">
+    SELECT * 
+      FROM (
+            SELECT POST_SEQ AS SEQ
+                 , SUBJECT
+                 , LEAD(POST_SEQ,1) OVER (ORDER BY POST_SEQ) AS NEXT_SEQ
+                 , LEAD(SUBJECT,1) OVER (ORDER BY POST_SEQ) AS NEXT_SUBJECT
+                 , TO_CHAR(TO_DATE(LEAD(INS_DT, 1) OVER (ORDER BY POST_SEQ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS NEXT_INS_DT
+                 , LAG(POST_SEQ, 1) OVER (ORDER BY POST_SEQ ) AS PRE_SEQ
+                 , LAG(SUBJECT, 1) OVER (ORDER BY POST_SEQ ) AS PRE_SUBJECT
+                 , TO_CHAR(TO_DATE(LAG(INS_DT, 1) OVER (ORDER BY POST_SEQ ), 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS PRE_INS_DT
+              FROM (
+                    SELECT *
+                      FROM BBS_BOARD
+                     WHERE BOARD_ID = #{BOARD_ID}
+                       AND (DEL_YN = 'N' OR DEL_YN IS NULL)
+                       AND STATUS != '0'
+                        <if test="srchGrp != null and srchGrp != ''">
+                            <if test="srchTxt != null and srchTxt != ''">
+                                <choose>
+                                    <when test="srchGrp=='01'">
+                                        <![CDATA[AND UPPER(SUBJECT) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                                    </when>
+                                    <when test="srchGrp=='02'">
+                                        <![CDATA[AND UPPER(CONTENTS) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                                    </when>
+                                    <when test="srchGrp=='03'">
+                                        <![CDATA[AND UPPER(USER_NM) LIKE '%' || UPPER(#{srchTxt}) || '%']]>
+                                    </when>
+                                </choose>
+                            </if>
+                        </if>
+                       )
+            )
+      WHERE SEQ = #{SEQ}
+    </select>
+
+</mapper>

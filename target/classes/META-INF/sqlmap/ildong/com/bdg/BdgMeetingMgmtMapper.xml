@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.MeetingMgmt">
+
+	<select id="selectMeetingMgmt" parameterType="Map" resultType="Map">
+	--com.bdg.MeetingMgmt.selectMeetingMgmt
+SELECT COMP_CD                                       COMP_CD      -- 회사코드
+      ,CRTN_YYMM                                     CRTN_YYMM    -- 기준년월
+      ,CHC_ETC_GBN                                   CHC_ETC_GBN  -- ETC CHC구분
+      ,ORG_CD                                        ORG_CD       -- 부서코드
+      ,FUNC_GET_DEPT_NAME(COMP_CD, ORG_CD, CRE_DATE) ORG_NM       -- 부서명
+      ,SABUN                                         SABUN        -- 사번
+      ,FUNC_GET_USER_NAME(SABUN)                     SABUN_NM     -- 사원명
+      ,G_GUBN                                        G_GUBN       -- 구분
+      ,GUBN_DESC                                     GUBN_DESC    -- 구분명
+      ,MEETING_DATE                                  MEETING_DATE -- 회의일자
+      ,'1'                                           CODEMAPPING1
+      ,'Y'                                           DATA_GUBN
+      ,'R'                                           CRUD
+  FROM FI_BUSINESS_MGMT
+ WHERE 1=1 
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD = #{SB_COMP_CD}
+</if>
+<if test="CHC_ETC_GBN != null and CHC_ETC_GBN != ''">
+   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+</if>				   
+<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+</if>
+<if test="SB_GUBN_CD != null and SB_GUBN_CD != ''">
+   AND G_GUBN = #{SB_GUBN_CD}
+</if>
+
+ ORDER BY ORG_CD
+         ,SABUN
+         ,MEETING_DATE				   
+ 
+	</select>
+	
+	<select id="selectMeetingMgmt2" parameterType="Map" resultType="Map">
+	--com.bdg.MeetingMgmt.selectMeetingMgmt2
+SELECT A.COMP_CD                                          COMP_CD      -- 회사코드
+      ,REPLACE(#{TB_CRTN_YYMM}, '-', '')                  CRTN_YYMM    -- 기준년월
+      ,A.ORG_CD                                           ORG_CD       -- 부서코드
+      ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.ORG_CD, '')        ORG_NM       -- 부서명
+      ,A.SABUN                                            SABUN        -- 사번
+      ,A.SABUN_NM                                         SABUN_NM     -- 사원명
+      ,B.G_GUBN                                           G_GUBN       -- 구분
+      ,B.GUBN_DESC                                        GUBN_DESC    -- 구분명
+      ,B.MEETING_DATE                                     MEETING_DATE -- 회의일자
+      ,A.PRIOR_ORG                                        CHC_ETC_GBN  -- ETC CHC구분
+      ,'1'                                                CODEMAPPING1 
+      ,'N'                                                DATA_GUBN
+      ,'R'                                                CRUD
+  FROM (
+        SELECT A.*
+          FROM (
+		        SELECT A.*
+		              ,FUNC_GET_ETC_CHC_GUBN(A.COMP_CD, A.COST_CD, '') AS PRIOR_ORG
+		          FROM (
+		                SELECT COMP_CD
+		                      ,USER_ID AS SABUN
+		                      ,DEPT_CD AS ORG_CD
+		                      ,USER_NM AS SABUN_NM
+		                      ,FUNC_GET_COST_CODE(COMP_CD, DEPT_CD, '') AS COST_CD
+		                  FROM SYS_USER A
+		                 WHERE COMP_CD = #{SB_COMP_CD}
+		                   AND USG_YN = 'Y'
+		                   AND DEL_YN = 'N'
+		                   AND GRADE_CODE = CASE WHEN #{SB_GUBN_CD} = '1' THEN 'C2'         
+		                                         WHEN #{SB_GUBN_CD} = '2' THEN 'J2'
+		                                         WHEN #{SB_GUBN_CD} = '3' THEN 'C6'
+		                                    END
+		               ) A          
+               ) A
+         WHERE 1 = 1
+           AND A.PRIOR_ORG = #{SB_CHC_ETC_GBN}
+       ) A
+      LEFT OUTER JOIN
+       FI_BUSINESS_MGMT B
+      ON    B.COMP_CD     = #{SB_COMP_CD}
+        AND B.CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM}, '-', '')
+        AND B.CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+        AND B.ORG_CD      = A.ORG_CD
+        AND B.SABUN       = A.SABUN
+ ORDER BY A.ORG_CD
+         ,A.SABUN
+         ,B.MEETING_DATE	         
+ 
+	</select>	
+
+    <insert id="insertMeetingMgmt" parameterType="Map">
+		--com.bdg.MeetingMgmt.insertMeetingMgmt
+		BEGIN
+			DELETE FROM FI_BUSINESS_MGMT
+			 WHERE 1 = 1
+			   AND COMP_CD      = #{COMP_CD}
+               AND CRTN_YYMM    = #{CRTN_YYMM}
+               AND CHC_ETC_GBN  = #{CHC_ETC_GBN}
+               AND ORG_CD       = #{ORG_CD}
+               AND SABUN        = #{SABUN}
+               AND G_GUBN       = #{G_GUBN}
+               AND MEETING_DATE = #{MEETING_DATE}
+            ;
+            
+            INSERT INTO FI_BUSINESS_MGMT
+            (
+             COMP_CD
+            ,CRTN_YYMM
+            ,CHC_ETC_GBN
+            ,ORG_CD
+            ,SABUN
+            ,G_GUBN
+            ,MEETING_DATE
+            ,CRE_DATE
+            ,CRE_USER
+            ,MOD_DATE
+            ,MOD_USER
+            ) VALUES (
+                       #{COMP_CD}
+                      ,#{CRTN_YYMM}
+                      ,#{CHC_ETC_GBN}
+                      ,#{ORG_CD}
+                      ,#{SABUN}
+                      ,#{G_GUBN}
+                      ,#{MEETING_DATE}
+                      ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+                      ,#{CRE_USER}
+                      ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+                      ,#{MOD_USER}
+                      )
+            ;
+		END; 
+    </insert>
+    
+    <delete id="deleteMeetingMgmt" parameterType="Map">
+		--com.bdg.MeetingMgmt.deleteMeetingMgmt
+		DELETE FROM FI_BUSINESS_MGMT
+		 WHERE 1 = 1
+		   AND COMP_CD      = #{COMP_CD}
+           AND CRTN_YYMM    = #{CRTN_YYMM}
+           AND CHC_ETC_GBN  = #{CHC_ETC_GBN}
+           AND ORG_CD       = #{ORG_CD}
+           AND SABUN        = #{SABUN}
+           AND MEETING_DATE = #{MEETING_DATE}
+    </delete>    
+
+</mapper>

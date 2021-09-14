@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchHRBugt">
+
+	<insert id="batchHRBugtIfData" parameterType="Map">
+		--com.bat.BatchHRBugt.batchHRBugtIfData
+		INSERT ALL
+		<foreach item="item" separator=" " collection="list"> 
+			INTO HR_BUGT_IF (COMP_CD,CRTN_YY,ORG_CD,BUGT_GUBUN,MM_01,MM_02,MM_03,MM_04,MM_05,MM_06,MM_07,MM_08,MM_09,MM_10,MM_11,MM_12) VALUES (#{ item.COMP_CD },#{ item.CRTN_YY },#{ item.ORG_CD },#{ item.BUGT_GUBUN },#{ item.MM_01 },#{ item.MM_02 },#{ item.MM_03 },#{ item.MM_04 },#{ item.MM_05 },#{ item.MM_06 },#{ item.MM_07 },#{ item.MM_08 },#{ item.MM_09 },#{ item.MM_10 },#{ item.MM_11 },#{ item.MM_12 })
+		</foreach>
+		SELECT * FROM DUAL
+
+	</insert>
+	
+    <delete id="deleteHRBugtIfData" parameterType="Map">
+		--com.bat.BatchHRBugt.deleteHRBugtIfData
+		DELETE FROM HR_BUGT_IF
+		 WHERE CRTN_YY = #{TB_CRTN_YY}
+    </delete>
+    
+    <delete id="deleteHRBugtBasicData" parameterType="Map">
+		--com.bat.BatchHRBugt.deleteHRBugtBasicData
+		BEGIN
+		    -- HEAD DELETE
+			DELETE FROM CO_BUGT_BASIC_HEAD
+			 WHERE 1 = 1
+			   AND CRTN_YY = #{TB_CRTN_YY}
+			   AND PROCESS_TYPE = '1'
+			   AND ACCOUNT_NO IN (SELECT CODE FROM COM_CODE WHERE CODE_GRP = 'YS028')
+			;
+			
+			DELETE FROM CO_BUGT_BASIC_DETAIL
+			 WHERE 1 = 1
+			   AND CRTN_YY = #{TB_CRTN_YY}
+			   AND PROCESS_TYPE = '1'
+			   AND ACCOUNT_NO IN (SELECT CODE FROM COM_CODE WHERE CODE_GRP = 'YS028')
+			;			
+		END;
+
+    </delete>
+    
+    <delete id="deleteHRBugtModifyData" parameterType="Map">
+		--com.bat.BatchHRBugt.deleteHRBugtModifyData
+		BEGIN
+		    -- HEAD DELETE
+			DELETE FROM CO_BUGT_MODIFY_HEAD
+			 WHERE 1 = 1
+			   AND CRTN_YY = #{TB_CRTN_YY}
+			   AND PROCESS_TYPE = '1'
+			   AND ACCOUNT_NO IN (SELECT CODE FROM COM_CODE WHERE CODE_GRP = 'YS028')
+			;
+			
+			DELETE FROM CO_BUGT_MODIFY_DETAIL
+			 WHERE 1 = 1
+			   AND CRTN_YY = #{TB_CRTN_YY}
+			   AND PROCESS_TYPE = '1'
+			   AND ACCOUNT_NO IN (SELECT CODE FROM COM_CODE WHERE CODE_GRP = 'YS028')
+			;			
+		END;
+
+    </delete>    
+
+    <insert id="mergeHRBugtIfData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchHRBugt.mergeHRBugtIfData
+	    MERGE INTO HR_BUGT_IF A 
+	    USING (
+	        SELECT #{COMP_CD}    AS COMP_CD
+	              ,#{CRTN_YY}    AS CRTN_YY
+                  ,#{ORG_CD}     AS ORG_CD
+                  ,#{BUGT_GUBUN} AS BUGT_GUBUN
+                  ,#{MM_01}      AS MM_01
+                  ,#{MM_02}      AS MM_02
+                  ,#{MM_03}      AS MM_03
+                  ,#{MM_04}      AS MM_04
+                  ,#{MM_05}      AS MM_05
+                  ,#{MM_06}      AS MM_06
+                  ,#{MM_07}      AS MM_07
+                  ,#{MM_08}      AS MM_08
+                  ,#{MM_09}      AS MM_09
+                  ,#{MM_10}      AS MM_10
+                  ,#{MM_11}      AS MM_11
+                  ,#{MM_12}      AS MM_12
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.COMP_CD    = B.COMP_CD
+	        AND A.CRTN_YY    = B.CRTN_YY
+	        AND A.ORG_CD     = B.ORG_CD
+	        AND A.BUGT_GUBUN = B.BUGT_GUBUN
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.MM_01      = B.MM_01      
+                  ,A.MM_02      = B.MM_02      
+                  ,A.MM_03      = B.MM_03      
+                  ,A.MM_04      = B.MM_04      
+                  ,A.MM_05      = B.MM_05      
+                  ,A.MM_06      = B.MM_06      
+                  ,A.MM_07      = B.MM_07      
+                  ,A.MM_08      = B.MM_08      
+                  ,A.MM_09      = B.MM_09      
+                  ,A.MM_10      = B.MM_10      
+                  ,A.MM_11      = B.MM_11      
+                  ,A.MM_12      = B.MM_12      
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.COMP_CD   
+	             ,A.CRTN_YY   
+	             ,A.ORG_CD    
+	             ,A.BUGT_GUBUN
+	             ,A.MM_01     
+                 ,A.MM_02     
+                 ,A.MM_03     
+                 ,A.MM_04     
+                 ,A.MM_05     
+                 ,A.MM_06     
+                 ,A.MM_07     
+                 ,A.MM_08     
+                 ,A.MM_09     
+                 ,A.MM_10     
+                 ,A.MM_11     
+                 ,A.MM_12     
+	            ) VALUES ( B.COMP_CD   
+	                      ,B.CRTN_YY   
+	                      ,B.ORG_CD    
+	                      ,B.BUGT_GUBUN
+	                      ,B.MM_01     
+                          ,B.MM_02     
+                          ,B.MM_03     
+                          ,B.MM_04     
+                          ,B.MM_05     
+                          ,B.MM_06     
+                          ,B.MM_07     
+                          ,B.MM_08     
+                          ,B.MM_09     
+                          ,B.MM_10     
+                          ,B.MM_11     
+                          ,B.MM_12     
+	                     )
+     ]]>
+    </insert>
+    
+    <insert id="mergeHRBugtData" parameterType="Map">
+    <![CDATA[
+    BEGIN
+	    --com.bat.BatchHRBugt.mergeHRBugtData
+		------------------------------------------                 
+		-- 기본예산 HEADER 생성
+		------------------------------------------
+		-- AND B.ACCOUNT_NO = A.BUGT_GUBUN(예산계정별 상태코드로 삽입시에)		
+	    
+	    MERGE INTO CO_BUGT_BASIC_HEAD A 
+	    USING (
+               SELECT A.COMP_CD                     COMP_CD
+                     ,A.CRTN_YY                     CRTN_YY
+                     ,FUNC_GET_COST_CODE(A.COMP_CD, A.ORG_CD, '')                    CCTR_CD
+                     ,A.BUGT_GUBUN                  ACCOUNT_NO
+                     ,'1'                           PROCESS_TYPE
+                     ,NVL((SELECT MAX(STATUS) 
+                         FROM CO_BUGT_BASIC_HEAD B 
+                        WHERE B.COMP_CD    = A.COMP_CD
+                          AND B.CRTN_YY    = A.CRTN_YY
+                          AND B.CCTR_CD    = FUNC_GET_COST_CODE(A.COMP_CD, A.ORG_CD, '')
+                          ), '1')   STATUS
+                     ,NULL                          DISTR_TYPE 
+                     ,A.MM_01                       WK_M01
+                     ,A.MM_02                       WK_M02
+                     ,A.MM_03                       WK_M03
+                     ,A.MM_04                       WK_M04
+                     ,A.MM_05                       WK_M05
+                     ,A.MM_06                       WK_M06
+                     ,A.MM_07                       WK_M07
+                     ,A.MM_08                       WK_M08
+                     ,A.MM_09                       WK_M09
+                     ,A.MM_10                       WK_M10
+                     ,A.MM_11                       WK_M11
+                     ,A.MM_12                       WK_M12
+                     ,NULL                          REMARK
+                     ,NULL                          PRESUME_AMT
+                     ,NULL                          EPS_DOC_NO
+                     ,TO_CHAR(sysdate,'YYYYMMDD')   CRE_DATE
+                     ,'system'                      CRE_USER
+                     ,TO_CHAR(sysdate,'YYYYMMDD')   MOD_DATE
+                     ,'system'                      MOD_USER
+	             FROM HR_BUGT_IF A
+	            WHERE A.CRTN_YY = #{TB_CRTN_YY}
+	              AND A.BUGT_GUBUN IN (SELECT CODE FROM COM_CODE WHERE CODE_GRP = 'YS028')
+	          ) B
+	    ON (
+	            A.COMP_CD      = B.COMP_CD
+	        AND A.CRTN_YY      = B.CRTN_YY
+	        AND A.CCTR_CD      = B.CCTR_CD
+	        AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+	        AND A.PROCESS_TYPE = B.PROCESS_TYPE
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.WK_M01 = B.WK_M01
+                  ,A.WK_M02 = B.WK_M02
+                  ,A.WK_M03 = B.WK_M03
+                  ,A.WK_M04 = B.WK_M04
+                  ,A.WK_M05 = B.WK_M05
+                  ,A.WK_M06 = B.WK_M06
+                  ,A.WK_M07 = B.WK_M07
+                  ,A.WK_M08 = B.WK_M08
+                  ,A.WK_M09 = B.WK_M09
+                  ,A.WK_M10 = B.WK_M10
+                  ,A.WK_M11 = B.WK_M11
+                  ,A.WK_M12 = B.WK_M12
+                  ,A.MOD_DATE = TO_CHAR(sysdate,'YYYYMMDD')
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+                  A.COMP_CD
+                 ,A.CRTN_YY
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+                 ,A.STATUS
+                 ,A.DISTR_TYPE
+                 ,A.WK_M01
+                 ,A.WK_M02
+                 ,A.WK_M03
+                 ,A.WK_M04
+                 ,A.WK_M05
+                 ,A.WK_M06
+                 ,A.WK_M07
+                 ,A.WK_M08
+                 ,A.WK_M09
+                 ,A.WK_M10
+                 ,A.WK_M11
+                 ,A.WK_M12
+                 ,A.REMARK
+                 ,A.PRESUME_AMT
+                 ,A.EPS_DOC_NO
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( 
+                           B.COMP_CD
+                          ,B.CRTN_YY
+                          ,B.CCTR_CD
+                          ,B.ACCOUNT_NO
+                          ,B.PROCESS_TYPE
+                          ,B.STATUS
+                          ,B.DISTR_TYPE
+                          ,B.WK_M01
+                          ,B.WK_M02
+                          ,B.WK_M03
+                          ,B.WK_M04
+                          ,B.WK_M05
+                          ,B.WK_M06
+                          ,B.WK_M07
+                          ,B.WK_M08
+                          ,B.WK_M09
+                          ,B.WK_M10
+                          ,B.WK_M11
+                          ,B.WK_M12
+                          ,B.REMARK
+                          ,B.PRESUME_AMT
+                          ,B.EPS_DOC_NO
+                          ,B.CRE_DATE
+                          ,B.CRE_USER
+                          ,B.MOD_DATE
+                          ,B.MOD_USER 
+	                     );
+	                     
+		------------------------------------------                 
+		-- 기본예산 DETAIL 생성
+		------------------------------------------			
+	    MERGE INTO CO_BUGT_BASIC_DETAIL A 
+	    USING (
+               SELECT A.COMP_CD                     COMP_CD
+                     ,A.CRTN_YY                     CRTN_YY
+                     ,FUNC_GET_COST_CODE(A.COMP_CD, A.ORG_CD, '')                       CCTR_CD
+                     ,BUGT_GUBUN                    ACCOUNT_NO
+                     ,'1'                           PROCESS_TYPE
+                     ,'1'                           SEQ_NO
+                     ,NULL                          DETAIL_DESC 
+                     ,FUNC_GET_COST_CODE(A.COMP_CD, A.ORG_CD, '')                      BELONG_CCTR_CD
+                     ,NULL                          PROJECT_CD
+                     ,NULL                          UNIT_PRICE
+                     ,NULL                          UNIT_QTY
+                     ,A.MM_01                       WK_M01
+                     ,A.MM_02                       WK_M02
+                     ,A.MM_03                       WK_M03
+                     ,A.MM_04                       WK_M04
+                     ,A.MM_05                       WK_M05
+                     ,A.MM_06                       WK_M06
+                     ,A.MM_07                       WK_M07
+                     ,A.MM_08                       WK_M08
+                     ,A.MM_09                       WK_M09
+                     ,A.MM_10                       WK_M10
+                     ,A.MM_11                       WK_M11
+                     ,A.MM_12                       WK_M12
+                     ,TO_CHAR(sysdate,'YYYYMMDD')   CRE_DATE
+                     ,'system'                      CRE_USER
+                     ,TO_CHAR(sysdate,'YYYYMMDD')   MOD_DATE
+                     ,'system'                      MOD_USER
+	             FROM HR_BUGT_IF A
+	            WHERE A.CRTN_YY = #{TB_CRTN_YY}
+	              AND A.BUGT_GUBUN IN (SELECT CODE FROM COM_CODE WHERE CODE_GRP = 'YS028')	             
+	          ) B
+	    ON (
+	            A.COMP_CD      = B.COMP_CD
+	        AND A.CRTN_YY      = B.CRTN_YY
+	        AND A.CCTR_CD      = B.CCTR_CD
+	        AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+	        AND A.PROCESS_TYPE = B.PROCESS_TYPE
+	        AND A.SEQ_NO       = B.SEQ_NO
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.BELONG_CCTR_CD = B.BELONG_CCTR_CD
+	              ,A.WK_M01         = B.WK_M01
+                  ,A.WK_M02         = B.WK_M02
+                  ,A.WK_M03         = B.WK_M03
+                  ,A.WK_M04         = B.WK_M04
+                  ,A.WK_M05         = B.WK_M05
+                  ,A.WK_M06         = B.WK_M06
+                  ,A.WK_M07         = B.WK_M07
+                  ,A.WK_M08         = B.WK_M08
+                  ,A.WK_M09         = B.WK_M09
+                  ,A.WK_M10         = B.WK_M10
+                  ,A.WK_M11         = B.WK_M11
+                  ,A.WK_M12         = B.WK_M12
+                  ,A.MOD_DATE       = TO_CHAR(sysdate,'YYYYMMDD')
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+                  A.COMP_CD
+                 ,A.CRTN_YY
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+                 ,A.SEQ_NO
+                 ,A.DETAIL_DESC
+                 ,A.BELONG_CCTR_CD
+                 ,A.PROJECT_CD
+                 ,A.UNIT_PRICE
+                 ,A.UNIT_QTY
+                 ,A.WK_M01
+                 ,A.WK_M02
+                 ,A.WK_M03
+                 ,A.WK_M04
+                 ,A.WK_M05
+                 ,A.WK_M06
+                 ,A.WK_M07
+                 ,A.WK_M08
+                 ,A.WK_M09
+                 ,A.WK_M10
+                 ,A.WK_M11
+                 ,A.WK_M12
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( 
+                           B.COMP_CD      
+                          ,B.CRTN_YY      
+                          ,B.CCTR_CD       
+                          ,B.ACCOUNT_NO   
+                          ,B.PROCESS_TYPE 
+                          ,B.SEQ_NO       
+                          ,B.DETAIL_DESC  
+                          ,B.BELONG_CCTR_CD
+                          ,B.PROJECT_CD   
+                          ,B.UNIT_PRICE   
+                          ,B.UNIT_QTY     
+                          ,B.WK_M01       
+                          ,B.WK_M02       
+                          ,B.WK_M03       
+                          ,B.WK_M04       
+                          ,B.WK_M05       
+                          ,B.WK_M06       
+                          ,B.WK_M07       
+                          ,B.WK_M08       
+                          ,B.WK_M09       
+                          ,B.WK_M10       
+                          ,B.WK_M11       
+                          ,B.WK_M12       
+                          ,B.CRE_DATE     
+                          ,B.CRE_USER     
+                          ,B.MOD_DATE     
+                          ,B.MOD_USER     
+	                     );
+    END;
+    ]]>
+    </insert>
+    
+    <insert id="mergeHRBugtData2" parameterType="Map">
+    <![CDATA[
+    BEGIN
+	    --com.bat.BatchHRBugt.mergeHRBugtData2
+		------------------------------------------                 
+		-- 수정예산 HEADER 생성
+		------------------------------------------
+		-- AND B.ACCOUNT_NO = A.BUGT_GUBUN(예산계정별 상태코드로 삽입시에)		
+	    
+	    MERGE INTO CO_BUGT_MODIFY_HEAD A 
+	    USING (
+               SELECT A.COMP_CD                     COMP_CD
+                     ,A.CRTN_YY                     CRTN_YY
+                     ,FUNC_GET_COST_CODE(A.COMP_CD, A.ORG_CD, '')                    CCTR_CD
+                     ,A.BUGT_GUBUN                  ACCOUNT_NO
+                     ,'1'                           PROCESS_TYPE
+                     ,NVL((SELECT MAX(STATUS) 
+                         FROM CO_BUGT_BASIC_HEAD B 
+                        WHERE B.COMP_CD    = A.COMP_CD
+                          AND B.CRTN_YY    = A.CRTN_YY
+                          AND B.CCTR_CD    = FUNC_GET_COST_CODE(A.COMP_CD, A.ORG_CD, '')
+                          ), '1')   STATUS
+                     ,NULL                          DISTR_TYPE 
+                     ,A.MM_01                       WK_M01
+                     ,A.MM_02                       WK_M02
+                     ,A.MM_03                       WK_M03
+                     ,A.MM_04                       WK_M04
+                     ,A.MM_05                       WK_M05
+                     ,A.MM_06                       WK_M06
+                     ,A.MM_07                       WK_M07
+                     ,A.MM_08                       WK_M08
+                     ,A.MM_09                       WK_M09
+                     ,A.MM_10                       WK_M10
+                     ,A.MM_11                       WK_M11
+                     ,A.MM_12                       WK_M12
+                     ,NULL                          REMARK
+                     ,NULL                          EPS_DOC_NO
+                     ,TO_CHAR(sysdate,'YYYYMMDD')   CRE_DATE
+                     ,'system'                      CRE_USER
+                     ,TO_CHAR(sysdate,'YYYYMMDD')   MOD_DATE
+                     ,'system'                      MOD_USER
+	             FROM HR_BUGT_IF A
+	            WHERE A.CRTN_YY = #{TB_CRTN_YY}
+	              AND A.BUGT_GUBUN IN (SELECT CODE FROM COM_CODE WHERE CODE_GRP = 'YS028')
+	          ) B
+	    ON (
+	            A.COMP_CD      = B.COMP_CD
+	        AND A.CRTN_YY      = B.CRTN_YY
+	        AND A.CCTR_CD      = B.CCTR_CD
+	        AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+	        AND A.PROCESS_TYPE = B.PROCESS_TYPE
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.WK_M01 = B.WK_M01
+                  ,A.WK_M02 = B.WK_M02
+                  ,A.WK_M03 = B.WK_M03
+                  ,A.WK_M04 = B.WK_M04
+                  ,A.WK_M05 = B.WK_M05
+                  ,A.WK_M06 = B.WK_M06
+                  ,A.WK_M07 = B.WK_M07
+                  ,A.WK_M08 = B.WK_M08
+                  ,A.WK_M09 = B.WK_M09
+                  ,A.WK_M10 = B.WK_M10
+                  ,A.WK_M11 = B.WK_M11
+                  ,A.WK_M12 = B.WK_M12
+                  ,A.MOD_DATE = TO_CHAR(sysdate,'YYYYMMDD')
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+                  A.COMP_CD
+                 ,A.CRTN_YY
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+                 ,A.STATUS
+                 ,A.DISTR_TYPE
+                 ,A.WK_M01
+                 ,A.WK_M02
+                 ,A.WK_M03
+                 ,A.WK_M04
+                 ,A.WK_M05
+                 ,A.WK_M06
+                 ,A.WK_M07
+                 ,A.WK_M08
+                 ,A.WK_M09
+                 ,A.WK_M10
+                 ,A.WK_M11
+                 ,A.WK_M12
+                 ,A.REMARK
+                 ,A.EPS_DOC_NO
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( 
+                           B.COMP_CD
+                          ,B.CRTN_YY
+                          ,B.CCTR_CD
+                          ,B.ACCOUNT_NO
+                          ,B.PROCESS_TYPE
+                          ,B.STATUS
+                          ,B.DISTR_TYPE
+                          ,B.WK_M01
+                          ,B.WK_M02
+                          ,B.WK_M03
+                          ,B.WK_M04
+                          ,B.WK_M05
+                          ,B.WK_M06
+                          ,B.WK_M07
+                          ,B.WK_M08
+                          ,B.WK_M09
+                          ,B.WK_M10
+                          ,B.WK_M11
+                          ,B.WK_M12
+                          ,B.REMARK
+                          ,B.EPS_DOC_NO
+                          ,B.CRE_DATE
+                          ,B.CRE_USER
+                          ,B.MOD_DATE
+                          ,B.MOD_USER 
+	                     );
+	                     
+		------------------------------------------                 
+		-- 기본예산 DETAIL 생성
+		------------------------------------------			
+	    MERGE INTO CO_BUGT_MODIFY_DETAIL A 
+	    USING (
+               SELECT A.COMP_CD                     COMP_CD
+                     ,A.CRTN_YY                     CRTN_YY
+                     ,FUNC_GET_COST_CODE(A.COMP_CD, A.ORG_CD, '')                       CCTR_CD
+                     ,BUGT_GUBUN                    ACCOUNT_NO
+                     ,'1'                           PROCESS_TYPE
+                     ,'1'                           SEQ_NO
+                     ,NULL                          DETAIL_DESC 
+                     ,FUNC_GET_COST_CODE(A.COMP_CD, A.ORG_CD, '')                      BELONG_CCTR_CD
+                     ,NULL                          PROJECT_CD
+                     ,NULL                          UNIT_PRICE
+                     ,NULL                          UNIT_QTY
+                     ,A.MM_01                       WK_M01
+                     ,A.MM_02                       WK_M02
+                     ,A.MM_03                       WK_M03
+                     ,A.MM_04                       WK_M04
+                     ,A.MM_05                       WK_M05
+                     ,A.MM_06                       WK_M06
+                     ,A.MM_07                       WK_M07
+                     ,A.MM_08                       WK_M08
+                     ,A.MM_09                       WK_M09
+                     ,A.MM_10                       WK_M10
+                     ,A.MM_11                       WK_M11
+                     ,A.MM_12                       WK_M12
+                     ,TO_CHAR(sysdate,'YYYYMMDD')   CRE_DATE
+                     ,'system'                      CRE_USER
+                     ,TO_CHAR(sysdate,'YYYYMMDD')   MOD_DATE
+                     ,'system'                      MOD_USER
+	             FROM HR_BUGT_IF A
+	            WHERE A.CRTN_YY = #{TB_CRTN_YY}
+	              AND A.BUGT_GUBUN IN (SELECT CODE FROM COM_CODE WHERE CODE_GRP = 'YS028')	             
+	          ) B
+	    ON (
+	            A.COMP_CD      = B.COMP_CD
+	        AND A.CRTN_YY      = B.CRTN_YY
+	        AND A.CCTR_CD      = B.CCTR_CD
+	        AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+	        AND A.PROCESS_TYPE = B.PROCESS_TYPE
+	        AND A.SEQ_NO       = B.SEQ_NO
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.BELONG_CCTR_CD = B.BELONG_CCTR_CD
+	              ,A.WK_M01         = B.WK_M01
+                  ,A.WK_M02         = B.WK_M02
+                  ,A.WK_M03         = B.WK_M03
+                  ,A.WK_M04         = B.WK_M04
+                  ,A.WK_M05         = B.WK_M05
+                  ,A.WK_M06         = B.WK_M06
+                  ,A.WK_M07         = B.WK_M07
+                  ,A.WK_M08         = B.WK_M08
+                  ,A.WK_M09         = B.WK_M09
+                  ,A.WK_M10         = B.WK_M10
+                  ,A.WK_M11         = B.WK_M11
+                  ,A.WK_M12         = B.WK_M12
+                  ,A.MOD_DATE       = TO_CHAR(sysdate,'YYYYMMDD')
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+                  A.COMP_CD
+                 ,A.CRTN_YY
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+                 ,A.SEQ_NO
+                 ,A.DETAIL_DESC
+                 ,A.BELONG_CCTR_CD
+                 ,A.PROJECT_CD
+                 ,A.UNIT_PRICE
+                 ,A.UNIT_QTY
+                 ,A.WK_M01
+                 ,A.WK_M02
+                 ,A.WK_M03
+                 ,A.WK_M04
+                 ,A.WK_M05
+                 ,A.WK_M06
+                 ,A.WK_M07
+                 ,A.WK_M08
+                 ,A.WK_M09
+                 ,A.WK_M10
+                 ,A.WK_M11
+                 ,A.WK_M12
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( 
+                           B.COMP_CD      
+                          ,B.CRTN_YY      
+                          ,B.CCTR_CD       
+                          ,B.ACCOUNT_NO   
+                          ,B.PROCESS_TYPE 
+                          ,B.SEQ_NO       
+                          ,B.DETAIL_DESC  
+                          ,B.BELONG_CCTR_CD
+                          ,B.PROJECT_CD   
+                          ,B.UNIT_PRICE   
+                          ,B.UNIT_QTY     
+                          ,B.WK_M01       
+                          ,B.WK_M02       
+                          ,B.WK_M03       
+                          ,B.WK_M04       
+                          ,B.WK_M05       
+                          ,B.WK_M06       
+                          ,B.WK_M07       
+                          ,B.WK_M08       
+                          ,B.WK_M09       
+                          ,B.WK_M10       
+                          ,B.WK_M11       
+                          ,B.WK_M12       
+                          ,B.CRE_DATE     
+                          ,B.CRE_USER     
+                          ,B.MOD_DATE     
+                          ,B.MOD_USER     
+	                     );
+    END;
+    ]]>
+    </insert>    
+</mapper>

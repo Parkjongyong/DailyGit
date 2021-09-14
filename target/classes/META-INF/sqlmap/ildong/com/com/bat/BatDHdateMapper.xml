@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchDHdate">
+    <update id="updateDeliveryHeadDate" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchDHdate.updateDeliveryHeadDate
+UPDATE GR_DELIVERY_HEAD
+   SET GR_DELY_DATE = NULL
+      ,GR_DELY_TIME = NULL
+ WHERE TO_CHAR(SYSDATE,'YYYYMMDD') > GR_DELY_DATE
+   AND DOC_STATUS                  = '1'
+		   ]]>
+    </update>
+</mapper>

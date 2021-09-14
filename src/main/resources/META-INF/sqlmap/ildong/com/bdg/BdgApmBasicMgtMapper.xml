@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.ApmBasicMgt">
+	<select id="selectApmBasicMgt" parameterType="Map" resultType="Map">
+--com.bdg.ApmBasicMgt.selectApmBasicMgt
+SELECT COMP_CD                                           COMP_CD             -- 회사코드
+      ,CRTN_YYMM                                         CRTN_YYMM           -- 기준년월
+      ,ORG_CD                                            ORG_CD              -- 작성부서코드
+      ,FUNC_GET_DEPT_NAME(COMP_CD, ORG_CD, CRE_DATE)     ORG_NM              -- 작성부서명
+      ,CHC_ETC_GBN                                       CHC_ETC_GBN         -- CHC/ETC구분
+      ,REQ_SABUN                                         REQ_SABUN           -- 신청사번
+      ,FUNC_GET_USER_NAME(REQ_SABUN)                     REQ_SABUN_NM        -- 사원명
+      ,REQ_ORG_CD                                        REQ_ORG_CD          -- 신청부서코드
+      ,FUNC_GET_DEPT_NAME(COMP_CD, REQ_ORG_CD, CRE_DATE) REQ_ORG_NM          -- 부서명
+      ,CCTR_CD                                           CCTR_CD             -- 코스트센터
+      ,STATUS                                            STATUS              -- 진행상태
+      ,PRE_BAL_AMT                                       PRE_BAL_AMT         -- 전월잔액
+      ,TERM_BUGT_AMT                                     TERM_BUGT_AMT       -- 당기예산
+      ,TERM_TRANS_SEND_AMT                               TERM_TRANS_SEND_AMT -- 당기이관송신액
+      ,TERM_TRANS_RECV_AMT                               TERM_TRANS_RECV_AMT -- 당기이관수신액
+      ,TERM_USE_AMT                                      TERM_USE_AMT        -- 당기사용액
+      ,BAL_AMT                                           BAL_AMT             -- 당월잔액
+      ,NEW_BUGT_AMT                                      NEW_BUGT_AMT        -- 신규예산
+      ,CARD_NO                                           CARD_NO             -- 카드번호
+      ,BANK_KEY                                          BANK_KEY            -- 은행키
+      ,ACC_NO                                            ACC_NO              -- 계좌번호
+      ,MAKE_ID                                           MAKE_ID             -- 작성자
+      ,MAKE_DATE                                         MAKE_DATE           -- 작성일자
+      ,CANCEL_REASON                                     CANCEL_REASON       -- 취소사유
+      ,SAP_SEND_YN                                       SAP_SEND_YN         -- SAP전송여부
+      ,EPS_DOC_NO                                        EPS_DOC_NO          -- 전자결재문서번호
+      ,SYS_MGMT_NO                                       SYS_MGMT_NO         -- 시스템관리번호
+      ,CRE_DATE                                          CRE_DATE            -- 등록일자
+      ,CRE_USER                                          CRE_USER            -- 등록자ID
+      ,MOD_DATE                                          MOD_DATE            -- 수정일자
+      ,MOD_USER                                          MOD_USER            -- 수정자ID
+      ,'R'                                               CRUD
+  FROM FI_BUGT_APM
+ WHERE 1=1
+	<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD     = #{SB_COMP_CD}
+ 	</if>
+	<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+ 	</if>
+	<if test="TB_ORG_CD != null and TB_ORG_CD != ''">
+   AND ORG_CD      = #{TB_ORG_CD}
+ 	</if>
+	<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+ 	</if>
+	<if test="SB_STATUS != null and SB_STATUS != ''">
+   AND STATUS      = #{SB_STATUS}
+	</if> 	
+ ORDER BY COMP_CD    
+         ,CRTN_YYMM
+         ,ORG_CD
+         ,CHC_ETC_GBN
+         ,REQ_SABUN
+  </select>
+  
+	<select id="selectSendApmBasicMgt" parameterType="Map" resultType="Map">
+--com.bdg.ApmBasicMgt.selectSendApmBasicMgt
+SELECT COMP_CD                                           COMP_CD             -- 회사코드
+      ,CRTN_YYMM                                         CRTN_YYMM           -- 기준년월
+      ,CHC_ETC_GBN                                       CHC_ETC_GBN         -- CHC/ETC구분
+      ,ORG_CD                                            ORG_CD              -- 작성부서코드
+      ,REQ_SABUN                                         REQ_SABUN           -- 신청사번
+      ,REQ_ORG_CD                                        REQ_ORG_CD          -- 신청부서코드
+      ,CCTR_CD                                           CCTR_CD             -- 코스트센터
+      ,TERM_TRANS_SEND_AMT                               TERM_TRANS_SEND_AMT -- 당기이관송신액
+      ,TERM_TRANS_RECV_AMT                               TERM_TRANS_RECV_AMT -- 당기이관수신액
+      ,TERM_USE_AMT                                      TERM_USE_AMT        -- 당기사용액
+      ,BAL_AMT                                           BAL_AMT             -- 당월잔액
+      ,NEW_BUGT_AMT                                      NEW_BUGT_AMT        -- 신규예산
+      ,MAKE_ID                                           MAKE_ID             -- 작성자
+      ,MAKE_DATE                                         MAKE_DATE           -- 작성일자
+      ,SAP_SEND_YN                                       SAP_SEND_YN         -- SAP전송여부
+      ,SYS_MGMT_NO                                       SYS_MGMT_NO         -- 시스템관리번호
+      -- 전송할 데이터
+      ,COMP_CD                                           BUKRS
+      ,CRTN_YYMM                                         ZMONTH
+      ,SYS_MGMT_NO                                       LEGACYNO
+      ,'B'                                               ZBUGTYPE
+      ,'I'                                               ZUPIND
+      ,CHC_ETC_GBN                                       ZCHANN
+      ,REQ_ORG_CD                                        KOSTL 
+      ,REQ_SABUN                                         LIFNR 
+      ,TERM_TRANS_SEND_AMT                               ZTFSENDAMT
+      ,TERM_TRANS_RECV_AMT                               ZTFRECVAMT
+      ,NEW_BUGT_AMT                                      ZAPMBUGAMT
+      ,TO_CHAR(SYSDATE,'YYYYMMDD')                       ZCRDATE
+      ,MAKE_ID                                           ZLIFNR
+      ,MAKE_DATE                                         ZTRDATE
+      ,'A'                                               DOC_GUBN
+  FROM FI_BUGT_APM
+ WHERE 1=1
+   AND COMP_CD     = #{SB_COMP_CD}
+   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+	<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+	</if>    
+   AND STATUS IN ('5', '6', '7')
+  </select>
+  
+	<select id="selectCheckStatusApmBasic" parameterType="Map" resultType="Map">
+		--com.bdg.ApmBasicMgt.selectCheckStatusApmBasic
+		SELECT COUNT(*) CNT
+		  FROM FI_BUGT_APM
+		 WHERE 1=1
+		   AND COMP_CD     = #{SB_COMP_CD}
+		   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+		   AND ORG_CD      = #{TB_ORG_CD}
+		   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+		   AND STATUS      > '1'  
+	</select>
+  
+  
+	<select id="selectApmBasicMgtIf" parameterType="Map" resultType="Map">
+--com.bdg.ApmBasicMgt.selectApmBasicMgtIf
+--,B.DEPT_CD                       REQ_ORG_CD          -- 부서코드
+--,B.DEPT_NM                       REQ_ORG_NM          -- 부서명
+SELECT A.COMP_CD                       COMP_CD             -- 회사코드
+      ,A.CRTN_YYMM                     CRTN_YYMM           -- 기준년월
+      ,#{ORG_CD}                       ORG_CD
+      ,A.CHC_ETC_GBN                   CHC_ETC_GBN         -- CHC/ETC구분
+      ,A.CCTR_CD                       CCTR_CD             -- 코스트센터
+      ,A.REQ_SABUN                     REQ_SABUN           -- 신청사번
+      ,A.PRE_BAL_AMT                   PRE_BAL_AMT         -- 전월잔액
+      ,A.TERM_BUGT_AMT                 TERM_BUGT_AMT       -- 당기예산
+      ,A.TERM_TRANS_SEND_AMT           TERM_TRANS_SEND_AMT -- 당기이관송신액
+      ,A.TERM_TRANS_RECV_AMT           TERM_TRANS_RECV_AMT -- 당기이관수신액
+      ,A.TERM_USE_AMT                  TERM_USE_AMT        -- 당기사용액
+      ,A.BAL_AMT                       BAL_AMT             -- 당월잔액
+      ,A.CARD_NO                       CARD_NO             -- 카드번호
+      ,A.BANK_KEY                      BANK_KEY            -- 은행키
+      ,A.ACC_NO                        ACC_NO              -- 계좌번호
+      ,FUNC_GET_USER_NAME(A.REQ_SABUN) REQ_SABUN_NM        -- 사원명
+      ,FUNC_GET_DEPT_CODE(A.COMP_CD, A.CCTR_CD, '') AS REQ_ORG_CD          -- 부서코드
+      ,FUNC_GET_DEPT_NAME(A.COMP_CD, FUNC_GET_DEPT_CODE(A.COMP_CD, A.CCTR_CD, ''), '') AS REQ_ORG_NM -- 부서명
+      ,'1'                             STATUS              -- 상태
+      ,'I'                             CRUD
+      ,'1'                             CODEMAPPING1
+  FROM FI_BUGT_APM_IF A
+ WHERE 1=1
+	<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND A.COMP_CD     = #{SB_COMP_CD}
+    </if>
+   AND A.CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+   AND A.CHC_ETC_GBN = SUBSTR(#{SB_CHC_ETC_GBN},0,1)
+	<if test="SB_STATUS != null and SB_STATUS != ''">
+   AND '1' = #{SB_STATUS}
+	</if>   
+ ORDER BY A.COMP_CD    
+         ,A.CRTN_YYMM
+         ,A.CHC_ETC_GBN
+         ,A.CCTR_CD
+         ,A.REQ_SABUN
+  </select>
+
+	<select id="sendCheckCnt" parameterType="Map" resultType="int">
+		--com.bdg.ApmBasicMgt.sendCheckCnt
+SELECT COUNT(0) CNT
+  FROM FI_BUGT_APM
+ WHERE COMP_CD   = #{SB_COMP_CD}
+   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+   AND ORG_CD    = #{TB_ORG_CD}
+	</select>
+	
+	<select id="selectStatusHeader" parameterType="Map" resultType="Map">
+	    --com.bdg.ApmBasicMgt.selectStatusHeader
+		SELECT MAX(STATUS) STATUS
+		  FROM FI_BUGT_APM
+		 WHERE 1 = 1
+		   AND COMP_CD   = #{SB_COMP_CD}
+	       AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+	       AND ORG_CD    = #{TB_ORG_CD} 		
+	</select>
+	
+	 	
+	<select id="selectStatusCnt" parameterType="Map" resultType="Map">
+	    --com.bdg.ApmBasicMgt.selectStatusCnt
+		SELECT COUNT(*) CNT
+		  FROM FI_BUGT_APM
+		 WHERE 1 = 1
+		   AND COMP_CD   = #{SB_COMP_CD}
+	       AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+	       AND ORG_CD    = #{TB_ORG_CD}
+	       AND STATUS    = '8'		
+	</select>
+	
+	<insert id="insertApmBasicMgt" parameterType="Map">
+--com.bdg.ApmBasicMgt.insertApmBasicMgt
+INSERT INTO FI_BUGT_APM
+ (
+   COMP_CD             -- 회사코드      
+  ,CRTN_YYMM           -- 기준년월      
+  ,ORG_CD              -- 작성부서코드    
+  ,CHC_ETC_GBN         -- CHC/ETC구분 
+  ,REQ_SABUN           -- 신청사번      
+  ,REQ_ORG_CD          -- 신청부서코드    
+  ,CCTR_CD             -- 코스트센터     
+  ,STATUS              -- 진행상태      
+  ,PRE_BAL_AMT         -- 전월잔액      
+  ,TERM_BUGT_AMT       -- 당기예산      
+  ,TERM_TRANS_SEND_AMT -- 당기이관송신액   
+  ,TERM_TRANS_RECV_AMT -- 당기이관수신액   
+  ,TERM_USE_AMT        -- 당기사용액     
+  ,BAL_AMT             -- 당월잔액      
+  ,NEW_BUGT_AMT        -- 신규예산      
+  ,CARD_NO             -- 카드번호      
+  ,BANK_KEY            -- 은행키       
+  ,ACC_NO              -- 계좌번호      
+  ,MAKE_ID             -- 작성자       
+  ,MAKE_DATE           -- 작성일자      
+  ,CANCEL_REASON       -- 취소사유      
+  ,SAP_SEND_YN         -- SAP전송여부   
+  ,EPS_DOC_NO          -- 전자결재문서번호  
+  ,SYS_MGMT_NO         -- 시스템관리번호   
+  ,CRE_DATE            -- 등록일자      
+  ,CRE_USER            -- 등록자ID     
+  ,MOD_DATE            -- 수정일자      
+  ,MOD_USER            -- 수정자ID     
+ ) VALUES (
+            #{COMP_CD}
+           ,#{CRTN_YYMM}
+           ,#{ORG_CD}
+           ,CASE WHEN 'C'   = #{CHC_ETC_GBN} THEN 'CHC'
+                 WHEN 'CHC' = #{CHC_ETC_GBN} THEN 'CHC'
+                 ELSE                             'ETC'
+            END 
+           ,#{REQ_SABUN}
+           ,#{REQ_ORG_CD}
+           ,#{CCTR_CD}
+           ,#{STATUS}
+           ,#{PRE_BAL_AMT}
+           ,#{TERM_BUGT_AMT}
+           ,#{TERM_TRANS_SEND_AMT}
+           ,#{TERM_TRANS_RECV_AMT}
+           ,#{TERM_USE_AMT}
+           ,#{BAL_AMT}
+           ,#{NEW_BUGT_AMT}
+           ,#{CARD_NO}
+           ,#{BANK_KEY}
+           ,#{ACC_NO}
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,NULL
+           ,'N'
+           ,NULL
+           ,NULL
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{MOD_USER}
+           )
+	</insert>
+	
+	<update id="updateApmBasicMgt" parameterType="Map">
+--com.bdg.ApmBasicMgt.updateApmBasicMgt
+UPDATE FI_BUGT_APM
+   SET NEW_BUGT_AMT = #{NEW_BUGT_AMT}
+ WHERE COMP_CD     = #{COMP_CD}
+   AND CRTN_YYMM   = #{CRTN_YYMM}
+   AND ORG_CD      = #{ORG_CD}
+   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+   AND REQ_SABUN   = TRIM(#{REQ_SABUN})
+	</update>
+
+	<delete id="delApmBasicMgt" parameterType="map">
+--com.bdg.ApmBasicMgt.delApmBasicMgt
+DELETE FROM FI_BUGT_APM
+ WHERE COMP_CD     = #{COMP_CD}
+   AND CRTN_YYMM   = #{CRTN_YYMM}
+   AND ORG_CD      = #{ORG_CD}
+   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+   AND REQ_SABUN   = TRIM(#{REQ_SABUN})
+	</delete>
+	
+	<delete id="delAllApmBasicMgt" parameterType="map">
+--com.bdg.ApmBasicMgt.delAllApmBasicMgt(초기화)
+DELETE FROM FI_BUGT_APM
+ WHERE COMP_CD     = #{SB_COMP_CD}
+   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+	</delete>
+	
+	<delete id="delAllApmIf" parameterType="map">
+--com.bdg.ApmBasicMgt.delAllApmIf(초기화)
+DELETE FROM FI_BUGT_APM_IF
+ WHERE COMP_CD     = #{SB_COMP_CD}
+   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+   AND CHC_ETC_GBN = SUBSTR(#{SB_CHC_ETC_GBN}, 0, 1)
+
+	</delete>
+	
+	<update id="apprApmBasicMgt" parameterType="map">
+	--com.bdg.ApmBasicMgt.apprApmBasicMgt
+		UPDATE FI_BUGT_APM
+		   SET STATUS      = '2'
+		      ,EPS_DOC_NO  = #{EPS_DOC_NO}
+		      ,MOD_DATE    = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER    = #{MOD_USER}
+		 WHERE COMP_CD     = #{SB_COMP_CD}
+		   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+		   AND ORG_CD      = #{TB_ORG_CD}
+	</update>
+	
+	<update id="updateStatus" parameterType="Map">
+	--com.bdg.ApmBasicMgt.updateStatus
+		UPDATE FI_BUGT_APM
+		   SET STATUS     = #{STATUS}
+		      ,EPS_DOC_NO = CASE WHEN #{STATUS} = '1' THEN ''
+		                         ELSE EPS_DOC_NO
+		                    END
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER   = #{APPROVAL_ID}
+		 WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+	</update>
+
+	<update id="confirmApmBasicMgt" parameterType="map">
+--com.bdg.ApmBasicMgt.confirmApmBasicMgt
+UPDATE FI_BUGT_APM
+   SET STATUS       = '7'
+      ,NEW_BUGT_AMT = #{NEW_BUGT_AMT}
+      ,MOD_DATE     = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER     = #{MOD_USER}
+ WHERE COMP_CD     = #{COMP_CD}
+   AND CRTN_YYMM   = #{CRTN_YYMM}
+   AND ORG_CD      = #{ORG_CD}
+   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+   AND REQ_SABUN   = #{REQ_SABUN}
+	</update>
+
+	<update id="returnApmBasicMgt" parameterType="map">
+--com.bdg.ApmBasicMgt.returnApmBasicMgt
+UPDATE FI_BUGT_APM
+   SET STATUS   = '6' 
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD     = #{COMP_CD}
+   AND CRTN_YYMM   = #{CRTN_YYMM}
+   AND ORG_CD      = #{ORG_CD}
+   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+   AND REQ_SABUN   = #{REQ_SABUN}
+	</update>
+	
+	<update id="rejectApmBasicMgt" parameterType="map">
+--com.bdg.ApmBasicMgt.rejectApmBasicMgt
+UPDATE FI_BUGT_APM
+   SET STATUS   = '1' 
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE 1 = 1
+   AND COMP_CD   = #{SB_COMP_CD}
+   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+   AND ORG_CD    = #{TB_ORG_CD}
+	</update>	
+
+<insert id="insertApmIf" parameterType="Map">
+--com.bdg.ApmBasicMgt.insertApmIf
+INSERT INTO FI_BUGT_APM_IF
+ (
+   COMP_CD
+  ,CRTN_YYMM
+  ,CHC_ETC_GBN
+  ,CCTR_CD
+  ,REQ_SABUN
+  ,PRE_BAL_AMT
+  ,TERM_BUGT_AMT
+  ,TERM_TRANS_SEND_AMT
+  ,TERM_TRANS_RECV_AMT
+  ,TERM_USE_AMT
+  ,BAL_AMT
+  ,CARD_NO
+  ,BANK_KEY
+  ,ACC_NO
+ ) VALUES (
+            #{BUKRS}
+           ,REPLACE(#{TB_CRTN_YYMM},'-','')
+           ,#{ZCHANN}
+           ,#{KOSTL}
+           ,#{LIFNR}
+           ,#{ZPREBAL}
+           ,#{ZAPMBUGAMT}
+           ,#{ZTFSENDAMT}
+           ,#{ZTFRECVAMT}
+           ,#{ZCURUSE}
+           ,#{ZCURBAL}
+           ,#{CARD_NUM}
+           ,#{PBANK}
+           ,#{BANKN}
+           )
+	</insert>
+	
+<insert id="insertApmBasic" parameterType="Map">
+--com.bdg.ApmBasicMgt.insertApmBasic
+INSERT INTO FI_BUGT_APM
+ (
+   COMP_CD             -- 회사코드      
+  ,CRTN_YYMM           -- 기준년월      
+  ,ORG_CD              -- 작성부서코드    
+  ,CHC_ETC_GBN         -- CHC/ETC구분 
+  ,REQ_SABUN           -- 신청사번      
+  ,REQ_ORG_CD          -- 신청부서코드    
+  ,CCTR_CD             -- 코스트센터     
+  ,STATUS              -- 진행상태      
+  ,PRE_BAL_AMT         -- 전월잔액      
+  ,TERM_BUGT_AMT       -- 당기예산      
+  ,TERM_TRANS_SEND_AMT -- 당기이관송신액   
+  ,TERM_TRANS_RECV_AMT -- 당기이관수신액   
+  ,TERM_USE_AMT        -- 당기사용액     
+  ,BAL_AMT             -- 당월잔액      
+  ,NEW_BUGT_AMT        -- 신규예산      
+  ,CARD_NO             -- 카드번호      
+  ,BANK_KEY            -- 은행키       
+  ,ACC_NO              -- 계좌번호      
+  ,MAKE_ID             -- 작성자       
+  ,MAKE_DATE           -- 작성일자      
+  ,CANCEL_REASON       -- 취소사유      
+  ,SAP_SEND_YN         -- SAP전송여부   
+  ,EPS_DOC_NO          -- 전자결재문서번호  
+  ,SYS_MGMT_NO         -- 시스템관리번호   
+  ,CRE_DATE            -- 등록일자      
+  ,CRE_USER            -- 등록자ID     
+  ,MOD_DATE            -- 수정일자      
+  ,MOD_USER            -- 수정자ID     
+ ) VALUES (
+            #{BUKRS}
+           ,REPLACE(#{TB_CRTN_YYMM},'-','')
+           ,#{ORG_CD}
+           ,CASE WHEN 'C' = #{ZCHANN} THEN 'CHC'
+                 WHEN 'E' = #{ZCHANN} THEN 'ETC'
+                 ELSE 'X'
+            END
+           ,TRIM(#{LIFNR})
+           ,(
+             SELECT DEPT_CD
+               FROM SYS_USER
+              WHERE COMP_CD = #{BUKRS}
+                AND USER_ID = TRIM(#{LIFNR})
+            ) 
+           ,#{KOSTL}
+           ,'1'
+           ,#{ZPREBAL}
+           ,#{ZAPMBUGAMT}
+           ,#{ZTFSENDAMT}
+           ,#{ZTFRECVAMT}
+           ,#{ZCURUSE}
+           ,#{ZCURBAL}
+           ,NULL
+           ,#{CARD_NUM}
+           ,#{PBANK}
+           ,#{BANKN}
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,NULL
+           ,'N'
+           ,NULL
+           ,NULL
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{MOD_USER}
+           )
+	</insert>
+		
+	<update id="updateApmBasicMgtSap" parameterType="map">
+--com.bdg.ApmBasicMgt.updateApmBasicMgtSap
+UPDATE FI_BUGT_APM
+   SET SAP_SEND_YN  = 'Y'
+      ,SYS_MGMT_NO  = #{SYS_MGMT_NO} 
+      ,STATUS       = '8'
+      ,MOD_DATE     = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER     = #{MOD_USER}
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YYMM    = #{CRTN_YYMM}
+   AND ORG_CD       = #{ORG_CD}
+   AND CHC_ETC_GBN  = #{CHC_ETC_GBN}
+   AND REQ_SABUN    = #{REQ_SABUN}
+	</update>
+
+	
+	<select id="selectApmBasicMgtPop" parameterType="Map" resultType="Map">
+--com.bdg.ApmBasicMgt.selectApmBasicMgtPop
+SELECT COMP_CD                                           COMP_CD             -- 회사코드
+      ,CRTN_YYMM                                         CRTN_YYMM           -- 기준년월
+      ,ORG_CD                                            ORG_CD              -- 작성부서코드
+      ,CHC_ETC_GBN                                       CHC_ETC_GBN         -- CHC/ETC구분
+      ,REQ_SABUN                                         REQ_SABUN           -- 신청사번
+      ,FUNC_GET_USER_NAME(REQ_SABUN)                     REQ_SABUN_NM        -- 사원명
+      ,REQ_ORG_CD                                        REQ_ORG_CD          -- 신청부서코드
+      ,FUNC_GET_DEPT_NAME(COMP_CD, REQ_ORG_CD, CRE_DATE) REQ_ORG_NM          -- 부서명
+      ,CCTR_CD                                           CCTR_CD             -- 코스트센터
+      ,STATUS                                            STATUS              -- 진행상태
+      ,PRE_BAL_AMT                                       PRE_BAL_AMT         -- 전월잔액
+      ,TERM_BUGT_AMT                                     TERM_BUGT_AMT       -- 당기예산
+      ,TERM_TRANS_SEND_AMT                               TERM_TRANS_SEND_AMT -- 당기이관송신액
+      ,TERM_TRANS_RECV_AMT                               TERM_TRANS_RECV_AMT -- 당기이관수신액
+      ,TERM_USE_AMT                                      TERM_USE_AMT        -- 당기사용액
+      ,BAL_AMT                                           BAL_AMT             -- 당월잔액
+      ,NEW_BUGT_AMT                                      NEW_BUGT_AMT        -- 신규예산
+      ,CARD_NO                                           CARD_NO             -- 카드번호
+      ,BANK_KEY                                          BANK_KEY            -- 은행키
+      ,ACC_NO                                            ACC_NO              -- 계좌번호
+      ,MAKE_ID                                           MAKE_ID             -- 작성자
+      ,MAKE_DATE                                         MAKE_DATE           -- 작성일자
+      ,CANCEL_REASON                                     CANCEL_REASON       -- 취소사유
+      ,SAP_SEND_YN                                       SAP_SEND_YN         -- SAP전송여부
+      ,EPS_DOC_NO                                        EPS_DOC_NO          -- 전자결재문서번호
+      ,SYS_MGMT_NO                                       SYS_MGMT_NO         -- 시스템관리번호
+      ,CRE_DATE                                          CRE_DATE            -- 등록일자
+      ,CRE_USER                                          CRE_USER            -- 등록자ID
+      ,MOD_DATE                                          MOD_DATE            -- 수정일자
+      ,MOD_USER                                          MOD_USER            -- 수정자ID
+      ,'R'                                               CRUD
+  FROM FI_BUGT_APM
+ WHERE 1=1
+   AND EPS_DOC_NO = #{EPS_DOC_NO}
+ ORDER BY COMP_CD    
+         ,CRTN_YYMM
+         ,ORG_CD
+         ,CHC_ETC_GBN
+         ,REQ_SABUN
+  </select>
+  
+</mapper>

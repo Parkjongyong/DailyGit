@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.VendorInfo">
+
+	<select id="selectVendorPurchOrgList" parameterType="Map" resultType="Map">
+		--com.wrh.VendorInfo.updateVendorUser
+		SELECT VENDOR_CD
+              ,FUNC_GET_CODE_NAME('SYS001', PURCHORG_CD) PURCHORG_NM
+              ,CURR_CD
+              ,PAY_COND
+              ,PAY_COND_NM
+		  FROM VENDOR_PURCHORG
+		 WHERE VENDOR_CD = #{VENDOR_CD}
+	</select>
+	
+	<select id="selectVendorInfo" parameterType="Map" resultType="Map">
+		--com.wrh.VendorInfo.selectVendorInfo
+        SELECT A.VENDOR_CD
+              ,A.VENDOR_NM
+              ,A.FUND_TYPE
+              ,FUNC_GET_CODE_NAME('IG006', A.FUND_TYPE) FUND_TYPE_NM
+              ,CASE WHEN NVL(A.POBUSI_NO, ' ') = ' ' THEN ''
+                    ELSE FUNC_FORMAT_BIZ_NO(A.POBUSI_NO)
+               END  POBUSI_NO_DSP              
+              ,A.POBUSI_NO
+              ,A.CORP_NO
+              ,A.PRESIDENT_NM
+              ,A.BUSS_TYPE
+              ,A.BUSIN
+              ,A.ADDR1
+              ,A.ADDR2
+              ,A.ADDR1 || ' ' || A.ADDR2    AS ADDR 
+              ,A.ZIP_NO
+              ,A.MAIN_EMAIL
+              ,A.MAIN_TELL_NO
+              ,A.MAIN_FAXNO
+              ,A.DEL_YN
+              ,A.CRE_DATE
+              ,A.CRE_USER
+              ,A.MOD_DATE
+              ,A.MOD_USER
+          FROM VENDOR_INFO A
+         WHERE A.VENDOR_CD = #{VENDOR_CD}
+	</select>	
+	
+	<select id="selectVendorUserList" parameterType="Map" resultType="Map">
+		--com.wrh.VendorInfo.selectVendorUserList
+		SELECT VENDOR_CD
+              ,SEQ
+              ,WORK_GUBUN
+              ,USER_NM
+              ,TEL_NO
+              ,EMAIL
+              ,SAP_RECV_YN
+              ,EMAIL_YN
+              ,SMS_YN
+              ,'R' CRUD
+		  FROM VENDOR_USER
+		 WHERE VENDOR_CD = #{VENDOR_CD}
+	</select>
+	
+    <update id="updateVendorUser" parameterType="Map">
+	    --com.wrh.VendorInfo.updateVendorUser
+	    UPDATE VENDOR_USER
+	       SET WORK_GUBUN  = #{WORK_GUBUN}
+	          ,USER_NM     = #{USER_NM}
+	          ,TEL_NO      = REPLACE(#{TEL_NO}, '-', '')
+	          ,EMAIL       = #{EMAIL}
+	          ,EMAIL_YN    = #{EMAIL_YN}
+	          ,SMS_YN      = #{SMS_YN}
+	          ,MOD_DATE    = TO_CHAR(SYSDATE,'YYYYMMDD') 
+	          ,MOD_USER    = #{MOD_USER}
+	     WHERE VENDOR_CD   = #{VENDOR_CD}
+	       AND SEQ         = #{SEQ}
+    </update>	
+	
+	
+    <insert id="insertVendorUser" parameterType="Map">
+		--com.wrh.VendorInfo.insertVendorUser
+		INSERT INTO VENDOR_USER (
+		       VENDOR_CD
+		      ,SEQ
+		      ,WORK_GUBUN
+		      ,USER_NM
+		      ,TEL_NO
+		      ,EMAIL
+		      ,SAP_RECV_YN
+		      ,EMAIL_YN
+		      ,SMS_YN
+		      ,CRE_DATE
+		      ,CRE_USER
+		      ,MOD_DATE
+		      ,MOD_USER
+		      ) VALUES (
+		                 #{VENDOR_CD}
+		                ,(SELECT NVL(MAX(SEQ), 0) + 1 FROM VENDOR_USER WHERE VENDOR_CD = #{VENDOR_CD})
+		                ,#{WORK_GUBUN}
+		                ,#{USER_NM}
+		                ,REPLACE(#{TEL_NO}, '-', '')
+		                ,#{EMAIL}
+		                ,'N'
+		                ,#{EMAIL_YN}
+		                ,#{SMS_YN}
+		                ,TO_CHAR(SYSDATE,'YYYYMMDD')
+		                ,#{CRE_USER}
+		                ,TO_CHAR(SYSDATE,'YYYYMMDD')
+		                ,#{MOD_USER}
+		               )
+    </insert>
+	
+    <delete id="deleteVendorUser" parameterType="Map">
+		--com.wrh.VendorInfo.deleteVendorUser
+		DELETE FROM VENDOR_USER
+		 WHERE VENDOR_CD    = #{VENDOR_CD}     
+		   AND SEQ          = #{SEQ}
+		<![CDATA[AND SAP_RECV_YN  <> 'Y']]>       
+    </delete>	
+	
+</mapper>

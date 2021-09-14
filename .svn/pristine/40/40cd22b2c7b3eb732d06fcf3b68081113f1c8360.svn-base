@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="IFMM036_BGT_SO" targetNamespace="http://ildong.com/MM/BGT_ERP" xmlns:p2="http://ildong.com/BGT_ERP" xmlns:p1="http://ildong.com/MM/BGT_ERP" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+    <wsdl:documentation />
+    <wsp:UsingPolicy wsdl:required="true" />
+    <wsp:Policy wsu:Id="OP_IFMM036_BGT_SO" />
+    <wsdl:types>
+        <xsd:schema targetNamespace="http://ildong.com/BGT_ERP" xmlns="http://ildong.com/BGT_ERP" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:p7="http://ildong.com/MM/BGT_ERP">
+            <xsd:import namespace="http://ildong.com/MM/BGT_ERP" />
+            <xsd:element name="IFMM036_BGT_S_MT_response" type="p7:IFMM036_BGT_S_DT_response" />
+            <xsd:element name="IFMM036_BGT_S_MT" type="p7:IFMM036_BGT_S_DT" />
+        </xsd:schema>
+        <xsd:schema targetNamespace="http://ildong.com/MM/BGT_ERP" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://ildong.com/MM/BGT_ERP">
+            <xsd:complexType name="IFMM036_BGT_S_DT">
+                <xsd:annotation>
+                    <xsd:appinfo source="http://sap.com/xi/VersionID">4dd48db51d7f11ebcadc00000069c58a</xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="IT_HEAD" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo source="http://sap.com/xi/TextID">e5a99aa5cd3d11ea9a5654ee75189819</xsd:appinfo>
+                        </xsd:annotation>
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="BUKRS" type="xsd:string" minOccurs="0">
+                                    <xsd:annotation>
+                                        <xsd:appinfo source="http://sap.com/xi/TextID">e5a972b0cd3d11ea9e7e54ee75189819</xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="EBELN" type="xsd:string" minOccurs="0">
+                                    <xsd:annotation>
+                                        <xsd:appinfo source="http://sap.com/xi/TextID">e5a99aa3cd3d11ea96ed54ee75189819</xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="EBELP" type="xsd:string" minOccurs="0" />
+                                <xsd:element name="LABNR" type="xsd:string" minOccurs="0">
+                                    <xsd:annotation>
+                                        <xsd:appinfo source="http://sap.com/xi/TextID">e5a99aa4cd3d11eabc8a54ee75189819</xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="ZEDATE" type="xsd:string" minOccurs="0">
+                                    <xsd:annotation>
+                                        <xsd:appinfo source="http://sap.com/xi/TextID">94e7046c1d6e11ebbd8ce82aea7bdd4c</xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="ZSREASON" type="xsd:string" minOccurs="0">
+                                    <xsd:annotation>
+                                        <xsd:appinfo source="http://sap.com/xi/TextID">94e7046d1d6e11eb8e63e82aea7bdd4c</xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                            </xsd:sequence>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="IFMM036_BGT_S_DT_response">
+                <xsd:annotation>
+                    <xsd:appinfo source="http://sap.com/xi/VersionID">ffdf5790cf9d11ea99b300000069c58a</xsd:appinfo>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:element name="IF_MSG" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo source="http://sap.com/xi/TextID">c731dfa5cf9b11eaac8efc45961f5b4c</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="IF_FLAG" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo source="http://sap.com/xi/TextID">c731dfa4cf9b11eacfebfc45961f5b4c</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:schema>
+    </wsdl:types>
+    <wsdl:message name="IFMM036_BGT_S_MT">
+        <wsdl:documentation />
+        <wsdl:part name="IFMM036_BGT_S_MT" element="p2:IFMM036_BGT_S_MT" />
+    </wsdl:message>
+    <wsdl:message name="IFMM036_BGT_S_MT_response">
+        <wsdl:documentation />
+        <wsdl:part name="IFMM036_BGT_S_MT_response" element="p2:IFMM036_BGT_S_MT_response" />
+    </wsdl:message>
+    <wsdl:portType name="IFMM036_BGT_SO">
+        <wsdl:documentation />
+        <wsdl:operation name="IFMM036_BGT_SO">
+            <wsdl:documentation />
+            <wsp:Policy>
+                <wsp:PolicyReference URI="#OP_IFMM036_BGT_SO" />
+            </wsp:Policy>
+            <wsdl:input message="p1:IFMM036_BGT_S_MT" />
+            <wsdl:output message="p1:IFMM036_BGT_S_MT_response" />
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="IFMM036_BGT_SOBinding" type="p1:IFMM036_BGT_SO">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" />
+        <wsdl:operation name="IFMM036_BGT_SO">
+            <soap:operation soapAction="http://sap.com/xi/WebService/soap1.1" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" />
+            <wsdl:input>
+                <soap:body use="literal" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" />
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="IFMM036_BGT_SOService">
+        <wsdl:port name="HTTP_Port" binding="p1:IFMM036_BGT_SOBinding">
+            <soap:address location="http://i4podev.ildong.com:50000/XISOAPAdapter/MessageServlet?senderParty=&amp;senderService=BGT_D&amp;receiverParty=&amp;receiverService=&amp;interface=IFMM036_BGT_SO&amp;interfaceNamespace=http%3A%2F%2Fildong.com%2FMM%2FBGT_ERP" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" />
+        </wsdl:port>
+<!--         <wsdl:port name="HTTPS_Port" binding="p1:IFMM036_BGT_SOBinding"> -->
+<!--             <soap:address location="https://i4podev.ildong.com:50001/XISOAPAdapter/MessageServlet?senderParty=&amp;senderService=BGT_D&amp;receiverParty=&amp;receiverService=&amp;interface=IFMM036_BGT_SO&amp;interfaceNamespace=http%3A%2F%2Fildong.com%2FMM%2FBGT_ERP" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" /> -->
+<!--         </wsdl:port> -->
+    </wsdl:service>
+</wsdl:definitions>

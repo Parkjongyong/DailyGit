@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.SupReg">
+	<select id="selectSupReg" parameterType="Map" resultType="Map">
+--com.bdg.SupReg.selectSupReg
+SELECT A.COMP_CD                        COMP_CD         -- 회사코드
+      ,A.CRTN_YMD                       CRTN_YMD        -- 신청일자
+      ,A.ORG_CD                         ORG_CD          -- 부서코드
+      ,FUNC_FORMAT_BIZ_NO(A.POBUSI_NO)  POBUSI_NO       -- 사업자 번호
+      ,A.VENDOR_CD                      VENDOR_CD       -- 공급업체코드
+      ,A.VENDOR_NM                      VENDOR_NM       -- 업체명
+      ,A.PRESIDENT_NM                   PRESIDENT_NM    -- 대표자명
+      ,A.ACCOUNT_GROUP                  ACCOUNT_GROUP   -- 계정그룹
+      ,A.ZIP_NO                         ZIP_NO          -- 우편 번호
+      ,A.ADDR_HEAD                      ADDR_HEAD       -- 주소
+      ,A.ADDR_DETAIL                    ADDR_DETAIL     -- 상세주소
+      ,A.TEL_NO                         TEL_NO          -- 전화번호
+      ,A.FAX_NO                         FAX_NO          -- 팩스번호
+      ,A.EMAIL                          EMAIL           -- Email
+      ,A.RELATE_COMPANY                 RELATE_COMPANY  -- 관계사
+      ,A.BP_TYPE                        BP_TYPE         -- BP유형
+      ,A.BUSS_TYPE                      BUSS_TYPE       -- 업종
+      ,A.BUSIN                          BUSIN           -- 업태
+      ,A.RECON_ACCOUNT                  RECON_ACCOUNT   -- 조정계정
+      ,A.PAY_COND                       PAY_COND        -- 지급조건
+      ,A.PAY_WAY                        PAY_WAY         -- 지급방법
+      ,A.VENDOR_ACCOUNT                 VENDOR_ACCOUNT  -- 공급업체계정
+      ,B.FILE_NM                        FILE_NM         -- 첨부파일
+      ,A.RETURN_DESC                    RETURN_DESC     -- 반려사유
+      ,A.STATUS                         STATUS          -- 진행상태
+      ,A.SAP_SEND_YN                    SAP_SEND_YN     -- SAP전송여부
+      ,A.CRE_DATE                       CRE_DATE        -- 등록일자
+      ,A.CRE_USER                       CRE_USER        -- 등록자ID
+      ,A.MOD_DATE                       MOD_DATE        -- 수정일자
+      ,A.MOD_USER                       MOD_USER        -- 수정자ID
+      ,A.FILE_ATTACH                    FILE_ATTACH
+  FROM FI_VENDOR_REGIST A
+      LEFT OUTER JOIN 
+       COM_ATTACH B
+      ON B.APP_SEQ = A.FILE_ATTACH 
+ WHERE 1=1
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''"> 
+   AND COMP_CD   = #{SB_COMP_CD}
+</if>
+<if test="TB_START_DT != null and TB_START_DT != ''"> 
+	<![CDATA[AND CRTN_YMD  >= REPLACE(#{TB_START_DT},'-','')]]>	
+</if>
+<if test="TB_END_DT != null and TB_END_DT != ''"> 
+	<![CDATA[AND CRTN_YMD  <= REPLACE(#{TB_END_DT},'-','')]]>
+</if>
+<if test="TB_DEPT_CD != null and TB_DEPT_CD != ''">
+  AND ORG_CD   = #{TB_DEPT_CD}
+</if>
+  ORDER BY COMP_CD
+          ,CRTN_YMD
+          ,ORG_CD
+          ,POBUSI_NO
+  </select>
+  
+  
+	<select id="selectSendSapSupReg" parameterType="Map" resultType="Map">
+--com.bdg.SupReg.selectSendSapSupReg
+SELECT A.COMP_CD                        COMP_CD         -- 회사코드
+      ,A.CRTN_YMD                       CRTN_YMD        -- 신청일자
+      ,A.ORG_CD                         ORG_CD          -- 부서코드
+      ,A.POBUSI_NO                      POBUSI_NO       -- 사업자 번호
+      ,A.POBUSI_NO                      STCD2           -- 사업자 번호
+      ,A.VENDOR_CD                      LIFNR           -- 공급업체코드
+      ,A.VENDOR_CD                      VENDOR_CD       -- 공급업체코드
+      ,A.VENDOR_NM                      NAME1           -- 공급업체명
+      ,A.VENDOR_NM                      VENDOR_NM       -- 업체명
+      ,A.COMP_CD                        BUKRS           -- 회사코드
+      ,A.PRESIDENT_NM                   PRESIDENT_NM    -- 대표자명
+      ,A.ACCOUNT_GROUP                  KTOKK           -- 계정그룹
+      ,A.ZIP_NO                         PSTLZ           -- 우편 번호
+      ,A.ADDR_HEAD                      ORT01           -- 주소
+      ,A.ADDR_DETAIL                    STRAS           -- 상세주소
+      ,A.TEL_NO                         TELF1           -- 전화번호
+      ,A.FAX_NO                         TELFX           -- 팩스번호
+      ,A.EMAIL                          SMTP_ADDR       -- Email
+      ,A.RELATE_COMPANY                 VBUND           -- 관계사
+      ,A.BP_TYPE                        BPKIND          -- BP유형
+      ,A.BUSS_TYPE                      GESTYPN         -- 업종
+      ,A.BUSIN                          INDTYPN         -- 업태
+      ,A.RECON_ACCOUNT                  AKONT           -- 조정계정
+      ,A.PAY_COND                       ZTERM           -- 지급조건
+      ,A.PAY_WAY                        ZWELS           -- 지급방법
+      ,A.VENDOR_ACCOUNT                 EIKTO           -- 공급업체계정
+      ,A.RETURN_DESC                    RETURN_DESC     -- 반려사유
+      ,'FLVN00'                         RLTYP
+      ,'2'                              TYPE
+      ,A.PRESIDENT_NM                   REPRESN 
+  FROM FI_VENDOR_REGIST A
+      LEFT OUTER JOIN 
+       COM_ATTACH B
+      ON B.APP_SEQ = A.FILE_ATTACH 
+ WHERE 1=1
+   AND COMP_CD   = #{COMP_CD}
+   AND CRTN_YMD  = #{CRTN_YMD}
+   AND ORG_CD    = #{ORG_CD}
+   AND POBUSI_NO = REPLACE(#{POBUSI_NO},'-','')
+    
+  </select>
+  
+	<select id="selectCheckSupReg" parameterType="Map" resultType="Map">
+		--com.bdg.SupReg.selectCheckSupReg
+		SELECT COUNT(*) CNT
+		  FROM FI_VENDOR_REGIST A
+		 WHERE 1=1
+		   AND COMP_CD   = #{SB_COMP_CD}
+		   AND CRTN_YMD  = REPLACE(#{TB_CRTN_YMD},'-','')
+		   AND ORG_CD    = #{TB_DEPT_CD}
+		   AND POBUSI_NO = REPLACE(#{POBUSI_NO},'-','')
+  </select>  
+  
+  
+    
+  
+  	
+<insert id="insertSupReg" parameterType="Map">
+--com.bdg.SupReg.insertSupReg
+INSERT INTO FI_VENDOR_REGIST
+ (
+   COMP_CD         -- 회사코드
+  ,CRTN_YMD        -- 신청일자
+  ,ORG_CD          -- 부서코드
+  ,POBUSI_NO       -- 사업자 번호
+  ,VENDOR_CD       -- 공급업체코드
+  ,VENDOR_NM       -- 업체명
+  ,PRESIDENT_NM    -- 대표자명
+  ,ACCOUNT_GROUP   -- 계정그룹
+  ,ZIP_NO          -- 우편 번호
+  ,ADDR_HEAD       -- 주소
+  ,ADDR_DETAIL     -- 상세주소
+  ,TEL_NO          -- 전화번호
+  ,FAX_NO          -- 팩스번호
+  ,EMAIL           -- Email
+  ,RELATE_COMPANY  -- 관계사
+  ,BP_TYPE         -- BP유형
+  ,BUSS_TYPE       -- 업종
+  ,BUSIN           -- 업태
+  ,RECON_ACCOUNT   -- 조정계정
+  ,PAY_COND        -- 지급조건
+  ,PAY_WAY         -- 지급방법
+  ,VENDOR_ACCOUNT  -- 공급업체계정
+  ,FILE_ATTACH     -- 첨부파일
+  ,RETURN_DESC     -- 반려사유
+  ,STATUS          -- 진행상태
+  ,SAP_SEND_YN     -- SAP전송여부
+  ,CRE_DATE        -- 등록일자
+  ,CRE_USER        -- 등록자ID
+  ,MOD_DATE        -- 수정일자
+  ,MOD_USER        -- 수정자ID
+ ) VALUES (
+            #{SB_COMP_CD}
+           ,REPLACE(#{TB_CRTN_YMD},'-','')
+           ,#{TB_DEPT_CD}
+           ,REPLACE(#{TB_POBUSI_NO},'-','')
+           ,#{TB_VENDOR_CD}
+           ,#{TB_VENDOR_NM}
+           ,#{TB_PRESIDENT_NM}
+           ,#{SB_ACCOUNT_GROUP}
+           ,#{TB_ZIP_NO}
+           ,#{TB_ADDR_HEAD}
+           ,#{TB_ADDR_DETAIL}
+           ,#{TB_TEL_NO}
+           ,#{TB_FAX_NO}
+           ,#{TB_EMAIL}
+           ,#{SB_RELATE_COMPANY}
+           ,#{SB_BP_TYPE}
+           ,#{TB_BUSS_TYPE}
+           ,#{TB_BUSIN}
+           ,#{SB_RECON_ACCOUNT}
+           ,#{SB_PAY_COND}
+           ,(
+             SELECT A1||A2||A3||A4||A5||A6 CHK
+               FROM (
+                    SELECT CASE WHEN 'on' = #{chk01}  THEN 'C'  ELSE NULL  END A1
+                          ,CASE WHEN 'on' = #{chk02}  THEN 'E'  ELSE NULL  END A2
+                          ,CASE WHEN 'on' = #{chk03}  THEN 'X'  ELSE NULL  END A3
+                          ,CASE WHEN 'on' = #{chk04}  THEN 'Y'  ELSE NULL  END A4
+                          ,CASE WHEN 'on' = #{chk05}  THEN 'T'  ELSE NULL  END A5
+                          ,CASE WHEN 'on' = #{chk06}  THEN 'W'  ELSE NULL  END A6
+                      FROM DUAL
+                    )
+            )
+           ,#{SB_VENDOR_ACCOUNT}
+           ,NULL
+           ,NULL
+           ,'1'
+           ,'N'
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{MOD_USER}
+          )
+	</insert>
+
+	<update id="updateSupReg" parameterType="map">
+--com.bdg.SupReg.updateSupReg
+UPDATE FI_VENDOR_REGIST
+   SET VENDOR_CD      = #{TB_VENDOR_CD}
+      ,VENDOR_NM      = #{TB_VENDOR_NM}
+      ,PRESIDENT_NM   = #{TB_PRESIDENT_NM}
+      ,ACCOUNT_GROUP  = #{SB_ACCOUNT_GROUP}
+      ,ZIP_NO         = #{TB_ZIP_NO}
+      ,ADDR_HEAD      = #{TB_ADDR_HEAD}
+      ,ADDR_DETAIL    = #{TB_ADDR_DETAIL}
+      ,TEL_NO         = #{TB_TEL_NO}
+      ,FAX_NO         = #{TB_FAX_NO}
+      ,EMAIL          = #{TB_EMAIL}
+      ,RELATE_COMPANY = #{SB_RELATE_COMPANY}
+      ,BP_TYPE        = #{SB_BP_TYPE}
+      ,BUSS_TYPE      = #{TB_BUSS_TYPE}
+      ,BUSIN          = #{TB_BUSIN}
+      ,RECON_ACCOUNT  = #{SB_RECON_ACCOUNT}
+      ,PAY_COND       = #{SB_PAY_COND}
+      ,PAY_WAY        = (
+                         SELECT A1||A2||A3||A4||A5||A6 CHK
+                           FROM (
+			                    SELECT CASE WHEN 'on' = #{chk01}  THEN 'C'  ELSE NULL  END A1
+			                          ,CASE WHEN 'on' = #{chk02}  THEN 'E'  ELSE NULL  END A2
+			                          ,CASE WHEN 'on' = #{chk03}  THEN 'X'  ELSE NULL  END A3
+			                          ,CASE WHEN 'on' = #{chk04}  THEN 'Y'  ELSE NULL  END A4
+			                          ,CASE WHEN 'on' = #{chk05}  THEN 'T'  ELSE NULL  END A5
+			                          ,CASE WHEN 'on' = #{chk06}  THEN 'W'  ELSE NULL  END A6
+                                  FROM DUAL
+                                )
+                        )
+      ,VENDOR_ACCOUNT = #{SB_VENDOR_ACCOUNT}
+      ,FILE_ATTACH    = #{APP_SEQ}
+      ,RETURN_DESC    = #{RETURN_DESC}
+      ,STATUS         = '1'
+      ,SAP_SEND_YN    = 'N'
+      ,MOD_DATE       = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER       = #{MOD_USER}
+ WHERE COMP_CD   = #{COMP_CD}
+   AND CRTN_YMD  = #{CRTN_YMD}
+   AND ORG_CD    = #{ORG_CD}
+   AND POBUSI_NO = REPLACE(#{POBUSI_NO},'-','')
+	</update>
+	
+	<update id="updateStatusSupReg" parameterType="map">
+--com.bdg.SupReg.updateStatusSupReg
+UPDATE FI_VENDOR_REGIST
+   SET STATUS      = '4'
+      ,SAP_SEND_YN = 'Y'
+      ,VENDOR_CD   = #{VENDOR_CD}
+      ,MOD_DATE    = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER    = #{MOD_USER}
+ WHERE COMP_CD   = #{COMP_CD}
+   AND CRTN_YMD  = #{CRTN_YMD}
+   AND ORG_CD    = #{ORG_CD}
+   AND POBUSI_NO = REPLACE(#{POBUSI_NO},'-','')
+	</update>	
+  
+  	<update id="applySupReg" parameterType="map">
+--com.bdg.SupReg.applySupReg
+UPDATE FI_VENDOR_REGIST
+   SET STATUS   = '2'
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD   = #{COMP_CD}
+   AND CRTN_YMD  = #{CRTN_YMD}
+   AND ORG_CD    = #{ORG_CD}
+   AND POBUSI_NO = REPLACE(#{POBUSI_NO},'-','')
+	</update>
+  
+	<update id="applyCancelSupReg" parameterType="Map">
+--com.bdg.SupReg.applyCancelSupReg
+UPDATE FI_VENDOR_REGIST
+   SET STATUS   = '1'
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD   = #{COMP_CD}
+   AND CRTN_YMD  = #{CRTN_YMD}
+   AND ORG_CD    = #{ORG_CD}
+   AND POBUSI_NO = REPLACE(#{POBUSI_NO},'-','')
+	</update>
+
+  	<update id="returnSupReg" parameterType="map">
+--com.bdg.SupReg.returnSupReg
+UPDATE FI_VENDOR_REGIST
+   SET STATUS   = '3'
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD   = #{COMP_CD}
+   AND CRTN_YMD  = #{CRTN_YMD}
+   AND ORG_CD    = #{ORG_CD}
+   AND POBUSI_NO = REPLACE(#{POBUSI_NO},'-','')
+	</update>
+  
+  	<delete id="delSupReg" parameterType="map">
+--com.bdg.SupReg.delSupReg
+DELETE FROM FI_VENDOR_REGIST
+ WHERE COMP_CD   = #{COMP_CD}
+   AND CRTN_YMD  = #{CRTN_YMD}
+   AND ORG_CD    = #{ORG_CD}
+   AND POBUSI_NO = REPLACE(#{POBUSI_NO},'-','')
+	</delete>
+
+	<select id="selectAccountList" parameterType="Map" resultType="Map">
+SELECT ACCOUNT_NO
+      ,ACCOUNT_DESC
+  FROM CO_ACCOUNT_NO
+ WHERE 1=1
+	<if test="TB_ACCOUNT_NO != null and TB_ACCOUNT_NO != ''">
+   AND ACCOUNT_NO LIKE  '%' || #{TB_ACCOUNT_NO} || '%'  
+	</if>
+	<if test="TB_ACCOUNT_DESC != null and TB_ACCOUNT_DESC != ''">
+   AND ACCOUNT_DESC LIKE  '%' || #{TB_ACCOUNT_DESC} || '%'
+	</if> 						
+	</select>	
+	
+</mapper>

@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.Rfc">
+
+	<select id="selectMasterInfoExist" parameterType="Map" resultType="int">
+	--SysRfcMapper.selectMasterInfoExist
+	SELECT	COUNT(*)	AS	CNT
+	FROM	FI.GL_COA
+	WHERE	ACCT_CODE			= #{CODE}
+	AND		ACCT_CLASS_CODE		= #{MASTER_CLASS_CODE}
+	</select>
+	
+	<update id="updateMasterInfo" parameterType="Map">
+	--SysRfcMapper.updateMasterInfo
+	UPDATE	FI.GL_COA
+	SET		  ACCT_NM		= #{NAME}
+			, ISUSE			= 'Y'
+			, COMMENTS		= TO_CHAR(SYSDATE,'YYYY.MM.DD.HH24.MI.SS')
+	WHERE	ACCT_CODE		= #{CODE}
+	</update>
+	
+	<insert id="insertMasterInfo" parameterType="Map">
+	--SysRfcMapper.insertMasterInfo
+	INSERT INTO FI.GL_COA
+	(
+		  COMP_CD
+		, ACCT_CODE
+		, ACCT_NM
+		, ACCT_CLASS_CODE
+		, ISUSE
+		, COMMENTS
+	)
+	VALUES
+	(
+		  #{COMP_CD}
+		, #{CODE}
+		, #{NAME}
+		, #{MASTER_CLASS_CODE}
+		, 'Y'
+		, SYSDATE
+	)
+	</insert>
+	
+	<insert id="insertUserIfInfo" parameterType="Map">
+	--SysRfcMapper.insertUserIfInfo
+	INSERT INTO SYS_USER_IF_HIS
+	(
+		  EMP_NO
+		, EMP_NM
+		, EMP_COMPCD
+		, DEPT_CD
+		, DEPT_NAME
+		, KOSTL
+		, KTEXT
+		, EMP_ENGNM
+		, TITLE_CD
+		, TITLE_NM
+		, FUNC_CD
+		, FUNC_NM
+		, MANAGER_ID
+		, EMP_STATUS
+		, TEMP_DATE
+		, EMP_MAIL_ID
+		, BUPLA
+		, GSBER
+		, MTELNO
+		, INS_ID
+		, INS_DATE
+	)
+	VALUES
+	(
+		  #{EMP_NO}
+		, #{EMP_NM}
+		, #{EMP_COMPCD}
+		, #{DEPT_CD}
+		, #{DEPT_NAME}
+		, #{KOSTL}
+		, #{KTEXT}
+		, #{EMP_ENGNM}
+		, #{TITLE_CD}
+		, #{TITLE_NM}
+		, #{FUNC_CD}
+		, #{FUNC_NM}
+		, #{MANAGER_ID}
+		, #{EMP_STATUS}
+		, #{TEMP_DATE}
+		, #{EMP_MAIL_ID}
+		, #{BUPLA}
+		, #{GSBER}
+		, #{MTELNO}
+		, 'IF'
+		, SYSDATE
+	)
+	</insert>
+	
+	<select id="selectUserInfoExist" parameterType="Map" resultType="int">
+	--SysRfcMapper.selectUserInfoExist
+	SELECT	COUNT(*)	AS	CNT
+	FROM	SYS_USER
+	WHERE	USER_ID		= #{USER_ID}
+	</select>
+	
+	<insert id="insertUserInfoByIF" parameterType="Map">
+	--SysRfcMapper.insertUserInfoByIF
+	INSERT INTO SYS_USER
+	(
+		  COMP_CD
+		, USER_ID
+		, USER_NM
+		, USER_NM_EN
+		, DEPT_ID
+		, PWD
+		, EMP_NO
+		, MOBILE_NO
+		, EMAIL_ID
+		, USG_YN
+		, DEL_YN
+		, INS_ID
+		, INS_DT
+		, MOD_ID
+		, MOD_DT
+	)
+	VALUES
+	(
+		  #{COMP_CD}
+		, #{USER_ID}
+		, #{USER_NAME}
+		, #{USER_ENG_NAME}
+		, #{DEPT_CD}
+		, #{PASSWORD}
+		, #{EMP_NO}
+		, #{CELL_PHONE_NO}
+		, #{EMAIL}
+		, #{USG_YN}
+		, #{DEL_YN}
+		, 'IF'
+		, SYSDATE
+		, 'IF'
+		, SYSDATE
+	)
+	</insert>
+
+	<update id="updateUserInfoByIF" parameterType="Map">
+	--SysRfcMapper.updateUserInfoByIF
+	UPDATE	SYS_USER
+		SET	 
+			 MOBILE_NO = #{CELL_PHONE_NO}
+			, EMAIL_ID		= #{EMAIL}
+			, DEPT_ID	= #{DEPT_CD}
+			, USER_NM_EN = #{USER_ENG_NAME}
+			, USG_YN	= #{USG_YN}
+			, DEL_YN	= #{DEL_YN}
+			, MOD_ID	= 'IF'
+			, MOD_DT	= SYSDATE
+	WHERE	USER_ID = #{USER_ID}
+	</update>
+	
+	<select id="selectDetailUserInfo" parameterType="Map" resultType="Map">
+	--SysRfcMapper.selectDetailUserInfo
+	SELECT	  USER_ID
+			, USER_NM
+			, USER_NM_EN
+			, DEPT_ID
+			, EMP_NO
+			, MOBILE_NO
+			, EMAIL_ID
+			, USG_YN
+			, DEL_YN
+	FROM	SYS_USER
+	WHERE	USER_ID = #{USER_ID}
+	</select>
+	
+	<insert id="insertDeptIfInfo" parameterType="Map">
+	--SysRfcMapper.insertDeptIfInfo
+	INSERT INTO DEPT_IF_HIS
+	(
+		  BUKRS
+		, DEPT_CD
+		, DEPT_NM
+		, MANAGER_ID
+		, MANAGER_FUNC_CD
+		, KOSTL
+		, KTEXT
+		, PARENT_DEPT
+		, PARENT_MANAGER_ID
+		, PARENT_KOSTL
+		, PARENT_KTEXT
+		, CHILD_FLAG
+		, DEL_FLAG
+		, REG_ID
+		, REG_DATE
+	)
+	VALUES
+	(
+		  #{BUKRS}
+		, #{DEPT_CD}
+		, #{DEPT_NM}
+		, #{MANAGER_ID}
+		, #{MANAGER_FUNC_CD}
+		, #{KOSTL}
+		, #{KTEXT}
+		, #{PARENT_DEPT}
+		, #{PARENT_MANAGER_ID}
+		, #{PARENT_KOSTL}
+		, #{PARENT_KTEXT}
+		, #{CHILD_FLAG}
+		, #{DEL_FLAG}
+		, 'IF'
+		, SYSDATE
+	)
+	</insert>
+	
+	<select id="selectDeptInfoExist" parameterType="Map" resultType="int">
+	--SysRfcMapper.selectDeptInfoExist
+	SELECT	COUNT(*)	AS	CNT
+	FROM	DEPT
+	WHERE	DEPT_CD		= #{DEPT_CD}
+	</select>
+	
+	<insert id="insertDeptInfoByIF" parameterType="Map">
+	--SysRfcMapper.insertDeptInfoByIF
+	INSERT INTO DEPT
+	(
+		  COMP_CD      
+		, DEPT_CD      
+		, UP_DEPT_CD   
+		, DEPT_NM      
+		, HAS_CHILD_YN 
+		, LEVELCD      
+		, DEL_YN       
+		, INS_ID       
+		, INS_DT       
+		, MOD_ID       
+		, MOD_DT
+	)
+	VALUES
+	(
+		  #{COMP_CD}
+		, #{DEPT_CD}
+		, #{UP_DEPT_CD}
+		, #{DEPT_NAME}
+		, #{HAS_CHILD_YN}
+		, CASE WHEN #{UP_DEPT_CD} = '50000000'	THEN '01'
+		  ELSE										 '02'
+		  END
+		, #{DEL_YN}
+		, 'IF'
+		, SYSDATE
+		, 'IF'
+		, SYSDATE
+		
+	)
+	
+	</insert>
+	
+	<update id="updateDeptInfoByIF" parameterType="Map">
+	--SysRfcMapper.updateDeptInfoByIF
+	UPDATE	DEPT
+		SET	  DEPT_NM		= #{DEPT_NAME}
+			, UP_DEPT_CD	= #{UP_DEPT_CD}
+			, HAS_CHILD_YN	= #{HAS_CHILD_YN}
+			, DEL_YN		= #{DEL_YN}
+	WHERE	DEPT_CD = #{DEPT_CD}
+	</update>
+	
+	<select id="selectDetailDeptInfo" parameterType="Map" resultType="Map">
+	--SysRfcMapper.selectDetailDeptInfo
+	SELECT	  DEPT_CD
+			, DEPT_NM AS DEPT_NAME
+			, UP_DEPT_CD
+			, COMP_CD
+			, HAS_CHILD_YN
+			, DEL_YN
+	FROM	DEPT
+	WHERE	DEPT_CD = #{DEPT_CD}
+	</select>
+	
+	<select id="selectRoleInfoExist" parameterType="Map" resultType="int">
+	--SysRfcMapper.selectRoleInfoExist
+	SELECT	COUNT(*)	AS	CNT
+	FROM	SYS_USER_ROLE
+	WHERE	1=1
+		AND	USER_ID		= #{USER_ID}
+	</select>
+	
+	<insert id="insertUserRoleByIF" parameterType="Map">
+	--SysRfcMapper.insertUserRoleByIF
+	INSERT INTO SYS_USER_ROLE
+	(
+		
+		  USER_ID
+		, ROLE_CD
+		, INS_ID
+		, INS_DT
+	)
+	VALUES
+	(
+		  #{USER_ID}
+		, #{ROLE_CD}
+		, 'IF'
+		, SYSDATE
+	)
+	</insert>
+	
+	<select id="selectUpDeptInfo" parameterType="Map" resultType="Map">
+	--SysRfcMapper.selectUpDeptInfo
+	SELECT	NVL(UP_DEPT_CD,'')	AS	UP_DEPT_CD
+	FROM	DEPT
+	WHERE	DEPT_CD = #{DEPT_CD}
+	</select>
+	
+</mapper>

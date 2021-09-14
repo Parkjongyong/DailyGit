@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.VacationMgmt">
+
+	<select id="selectVacationMgmt" parameterType="Map" resultType="Map">
+	--com.bdg.VacationMgmt.selectVacationMgmt
+SELECT COMP_CD                                       COMP_CD  
+      ,CRTN_YYMM                                     CRTN_YYMM
+      ,ORG_CD                                        ORG_CD   
+      ,FUNC_GET_DEPT_NAME(COMP_CD, ORG_CD, NULL)     ORG_NM     -- 부서명
+      ,SABUN                                         SABUN
+      ,FUNC_GET_USER_NAME(SABUN)                     SABUN_NM   -- 사원명
+      ,SUM(VACAT_NUM)                                VACAT_NUM
+  FROM (
+        SELECT COMP_CD
+              ,CRTN_YYMM
+              ,ORG_CD
+              ,SABUN
+              ,COUNT(0)                                      VACAT_NUM
+          FROM FI_BUSINESS_MGMT
+         WHERE 1=1
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND COMP_CD = #{SB_COMP_CD}
+		</if>				   
+		<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+		   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+		</if>				   
+		<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+		   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+		</if>				   
+          GROUP BY COMP_CD
+                 ,CRTN_YYMM
+                 ,ORG_CD
+                 ,SABUN
+        UNION ALL  
+        SELECT COMP_CD                                       COMP_CD    -- 회사코드
+              ,CRTN_YYMM                                     CRTN_YYMM  -- 기준년월
+              ,ORG_CD                                        ORG_CD     -- 부서코드
+              ,SABUN                                         SABUN      -- 사번
+              ,VACAT_NUM                                     VACAT_NUM  -- 휴가일수
+          FROM FI_HR_VACATION_HEAD
+         WHERE 1=1
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND COMP_CD = #{SB_COMP_CD}
+		</if>				   
+		<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+		   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+		</if>				   
+		<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+		   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+		</if>				   
+        )
+   GROUP BY COMP_CD
+           ,CRTN_YYMM
+           ,ORG_CD
+           ,SABUN
+   ORDER BY COMP_CD
+           ,CRTN_YYMM
+           ,ORG_CD
+	</select>
+
+	<select id="selectVacationDetail" parameterType="Map" resultType="Map">
+	--com.bdg.VacationMgmt.selectVacationDetail
+ SELECT COMP_CD      COMP_CD     -- 회사코드
+       ,CRTN_YYMM    CRTN_YYMM   -- 기준년월
+       ,ORG_CD       ORG_CD      -- 부서코드
+       ,SABUN        SABUN       -- 사번
+       ,MEETING_DATE VACAT_DAY   -- 휴가일 
+       ,GUBN_DESC    VACAT_GUBUN -- 구분  
+       ,NULL         VACAT_TXT   -- 적요  
+   FROM FI_BUSINESS_MGMT
+  WHERE 1=1
+    AND COMP_CD   = #{SB_COMP_CD}
+    AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+    AND ORG_CD    = #{TB_ORG_CD}
+    AND SABUN     = #{TB_SABUN}
+UNION ALL
+ SELECT COMP_CD     -- 회사코드
+       ,CRTN_YYMM   -- 기준년월
+       ,ORG_CD      -- 부서코드
+       ,SABUN       -- 사번
+       ,VACAT_DAY   -- 휴가일
+       ,VACAT_GUBUN -- 구분
+       ,VACAT_TXT   -- 적요
+   FROM FI_HR_VACATION_DETAIL
+  WHERE 1=1
+    AND COMP_CD   = #{SB_COMP_CD}
+    AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+    AND ORG_CD    = #{TB_ORG_CD}
+    AND SABUN     = #{TB_SABUN}
+  ORDER BY COMP_CD
+          ,CRTN_YYMM
+          ,ORG_CD
+          ,SABUN
+          ,VACAT_DAY
+	</select>
+
+    <insert id="insertMisoTrip" parameterType="Map">
+		--com.bdg.VacationMgmt.insertMisoTrip
+INSERT INTO FI_MISO_BUSIN_TRIP
+(
+  COMP_CD
+ ,CRTN_YYMM
+ ,CHC_ETC_GBN
+ ,ORG_CD
+ ,SABUN
+ ,TRANS_AMT
+ ,TRAVEL_AMT
+ ,ROOM_AMT
+ ,TRANS_CNT
+ ,CRE_DATE
+ ,CRE_USER
+) VALUES (
+          #{COMP_ID}
+         ,TO_CHAR(ADD_MONTHS(TO_DATE(#{CRTN_YYMM},'YYYYMM'),+1),'YYYYMM')
+         ,(
+           SELECT PRIOR_ORG
+             FROM DEPT
+            WHERE DEPT_CD = (
+                             SELECT DEPT_CD ORG_CD
+                               FROM SYS_USER
+                              WHERE USER_ID = #{SABUN}
+                            )
+              AND SDATE   = (
+                             SELECT MAX(SDATE)
+                               FROM DEPT
+                              WHERE DEPT_CD = (
+                                               SELECT DEPT_CD
+                                                 FROM SYS_USER
+                                                WHERE USER_ID = #{SABUN}
+                                              )
+                            )
+          )
+         ,(
+           SELECT DEPT_CD ORG_CD
+             FROM SYS_USER
+            WHERE USER_ID = #{SABUN}
+          )
+         ,#{SABUN}
+         ,#{TRANS_AMT}
+         ,#{TRAVEL_AMT}
+         ,#{ROOM_AMT}
+         ,#{TRANS_CNT}
+		 ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		 ,#{CRE_USER}
+        )
+
+	</insert>
+	
+    <insert id="insertVacationH" parameterType="Map">
+		--com.bdg.VacationMgmt.insertVacationH
+INSERT INTO FI_HR_VACATION_HEAD
+(
+  COMP_CD
+ ,CRTN_YYMM
+ ,CHC_ETC_GBN
+ ,ORG_CD
+ ,SABUN
+ ,VACAT_NUM
+ ,CRE_DATE
+ ,CRE_USER
+ ,MOD_DATE
+ ,MOD_USER
+) VALUES (
+           #{COMP_CD}
+          ,TO_CHAR(ADD_MONTHS(TO_DATE(#{CRTN_YYMM},'YYYYMM'),+1),'YYYYMM')
+          ,#{ETC_CHC_GBN}
+          ,#{ORG_CD}
+          ,#{SABUN}
+          ,#{VACAT_NUM}
+		  ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		  ,#{CRE_USER}
+		  ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		  ,#{MOD_USER}
+         )
+	</insert>
+	
+    <insert id="insertVacationD" parameterType="Map">
+		--com.bdg.VacationMgmt.insertVacationD
+INSERT INTO FI_HR_VACATION_DETAIL
+(
+  COMP_CD
+ ,CRTN_YYMM
+ ,CHC_ETC_GBN
+ ,ORG_CD
+ ,SABUN
+ ,VACAT_DAY
+ ,VACAT_GUBUN
+ ,VACAT_TXT
+ ,CRE_DATE
+ ,CRE_USER
+ ,MOD_DATE
+ ,MOD_USER
+) VALUES (
+           #{COMP_CD}
+          ,TO_CHAR(ADD_MONTHS(TO_DATE(#{CRTN_YYMM},'YYYYMM'),+1),'YYYYMM')
+          ,#{ETC_CHC_GBN}
+          ,#{ORG_CD}
+          ,#{SABUN}
+          ,#{VACAT_DAY}
+          ,#{VACAT_GUBUN}
+          ,#{VACAT_TXT} 
+		  ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		  ,#{CRE_USER}
+		  ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		  ,#{MOD_USER}
+         )
+	</insert>
+	
+	<delete id="deleteTravel" parameterType="map">
+--com.bdg.ApmBasicMgt.deleteTravel
+DELETE FROM FI_MISO_BUSIN_TRIP
+ WHERE COMP_CD     = #{SB_COMP_CD}
+   AND CRTN_YYMM   = TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(#{TB_CRTN_YYMM},'-',''),'YYYYMM'),-1),'YYYYMM')
+	</delete>
+	
+	<delete id="deleteVacationH" parameterType="map">
+--com.bdg.ApmBasicMgt.deleteVacationH
+DELETE FROM FI_HR_VACATION_HEAD
+ WHERE COMP_CD     = #{SB_COMP_CD}
+   AND CRTN_YYMM   = TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(#{TB_CRTN_YYMM},'-',''),'YYYYMM'),-1),'YYYYMM')
+	</delete>
+
+	<delete id="deleteVacationD" parameterType="map">
+--com.bdg.ApmBasicMgt.deleteVacationD
+DELETE FROM FI_HR_VACATION_DETAIL
+ WHERE COMP_CD     = #{SB_COMP_CD}
+   AND CRTN_YYMM   = TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(#{TB_CRTN_YYMM},'-',''),'YYYYMM'),-1),'YYYYMM')
+	</delete>
+	
+	<select id="chkChcEtcGubn" parameterType="Map" resultType="Map">
+	--com.bdg.VacationMgmt.chkChcEtcGubn
+SELECT PRIOR_ORG ETC_CHC_GBN
+  FROM DEPT
+ WHERE DEPT_CD = (
+                  SELECT DEPT_CD ORG_CD
+                    FROM SYS_USER
+                   WHERE USER_ID = #{SABUN}
+                 )
+   AND SDATE   = (
+                  SELECT MAX(SDATE)
+                    FROM DEPT
+                   WHERE DEPT_CD = (
+                                    SELECT DEPT_CD
+                                      FROM SYS_USER
+                                     WHERE USER_ID = #{SABUN}
+                                   )
+                 )
+	</select>
+	
+    <insert id="confirmVacation" parameterType="Map">
+		--com.bdg.VacationMgmt.confirmVacation
+    <![CDATA[
+INSERT INTO FI_SEND_BUSIN_TRIP
+SELECT A.COMP_CD                                                                                              COMP_CD     -- 회사코드
+      ,A.CRTN_YYMM                                                                                            CRTN_YYMM   -- 기준년월
+      ,A.CHC_ETC_GBN                                                                                          CHC_ETC_GBN -- CHC/ETC구분
+      ,A.ORG_CD                                                                                               ORG_CD      -- 부서코드
+      ,A.SABUN                                                                                                SABUN       -- 사번
+      ,A.TRANS_AMT                                                                                            TRANS_AMT   -- 교통비
+      ,A.TRAVEL_AMT                                                                                           TRAVEL_AMT  -- 출장비
+      ,A.ROOM_AMT                                                                                             ROOM_AMT    -- 숙박비
+      ,ROUND(
+             (
+              NVL(A.TRANS_AMT ,0)
+             +NVL(A.TRAVEL_AMT,0)
+             +NVL(A.ROOM_AMT  ,0)
+             ) * (NVL(B.VACAT_NUM,0) + NVL(C.CNT,0)) / NVL(A.TRANS_CNT,0)
+            )                                                                                                 EXCEPT_AMT  -- 차감액
+      ,CASE WHEN (
+                  (
+                    A.TRANS_AMT   -- 교통비
+                   +A.TRAVEL_AMT  -- 출장비
+                   +A.ROOM_AMT    -- 숙박비
+                   ) - ROUND (
+                              (
+                               NVL(A.TRANS_AMT ,0)
+                              +NVL(A.TRAVEL_AMT,0)
+                              +NVL(A.ROOM_AMT  ,0)
+                              ) * NVL(B.VACAT_NUM,0) / (NVL(A.TRANS_CNT,0) + NVL(C.CNT,0))
+                             )
+                 ) <= 0  THEN                                                                    0 
+                         ELSE (
+                                A.TRANS_AMT   -- 교통비
+                               +A.TRAVEL_AMT  -- 출장비
+                               +A.ROOM_AMT    -- 숙박비
+                               ) - ROUND (
+                                          (
+                                           NVL(A.TRANS_AMT ,0)
+                                          +NVL(A.TRAVEL_AMT,0)
+                                          +NVL(A.ROOM_AMT  ,0)
+                                          ) * (NVL(B.VACAT_NUM,0) + NVL(C.CNT,0)) / (NVL(A.TRANS_CNT,0))
+                                         ) 
+       END                                                                                                    SEND_AMT     -- 송금액
+      ,'N'                                                                                                    SAP_SEND_YN  
+      ,NULL                                                                                                   LEGACYNO
+      ,NULL                                                                                                   SAP_SEND_YMD
+	  ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+	  ,#{CRE_USER}
+  FROM FI_MISO_BUSIN_TRIP A
+      LEFT OUTER JOIN
+       FI_HR_VACATION_HEAD B
+      ON    B.COMP_CD     = A.COMP_CD
+        AND B.CRTN_YYMM   = A.CRTN_YYMM
+        AND B.CHC_ETC_GBN = A.CHC_ETC_GBN
+        AND B.ORG_CD      = A.ORG_CD
+        AND B.SABUN       = A.SABUN
+      LEFT OUTER JOIN
+      (
+       SELECT COMP_CD    
+             ,CRTN_YYMM  
+             ,CHC_ETC_GBN
+             ,ORG_CD     
+             ,SABUN
+             ,COUNT(0) CNT
+         FROM FI_BUSINESS_MGMT
+        GROUP BY COMP_CD    
+                ,CRTN_YYMM  
+                ,CHC_ETC_GBN
+                ,ORG_CD     
+                ,SABUN      
+      )  C
+      ON    C.COMP_CD     = A.COMP_CD
+        AND C.CRTN_YYMM   = A.CRTN_YYMM
+        AND C.CHC_ETC_GBN = A.CHC_ETC_GBN
+        AND C.ORG_CD      = A.ORG_CD
+        AND C.SABUN       = A.SABUN
+
+	]]>
+ WHERE A.COMP_CD   = #{SB_COMP_CD}
+   AND A.CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+	</insert>
+	
+	<delete id="deleteSendTrip" parameterType="map">
+--com.bdg.ApmBasicMgt.deleteSendTrip
+DELETE FROM FI_SEND_BUSIN_TRIP
+ WHERE COMP_CD   = #{SB_COMP_CD}
+   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+	</delete>	
+	
+</mapper>

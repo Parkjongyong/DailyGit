@@ -1,0 +1,360 @@
+<%@ page language="java" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.app.ildong.common.util.StringUtil"%>
+<%@page import="com.app.ildong.common.util.StringUtilEx"%>
+<%@page import="com.app.ildong.common.util.PropertiesUtil"%>
+<%@ taglib prefix="c"       uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring"  uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"     uri="http://www.springframework.org/tags"%>
+<%
+/*******************************************************************/
+// 결재폼.
+/*******************************************************************/
+String URL_IN = PropertiesUtil.getProperty("HTTP.SERVER.URL.IN");
+request.setAttribute("URL_IN" ,  URL_IN);
+/*******************************************************************
+  httpclient 호출로 파라미터 전송시 object 전송 불가
+  list,map => json string 유형으로 변환 전송 됨
+  json string 유형 데이터를 jstl 사용 가능하도록 object로 변경
+*******************************************************************/
+String VND_INFO = request.getParameter("vndInfo");
+String VND_REQ_INFO = request.getParameter("vndReqInfo");
+String CREDIT_INFO = request.getParameter("creditInfo");
+String SG_LIST  = request.getParameter("sgList");
+
+request.setAttribute("VND_INFO" ,  com.app.ildong.common.util.JsonUtil.getMapFromJsonString(VND_INFO)); //MAP
+request.setAttribute("VND_REQ_INFO" ,  com.app.ildong.common.util.JsonUtil.getMapFromJsonString(VND_REQ_INFO)); //MAP
+request.setAttribute("CREDIT_INFO" ,  com.app.ildong.common.util.JsonUtil.getMapFromJsonString(CREDIT_INFO)); //MAP
+request.setAttribute("SG_LIST" ,   com.app.ildong.common.util.JsonUtil.getListFromJsonString(SG_LIST)); //LISTMAP
+request.setAttribute("serverUrlIn" ,  com.app.ildong.common.util.PropertiesUtil.getProperty("HTTP.SERVER.URL.IN"));
+
+//첨부파일
+String FILE_LIST       = request.getParameter("fileList");
+request.setAttribute("FILE_LIST" ,  com.app.ildong.common.util.JsonUtil.getListFromJsonString(FILE_LIST)); //LISTMAP
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_reset.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_common.css'/>" rel="stylesheet"/>
+<!-- jquery -->
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-1.12.3/jquery-1.12.3.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/attach.js'/>"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	//fnInitFileUpload();
+
+	//전자결재 페이지에서 창에 높이 확인 가능하도록 수정
+    document.domain="parucnc.com";
+    //전자결재 부모창으로 높이 전송
+    var maxHeight = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight,document.documentElement.offsetHeight);
+    window.parent.postMessage(maxHeight, '*');	
+	
+});
+
+</script>
+</head>
+<body>
+    <div class="pop-wrap">
+        <div class="pop-cont link">
+            <div class="section1 scrolls">
+                <div class="sub-tit first" id="section1">
+                    <h4>기본정보</h4>
+                </div>
+                <table  id="basicInfo" class="table-style">
+                    <colgroup>
+                        <col style="width: 15%;">
+                        <col>
+                        <col style="width: 15%;">
+                        <col>
+                    </colgroup>
+                    <tbody>
+	                    <tr>
+	                        <!-- 사업자등록번호 -->
+	                        <th class="center">사업자등록번호</th>
+	                        <td>${VND_INFO.POBUSI_REG_NO}</td>
+	                        <!-- BP명 -->
+	                        <th class="center">BP명</th>
+	                        <td>${VND_INFO.POBUSI_NM}</td>
+	                    </tr>
+	                    
+	                    <tr>
+	                        <!-- 대표자성명 -->
+	                        <th class="center">대표자성명</th>
+	                        <td>${VND_INFO.REPRE_NM }</td>
+	                        
+	                        <!-- 대표자 전화번호 -->
+	                        <th class="center">대표자 전화번호</th>
+	                        <td>${VND_INFO.CEO_PHN_NO }</td>
+	                    </tr>
+	                    
+	                    <tr>
+	                        <!-- 대표자 이메일 -->
+	                        <th class="center">대표자 이메일</th>
+	                        <td>${VND_INFO.CEO_EMAIL }</td>
+	                        
+	                        <!-- 기업규모 -->
+	                        <th class="center">기업규모</th>
+	                        <td>
+	                            <select id='BIZ_SIZE_NM' disabled="disabled">
+	                                <option value="">${VND_INFO.BIZ_SIZE_NM }</option>
+	                            </select>
+	                        </td>
+	                    </tr>
+	                    <tr>
+	                        <!-- 설립일 -->
+	                        <th class="center">설립일</th>
+	                        <td>${VND_INFO.FOUND_DATE }</td>
+	                        
+	                        <!-- 홈페이지 -->
+	                        <th class="center">홈페이지</th>
+	                        <td>${VND_INFO.HOMEPAGE }</td>
+	                    </tr>
+	                    
+	                    <tr>
+	                        <!-- 대표전화번호 -->
+	                        <th class="center">대표전화번호</th>
+	                        <td>${VND_INFO.REPRE_PHN_NO }</td>
+	                        
+	                        <!-- 팩스번호 -->
+	                        <th class="center">팩스번호</th>
+	                        <td>${VND_INFO.REPRE_FAX_NO }</td>
+	                    </tr>
+	                    
+	                    <tr>
+	                        <!-- 주소 -->
+	                        <th class="center">주소</th>
+	                        <td colspan="3">
+	                            (${VND_INFO.POST_NO })&nbsp;&nbsp;
+	                            ${VND_INFO.LINK_ADDR_1 } &nbsp; ${VND_INFO.LINK_ADDR_2 }
+	                        </td>
+	                    </tr>
+	                    
+	                    <tr>
+	                        <!-- 업태 -->
+	                        <th class="center">업태</th>
+	                        <td>${VND_INFO.BUSICDT }</td>
+	                        
+	                        <!-- 업종 -->
+	                        <th class="center">업종</th>
+	                        <td>${VND_INFO.IND }</td>
+	                    </tr>
+	                    
+	                    <tr>
+	                        <!-- 주요거래품목 or 주요취급품목 -->
+	                        <th class="center">주요취급품목</th>
+	                        <td>${VND_INFO.MAIN_DEAL_ITEM }</td>
+	                        
+	                        <!-- 사업유형 -->
+	                        <th class="center">사업유형</th>
+	                        <td>
+	                            <!-- 제조사, 대리점, 송장제시인 -->
+	                            <input type="checkbox" id="MAKER_YN" name="MAKER" ${VND_INFO.MAKER_YN=="Y"?"checked='checked'":""} disabled>
+	                            <label for="MAKER_YN">제조사&nbsp;&nbsp;</label>
+	                            <input type="checkbox" id="AGENCY_YN" name="AGENCY_YN" ${VND_INFO.AGENCY_YN=="Y"?"checked='checked'":""} disabled>
+	                            <label for="AGENCY_YN">대리점&nbsp;&nbsp;</label>
+	                            <input type="checkbox" id="DSTR_YN" name="DSTR_YN" ${VND_INFO.DSTR_YN=="Y"?"checked='checked'":""} disabled>
+	                            <label for="DSTR_YN">송장제시인&nbsp;&nbsp;</label>
+	                        </td>
+	                    </tr>
+	                    
+	                    <tr>
+	                        <!-- 특수관계여부 -->
+	                        <th class="center">특수관계여부</th>
+	                        <td>
+	                            <input type="radio" id="SPECIAL_RELA_YN01" name=SPECIAL_RELA_YN value="Y" ${VND_INFO.SPECIAL_RELA_YN=="Y"?"checked='checked'":""} disabled> 
+	                            <label for="SPECIAL_RELA_YN01">Yes&nbsp;&nbsp;</label>
+	                            <input type="radio" id="SPECIAL_RELA_YN02" name="SPECIAL_RELA_YN" value="N" ${VND_INFO.SPECIAL_RELA_YN=="N"?"checked='checked'":""} disabled>
+	                            <label for="SPECIAL_RELA_YN02">No</label> 
+	                        </td>
+	                        <!-- 계약체결여부 -->
+                            <th class="center">계약체결여부</th>
+                            <td>
+                                <input type="checkbox" id="ST_CON_YN" name="ST_CON_YN" ${VND_REQ_INFO.ST_CON_YN=="Y"?"checked='checked'":""} disabled>
+                                <label for="ST_CON_YN">표준계약체결&nbsp;&nbsp;</label>
+                                <input type="checkbox" id="SUB_CONS_YN" name="SUB_CONS_YN" ${VND_REQ_INFO.SUB_CONS_YN=="Y"?"checked='checked'":""} disabled>
+                                <label for="SUB_CONS_YN">하도급체결&nbsp;&nbsp;</label>
+                            </td>
+	                    </tr>
+	                    
+	                    <tr>
+                            <!-- 계약체결여부 -->
+                            <th class="center">기타 업체관리</th>
+                            <td>
+                                <input type="checkbox" id="AGENT_YN" name="AGENT_YN" ${VND_REQ_INFO.AGENT_YN=="Y"?"checked='checked'":""} disabled>
+                                <label for="AGENT_YN">Agent 여부&nbsp;&nbsp;</label>
+                            </td>
+                            <th>&nbsp;</th>
+                            <td>&nbsp;</td>
+                        </tr>
+	                </tbody>
+                </table>
+                <div class="sub-tit">
+	                <h4>등록요청 개요</h4>
+	            </div>
+                <table class="table-style">
+                    <tbody>
+                        <tr>
+                            <td colspan="4">
+                                <pre>${VND_REQ_INFO.REQ_REASON}</pre>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+	            
+            </div>
+
+            <div class="section3 scrolls">
+                <div class="sub-tit"  id="section3">
+                    <h4>등록심사 정보</h4>
+                </div>
+                <div>
+                    <table class="table-style">
+                        <colgroup>
+            				<col style="width: 15%;">
+	                        <col>
+	                        <col style="width: 15%;">
+	                        <col>
+        				</colgroup>
+                        <tbody>
+                            <tr>
+                                <th style="text-align: left;">등록유형</th>
+                                <td>${VND_REQ_INFO.REG_TYPE_NM}</td>
+                                <th style="text-align: left;">이전 등록유형</th>
+                                <td>${VND_REQ_INFO.PRE_REG_TYPE_NM}</td>
+                            </tr>
+                            <tr>
+                                <th style="text-align: left;">심사부서</th>
+                                <td>${VND_REQ_INFO.SCR_DEPT_NM}</td>
+                                <th style="text-align: left;">심사담당자</th>
+                                <td>${VND_REQ_INFO.SCR_USER_NM}</td>
+                            </tr>
+                            <tr>
+                                <th style="text-align: left;">구매부서</th>
+                                <td>${VND_REQ_INFO.PER_DEPT_NM}</td>
+                                <th style="text-align: left;">구매담당자</th>
+                                <td>${VND_REQ_INFO.PER_USER_NM}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <c:if test="${!empty SG_LIST}">
+	            <div class="section4 scrolls">
+		            <div class="sub-tit"  id="section4">
+		                <h4>거래영역</h4>
+		            </div>
+		            <div>
+	                    <table class="table-style">
+	                        <colgroup>
+	                            <col style="width:5%">
+	                            <col style="width:10%">
+	                            <col style="width:10%">
+	                            <col style="width:20%">
+	                            <col>
+	                            <col>
+	                        </colgroup>
+	                        <thead>
+	                            <tr>
+	                                <th>No</th>
+	                                <th>SG Level1</th>
+	                                <th>SG Level2</th>
+	                                <th>SG Level3</th>
+	                                <th>SG Level4</th>
+	                                <th>주요취급품목</th>
+	                            </tr>
+	                        </thead>
+	                        <tbody>
+	                            <c:forEach var="SG" items="${SG_LIST}" varStatus="status">
+	                            <tr>
+	                                <td style="text-align: center;">${SG.RNUM}</td>
+	                                <td align="left">${SG.SRC_LVL1_NM}</td>
+	                                <td align="left">${SG.SRC_LVL2_NM}</td>
+	                                <td align="left">${SG.SRC_LVL3_NM}</td>
+	                                <td align="left">${SG.SRC_LVL4_NM}</td>
+	                                <td align="left">${SG.MAIN_DEAL_ITEM}</td>
+	                            </tr>
+	                            </c:forEach>
+	                        </tbody>
+	                    </table>
+	                </div>
+		        </div>
+	        </c:if>
+	        
+	        <c:if test="${!empty CREDIT_INFO}">
+		        <div class="section5 scrolls">
+	                <div class="sub-tit"  id="section5">
+	                    <h4>신용평가 정보</h4>
+	                </div>
+	                <div>
+	                    <table class="table-style">
+				            <colgroup>
+				                <col>
+				                <col>
+				                <col>
+				                <col>
+				            </colgroup>
+				             <thead>
+	                            <tr>
+	                                <!-- 신용평가기관 -->
+	                                <th class="center">신용평가기관</th>
+	                                <!-- 신용평가등급 -->
+	                                <th class="center">신용평가등급</th>
+	                                <!-- 현금흐름 -->
+	                                <th class="center">현금흐름</th>
+	                                <!-- 등급 유효기간 -->
+	                                <th class="center">등급 유효기간</th>
+	                            </tr>
+	                        </thead>
+				            <tbody>
+				                <tr>
+				                    <!-- 신용평가기관 -->
+				                    <td align="center">이크레더블</td>
+				                    <!-- 신용평가등급 -->
+				                    <td align="center">${CREDIT_INFO.LASTGRD2}</td>
+				                    <!-- 현금흐름 -->
+				                    <td align="center">${CREDIT_INFO.DECISION}</td>
+				                    <!-- 등급 유효기간 -->
+				                    <td align="center">${CREDIT_INFO.EXPIRE_DATE}</td>
+				                </tr>
+				            </tbody>
+				        </table>
+	                </div>
+	            </div>
+	        </c:if>
+	        <c:if test="${VND_REQ_INFO.APP_SEQ != null and VND_REQ_INFO.APP_SEQ != ''}">
+            <div class="section6 scrolls">
+                <div class="sub-tit" id="section6">
+                    <h4>첨부파일</h4>
+                    <input type="hidden" id="APP_SEQ" name="APP_SEQ" value="${VND_REQ_INFO.APP_SEQ}" />
+                </div>
+
+                <div id="fileUploadTable">
+                    <table class="table-style">
+                        <tbody>
+                            <tr>
+                                <th style="text-align: center;" width="10%">No</th>
+                                <th style="text-align: center;">파일명</th>
+                            </tr>
+                            <c:forEach var="FILE" items="${FILE_LIST}" varStatus="status">
+                            <tr class="F_File_ROW">
+                                <td style="text-align: center;">${status.count}</td>
+                                <td class="t_left">
+                                <a href="${URL_IN}/download.do?APP_SEQ=${FILE.APP_SEQ}&amp;ATTACHMENT_SEQ=${FILE.ATTACHMENT_SEQ}" title="${FILE.FILE_NAME}" style="color:blue;" download="${FILE.FILE_NAME}">${FILE.FILE_NAME}</a></td>
+                                <!-- <td class="t_center">2019-12-12</td>
+                                <td class="t_right">0.06 KB</td> -->
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </c:if>
+        </div>
+        <!-- //popCont -->
+    </div>
+</body>

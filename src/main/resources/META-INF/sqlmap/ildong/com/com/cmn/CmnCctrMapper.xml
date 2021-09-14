@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.cmn.Cctr">
+
+    <select id="selectCctrList" parameterType="Map" resultType="Map">
+	    --com.cmn.Cctr.selectCctrList
+ SELECT A.COMP_CD  COMP_CD
+       ,A.DEPT_CD  ORG_CD
+       ,A.COST_CD  CCTR_CD
+       ,A.DEPT_NM  ORG_NM
+       ,A.COST_NM  CCTR_NM
+   FROM DEPT A
+  WHERE 1=1
+  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND A.COMP_CD   = #{SB_COMP_CD}
+ </if>   
+    AND A.SDATE    = (
+                      SELECT MAX(SDATE)
+                        FROM DEPT B
+                       WHERE B.COMP_CD = A.COMP_CD
+                         AND B.DEPT_CD = A.DEPT_CD
+     <![CDATA[ 
+                         AND B.SDATE    <= TO_CHAR(SYSDATE,'YYYYMMDD')
+     ]]>
+                     )
+   AND COST_CD IS NOT NULL
+ <if test="TB_ORG_NM != null and TB_ORG_NM != ''">
+   AND DEPT_NM LIKE '%' || UPPER(#{TB_ORG_NM}) || '%'
+ </if>   
+ <if test="TB_CCTR_NM != null and TB_CCTR_NM != ''">
+   AND COST_NM LIKE '%' || UPPER(#{TB_CCTR_NM}) || '%'
+ </if>   
+UNION ALL
+SELECT COMP_CD
+      ,ORG_CD
+      ,CCTR_CD
+      ,ORG_NM
+      ,CCTR_NM
+  FROM CO_CCTR_MGMT
+ WHERE 1=1
+  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD   = #{SB_COMP_CD}
+ </if>   
+ <if test="TB_ORG_NM != null and TB_ORG_NM != ''">
+   AND ORG_NM LIKE '%' || UPPER(#{TB_ORG_NM}) || '%'
+ </if>    
+ <if test="TB_CCTR_NM != null and TB_CCTR_NM != ''">
+   AND CCTR_NM LIKE '%' || UPPER(#{TB_CCTR_NM}) || '%'
+ </if>    
+   </select>
+   
+	<select id="selectCctrListA" parameterType="Map" resultType="Map">
+	    --com.cmn.Cctr.selectCctrListA
+SELECT A.*
+    	  FROM (
+                SELECT A.DEPT_CD                                                                       AS ORG_CD
+                      ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.DEPT_CD, '')                                    AS ORG_NM
+                      ,FUNC_GET_COST_CODE(A.COMP_CD, A.DEPT_CD, '')                                    AS CCTR_CD
+                      ,FUNC_GET_COST_NAME(A.COMP_CD, FUNC_GET_COST_CODE(A.COMP_CD, A.DEPT_CD, ''), '') AS CCTR_NM
+                      ,A.COMP_CD   			                                                           AS COMP_CD
+                  FROM SYS_USER A
+                 WHERE A.USER_ID =  #{USER_ID} /**P*/
+                
+                UNION ALL
+                
+		        SELECT B.ORG_CD                                                                        AS ORG_CD
+		              ,FUNC_GET_DEPT_NAME(B.COMP_CD, B.ORG_CD, B.CRE_DATE)                             AS ORG_NM
+                      ,FUNC_GET_COST_CODE(B.COMP_CD, B.ORG_CD, '')                                     AS CCTR_CD
+                      ,FUNC_GET_COST_NAME(B.COMP_CD, FUNC_GET_COST_CODE(B.COMP_CD, B.ORG_CD, ''), '')  AS CCTR_NM		              
+		              ,B.COMP_CD   			                                                           AS COMP_CD
+		          FROM FI_USERS_DEPT B
+		         WHERE 1 = 1
+		           AND B.ORG_CD = '1100'
+		           AND B.SABUN  =  #{USER_ID} /**P*/
+		       ) A
+		 ORDER BY CCTR_CD
+   
+	</select>
+	
+	<select id="selectCctrListB" parameterType="Map" resultType="Map">
+	    --com.cmn.Cctr.selectCctrListB
+		SELECT COMP_CD
+		      ,ORG_CD
+		      ,CCTR_CD
+		      ,ORG_NM
+		      ,CCTR_NM
+		  FROM CO_CCTR_MGMT
+		 WHERE 1=1
+		   AND COMP_CD = '1100'
+		   AND ORG_CD  = #{TB_ORG_CD}
+   
+	</select>  	
+   
+</mapper>
+

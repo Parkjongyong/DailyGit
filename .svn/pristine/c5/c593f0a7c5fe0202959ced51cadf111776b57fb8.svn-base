@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.VehicleMgt">
+
+	<select id="selectVehicleMgtList" parameterType="Map" resultType="Map">
+		--com.bdg.VehicleMgt.selectVehicleMgtList
+		SELECT VHCL_NUMBER
+              ,ORG_CD
+              ,ORG_NM
+              ,VHCL_KIND
+              ,SABUN
+              ,FUNC_GET_USER_NAME(SABUN)                         AS SABUN_NM  --사원명
+              ,JIKWEE_NM
+              ,CRE_DATE
+              ,CRE_USER
+              ,MOD_DATE
+              ,MOD_USER
+		      ,'R'                                               AS CRUD        -- 행구분
+		      ,'1'                                               AS CODEMAPPING1
+		      ,'1'                                               AS CODEMAPPING2
+		  FROM FI_VEHICLE_RGST
+		 WHERE 1 = 1
+		<if test="TB_VHCL_NUMBER != null and TB_VHCL_NUMBER != ''">
+		   AND VHCL_NUMBER   = #{TB_VHCL_NUMBER}
+		</if>
+		 ORDER BY VHCL_NUMBER
+	</select>
+	
+    <insert id="insertVehicleMgt" parameterType="Map">
+		--com.bdg.VehicleMgt.insertVehicleMgt
+		INSERT INTO FI_VEHICLE_RGST
+		(
+		 VHCL_NUMBER
+        ,ORG_CD
+        ,ORG_NM
+        ,VHCL_KIND
+        ,SABUN
+        ,JIKWEE_NM
+        ,CRE_DATE
+        ,CRE_USER
+        ,MOD_DATE
+        ,MOD_USER
+		) VALUES (
+		           #{VHCL_NUMBER} 
+		          ,#{ORG_CD}
+		          ,#{ORG_NM}
+		          ,#{VHCL_KIND}
+		          ,#{SABUN}
+		          ,#{JIKWEE_NM}
+		          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		          ,#{CRE_USER}
+		          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		          ,#{MOD_USER}
+		         )
+
+    </insert>
+    
+    <update id="updateVehicleMgt" parameterType="Map">
+		--com.bdg.VehicleMgt.updateAccountMgmt
+		UPDATE FI_VEHICLE_RGST
+		   SET ORG_CD    = #{ORG_CD}   
+              ,ORG_NM    = #{ORG_NM}   
+              ,VHCL_KIND = #{VHCL_KIND}
+              ,SABUN     = #{SABUN}    
+              ,JIKWEE_NM = #{JIKWEE_NM}
+              ,MOD_DATE  = TO_CHAR(SYSDATE, 'YYYYMMDD')
+              ,MOD_USER  = #{MOD_USER}
+		 WHERE 1 = 1                                    
+		   AND VHCL_NUMBER = #{VHCL_NUMBER}     
+    </update>
+    
+    <delete id="deleteVehicleMgt" parameterType="Map">
+		--com.bdg.VehicleMgt.deleteVehicleMgt
+		DELETE FROM FI_VEHICLE_RGST
+		 WHERE 1 = 1                                    
+		   AND VHCL_NUMBER = #{VHCL_NUMBER}     
+    </delete>
+    
+	<select id="selectVehicleOpList" parameterType="Map" resultType="Map">
+		--com.bdg.VehicleMgt.selectVehicleOpList
+		SELECT A.*
+		      ,CASE WHEN RNUM = 1 THEN 'Y'
+		            ELSE 'N'
+		       END RCHK
+		  FROM (
+		        SELECT VHCL_NUMBER
+                      ,CRTN_YMD
+                      ,VHCL_RRE_DST
+                      ,VHCL_FNS_DST
+                      ,VHCL_DST
+                      ,VHCL_WORK_DST
+                      ,VHCL_NWRK_DST
+                      ,VHCL_REMK
+                      ,CRE_DATE
+                      ,CRE_USER
+                      ,MOD_DATE
+                      ,MOD_USER
+                      ,'R' AS CRUD
+                      ,ROW_NUMBER() OVER(ORDER BY CRTN_YMD) AS RNUM
+		          FROM FI_VHC_OP_MGMT
+		         WHERE 1=1
+		           AND VHCL_NUMBER = #{TB_VHCL_NUMBER}  
+		           AND CRTN_YMD LIKE #{TB_CRTN_YY} || '%'
+		       ) A
+	</select>
+	
+    <insert id="insertVehicleOp" parameterType="Map">
+		--com.bdg.VehicleMgt.insertVehicleOp
+		INSERT INTO FI_VHC_OP_MGMT
+		(
+		 VHCL_NUMBER
+        ,CRTN_YMD
+        ,VHCL_RRE_DST
+        ,VHCL_FNS_DST
+        ,VHCL_DST
+        ,VHCL_WORK_DST
+        ,VHCL_NWRK_DST
+        ,VHCL_REMK
+        ,CRE_DATE
+        ,CRE_USER
+        ,MOD_DATE
+        ,MOD_USER
+		) VALUES (
+		           #{VHCL_NUMBER}
+                  ,#{CRTN_YMD}
+                  ,#{VHCL_RRE_DST}
+                  ,#{VHCL_FNS_DST}
+                  ,#{VHCL_DST}
+                  ,#{VHCL_WORK_DST}
+                  ,#{VHCL_NWRK_DST}
+                  ,#{VHCL_REMK}
+		          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		          ,#{CRE_USER}
+		          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		          ,#{MOD_USER}
+		         )
+
+    </insert>
+    
+    <update id="updateVehicleOp" parameterType="Map">
+		--com.bdg.VehicleMgt.updateVehicleOp
+		UPDATE FI_VHC_OP_MGMT
+		   SET VHCL_RRE_DST  = #{VHCL_RRE_DST}
+              ,VHCL_FNS_DST  = #{VHCL_FNS_DST}
+              ,VHCL_DST      = #{VHCL_DST}
+              ,VHCL_WORK_DST = #{VHCL_WORK_DST}
+              ,VHCL_NWRK_DST = #{VHCL_NWRK_DST}
+              ,VHCL_REMK     = #{VHCL_REMK}
+              ,MOD_DATE      = TO_CHAR(SYSDATE, 'YYYYMMDD')
+              ,MOD_USER      = #{MOD_USER}
+		 WHERE 1 = 1                                    
+		   AND VHCL_NUMBER = #{VHCL_NUMBER}
+		   AND CRTN_YMD    = #{CRTN_YMD}    
+    </update>
+    
+    <delete id="deleteVehicleOp" parameterType="Map">
+		--com.bdg.VehicleMgt.deleteVehicleOp
+		DELETE FROM FI_VHC_OP_MGMT
+		 WHERE 1 = 1                                    
+		   AND VHCL_NUMBER = #{VHCL_NUMBER} 
+		   AND CRTN_YMD    = #{CRTN_YMD}    
+    </delete>	
+</mapper>

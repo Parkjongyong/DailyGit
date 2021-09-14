@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchAccountNo">
+
+    <insert id="mergeAccountNoData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchAccountNo.mergeAccountNoData
+	    MERGE INTO CO_ACCOUNT_NO A 
+	    USING (
+	        SELECT #{KSTAR} AS ACCOUNT_NO
+                  ,#{KTEXT} AS ACCOUNT_DESC
+	          FROM DUAL
+	          ) B
+	    ON (
+	        A.ACCOUNT_NO = B.ACCOUNT_NO
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.ACCOUNT_DESC = B.ACCOUNT_DESC    
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.ACCOUNT_NO
+	             ,A.ACCOUNT_DESC
+	            ) VALUES ( B.ACCOUNT_NO  
+	                      ,B.ACCOUNT_DESC
+	                     )
+     ]]>
+    </insert>
+</mapper>

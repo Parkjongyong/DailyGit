@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.ConfirmUser">
+
+	<select id="selectConfirmUserList" parameterType="Map" resultType="Map">
+--com.wrh.ConfirmUser.selectConfirmUserList
+SELECT A.COMP_CD                               COMP_CD         -- 회사    
+      ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD) COMP_NM         -- 회사명  
+      ,A.PLANT_CD                              PLANT_CD        -- 플랜트  
+      ,C.PLANT_NM                              PLANT_NM        -- 플랜트명
+      ,A.STORAGE_CD                            STORAGE_CD      -- 창고
+      ,B.STORAGE_NM                            STORAGE_NM      -- 창고명 
+      ,A.CONFIRM_USER                          CONFIRM_USER    -- 승인자사번
+      ,A.CONFIRM_USER_NM                       CONFIRM_USER_NM -- 승인자명
+      ,'1'                                     RNUM1           
+      ,'1'                                     RNUM2
+      ,A.CRE_DATE                              CRE_DATE       -- 등록일자
+      ,A.CRE_USER                              CRE_USER       -- 등록자ID
+      ,A.MOD_DATE                              MOD_DATE       -- 수정일자
+      ,A.MOD_USER                              MOD_USER       -- 수정자ID
+      ,'R'                                     CRUD 
+  FROM CONFIRM_USER_INFO A
+      LEFT OUTER JOIN
+       STORAGE_INFO B
+      ON    B.COMP_CD    = A.COMP_CD    
+        AND B.PLANT_CD   = A.PLANT_CD
+        AND B.STORAGE_CD = A.STORAGE_CD
+      LEFT OUTER JOIN
+       PLANT_INFO C
+      ON    C.COMP_CD  = A.COMP_CD 
+        AND C.PLANT_CD = A.PLANT_CD 
+  WHERE 1=1
+  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+    AND A.COMP_CD   = #{SB_COMP_CD}
+  </if>
+  ORDER BY COMP_CD
+          ,PLANT_CD
+          ,STORAGE_CD
+          ,CONFIRM_USER
+	</select>
+	
+	
+    <insert id="insertConfirmUser" parameterType="Map">
+--com.wrh.ConfirmUser.insertConfirmUser
+INSERT INTO CONFIRM_USER_INFO (
+       COMP_CD
+      ,PLANT_CD
+      ,STORAGE_CD
+      ,CONFIRM_USER
+      ,CONFIRM_USER_NM
+      ,CRE_DATE
+      ,CRE_USER
+      ,MOD_DATE
+      ,MOD_USER
+      ) VALUES (
+                 #{COMP_CD}
+                ,#{PLANT_CD}
+                ,#{STORAGE_CD}
+                ,#{CONFIRM_USER}
+                ,#{CONFIRM_USER_NM}
+                ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                ,#{CRE_USER}
+                ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                ,#{MOD_USER}
+               )
+    </insert>
+	
+    <delete id="deleteConfirmUser" parameterType="Map">
+--com.wrh.ConfirmUser.deleteConfirmUser
+DELETE FROM CONFIRM_USER_INFO
+ WHERE COMP_CD      = #{COMP_CD}     
+   AND PLANT_CD     = #{PLANT_CD}      
+   AND STORAGE_CD   = #{STORAGE_CD}      
+   AND CONFIRM_USER = #{CONFIRM_USER}
+    </delete>
+</mapper>

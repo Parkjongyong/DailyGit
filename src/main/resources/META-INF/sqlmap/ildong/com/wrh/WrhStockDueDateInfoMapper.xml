@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.StockDueDateInfo">
+
+	<select id="selectStockDueDateInfoList" parameterType="Map" resultType="Map">
+--com.wrh.StockDueDateInfo.selectStockDueDateInfoList
+    SELECT A.DOC_NO                                                                           DOC_NO          -- 문서번호
+          ,A.COMP_CD                                                                          COMP_CD         -- 회사코드
+          ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD)                                            COMP_NM         -- 회사명
+          ,A.PLANT_CODE                                                                       PLANT_CODE      -- 플랜트
+          ,FUNC_GET_PLANT_NAME(A.COMP_CD, A.PLANT_CODE)                                       PLANT_NM        -- 플랜트명
+          ,A.VENDOR_CD                                                                        VENDOR_CD       -- 업체코드
+          ,A.VENDOR_NM                                                                        VENDOR_NM       -- 업체명
+          ,A.LOCATION                                                                         LOCATION        -- 저장위치
+          ,A.LOCATION_TXT                                                                     LOCATION_TXT    -- 저장위치내역
+          ,TO_CHAR(TO_DATE(A.GR_DELY_DATE, 'YYYY-MM-DD'), 'YYYY-MM-DD')                       GR_DELY_DATE    -- 입고예정일
+          ,TO_CHAR(TO_DATE(A.GR_DELY_DATE, 'YYYY-MM-DD'), 'YYYY-MM-DD')                       GR_DELY_DATE_OLD-- 입고예정일
+          ,A.GR_DELY_TIME                                                                     GR_DELY_TIME    -- 입고예정시간
+          ,TO_CHAR(TO_DATE(A.GR_DELY_DATE, 'YYYY-MM-DD'), 'YYYY-MM-DD')
+           ||' '
+           ||SUBSTR(A.GR_DELY_TIME,0,2)
+           ||':'
+           ||SUBSTR(A.GR_DELY_TIME,3,5)   GR_DATE_TIME    -- 입고예정일시
+          ,A.GR_PERSON_NAME                                                                   GR_PERSON_NAME  -- 입고담당자
+          ,A.GR_PERSON_TEL                                                                    GR_PERSON_TEL   -- 입고담당자 연락처
+          ,A.VENDOR_DOC_TXT                                                                   VENDOR_DOC_TXT  -- 업체비고
+          ,A.APPROVE_DOC_TXT                                                                  APPROVE_DOC_TXT -- 승인자 COMMENT
+          ,A.DOC_STATUS                                                                       DOC_STATUS      -- 진행상태
+          ,A.LOC_RETURN_DESC                                                                  LOC_RETURN_DESC -- 물류반려사유
+          ,A.ORG_RETURN_DESC                                                                  ORG_RETURN_DESC -- 구매반려사유
+          ,A.PO_ORG                                                                           PO_ORG          -- 구매조직(구매그룹)
+          ,A.PO_ORG_NM                                                                        PO_ORG_NM       -- 구매그룹명
+          ,A.IMP_MAT_YN                                                                       IMP_MAT_YN      -- 중요자재여부
+          ,A.CRE_DATE                                                                         CRE_DATE        -- 등록일자
+          ,A.CRE_USER                                                                         CRE_USER        -- 등록자ID
+          ,A.MOD_DATE                                                                         MOD_DATE        -- 수정일자
+          ,A.MOD_USER                                                                         MOD_USER        -- 수정자ID
+          ,'R'             CRUD
+      FROM GR_DELIVERY_HEAD A
+   <![CDATA[
+   WHERE 1 = 1
+   ]]>
+  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+    AND A.COMP_CD = #{SB_COMP_CD}
+  </if>
+  <if test="SB_PLANT_CD != null and SB_PLANT_CD != ''">
+    AND A.PLANT_CODE = #{SB_PLANT_CD}
+  </if>
+  <if test="SB_STORAGE_CD != null and SB_STORAGE_CD != ''">
+    AND A.LOCATION = #{SB_STORAGE_CD}
+  </if>
+    AND A.VENDOR_CD = #{TB_VENDOR_CD}
+  <if test="TB_START_DATE != null and TB_START_DATE != ''">
+  <![CDATA[
+    AND A.GR_DELY_DATE >= REPLACE(#{TB_START_DATE},'-','')
+   ]]>
+  </if>
+  <if test="TB_END_DATE != null and TB_END_DATE != ''">
+  <![CDATA[
+    AND A.GR_DELY_DATE <= REPLACE(#{TB_END_DATE},'-','')
+   ]]>
+  </if>
+  <if test="TB_DOC_NO != null and TB_DOC_NO != ''">
+    AND A.DOC_NO LIKE '%' || #{TB_DOC_NO} || '%'
+  </if>
+  <if test="SB_STAT_CD != null and SB_STAT_CD != ''">
+    AND A.DOC_STATUS = #{SB_STAT_CD}
+  </if>
+  ORDER BY A.DOC_NO DESC
+  </select>
+  
+	<select id="selectDueDateInfo" parameterType="Map" resultType="Map">
+--com.wrh.StockDueDateInfo.selectDueDateInfo
+    SELECT A.DOC_NO                                                                           DOC_NO          -- 문서번호
+          ,A.COMP_CD                                                                          COMP_CD         -- 회사코드
+          ,A.PLANT_CODE                                                                       PLANT_CODE      -- 플랜트
+          ,A.VENDOR_CD                                                                        VENDOR_CD       -- 업체코드
+          ,A.VENDOR_NM                                                                        VENDOR_NM       -- 업체명
+          ,A.LOCATION_TXT                                                                     LOCATION_TXT    -- 저장위치내역
+          ,TO_CHAR(TO_DATE(A.GR_DELY_DATE, 'YYYY-MM-DD'), 'YYYY-MM-DD')
+           ||' '
+           ||SUBSTR(A.GR_DELY_TIME,0,2)
+           ||':'
+           ||SUBSTR(A.GR_DELY_TIME,3,5)   GR_DATE_TIME    -- 입고예정일시
+          ,A.GR_PERSON_NAME                                                                   GR_PERSON_NAME  -- 입고담당자
+          ,A.GR_PERSON_TEL                                                                    GR_PERSON_TEL   -- 입고담당자 연락처
+          ,A.APPROVE_DOC_TXT                                                                  APPROVE_DOC_TXT -- 승인자 COMMENT
+          ,B.PO_NUMBER
+          ,B.PO_SEQ
+          ,B.MAT_NUMBER
+          ,B.MAT_DESC
+          ,B.UNIT_MEASURE
+          ,B.CURR_CD
+          ,B.PO_ITEM_QTY
+          ,B.ADD_GR_QTY
+          ,B.NON_PAY_QTY
+          ,B.ITEM_QTY
+          ,B.UNIT_PRICE
+          ,B.PRODUCT_NO
+          ,B.PRODUCT_TXT
+          ,B.MAKER_LOT_NO
+          ,B.MAKER_DATE
+          ,B.USE_BY_DATE
+          ,B.BOX_WEIGHT
+          ,B.PRODUCT_WEIGHT
+          ,B.W_D_H
+          ,B.MINI_EXP_PER
+          ,B.INV_PERCENT
+          ,B.INV_ITEM_QTY
+          ,B.RD_DATE
+          ,B.RD_TIME
+          ,B.BOX_QTY
+          ,B.AREA_QTY
+          ,B.HEIGH_QTY
+          ,B.PLT_QTY
+          ,B.UNIT_PER_MEASURE
+      FROM GR_DELIVERY_HEAD A
+          LEFT OUTER JOIN
+           GR_DELIVERY_ITEM B
+          ON B.DOC_NO = A.DOC_NO
+     WHERE 1 = 1
+       AND A.COMP_CD = #{COMP_CD}
+       AND A.DOC_NO  = #{DOC_NO}
+       
+  ORDER BY B.DOC_SEQ DESC
+  </select>  
+  
+    <update id="updateDeliveryHeadStatus" parameterType="Map">
+	--com.wrh.StockDueDateInfo.updateDeliveryHeadStatus
+	UPDATE GR_DELIVERY_HEAD
+	   SET DOC_STATUS     = #{DOC_STATUS}
+	      ,GR_DELY_DATE   = REPLACE(#{GR_DELY_DATE}, '-', '')
+	      ,GR_DELY_TIME   = REPLACE(#{GR_DELY_TIME}, ':', '')                  
+	      ,MOD_DATE       = TO_CHAR(SYSDATE,'YYYYMMDD') 
+	      ,MOD_USER       = #{MOD_USER}                  
+	 WHERE DOC_NO         = #{DOC_NO} 
+    </update>
+    
+    <delete id="delDeliveryHead" parameterType="Map">
+--com.wrh.StockDueDateInfo.delDeliveryHead
+DELETE FROM GR_DELIVERY_HEAD
+ WHERE DOC_NO  = #{DOC_NO}   
+    </delete>       
+    
+    <delete id="delDeliveryItem" parameterType="Map">
+--com.wrh.StockDueDateInfo.deleteDeliveryItem
+DELETE FROM GR_DELIVERY_ITEM
+ WHERE DOC_NO  = #{DOC_NO}   
+    </delete>       
+  
+
+	<select id="selectAccountInfoList" parameterType="Map" resultType="Map">
+--com.wrh.StockDueDateInfo.selectAccountInfoList
+SELECT DOC_NO           -- 문서번호
+      ,DOC_SEQ          -- 문서일련번호
+      ,PO_NUMBER        -- 발주번호
+      ,PO_SEQ           -- 발주항번
+      ,MAT_NUMBER       -- 자재코드
+      ,MAT_DESC         -- 구매품목내역
+      ,UNIT_MEASURE     -- 단위
+      ,CURR_CD          -- 화폐단위
+      ,TO_CHAR(PO_ITEM_QTY, 'FM9,999,999,999')  AS PO_ITEM_QTY     -- 발주수량
+      ,ADD_GR_QTY       -- 누적입고수량
+      ,NON_PAY_QTY      -- 미납수량
+      ,ITEM_QTY         -- 입고수량(납품수량)
+      ,TO_CHAR(UNIT_PRICE, 'FM9,999,999,999')   AS UNIT_PRICE      -- ITEM단가
+      ,PRODUCT_NO       -- 제품코드
+      ,PRODUCT_TXT      -- 제품명
+      ,MAKER_LOT_NO     -- 로트번호
+      ,MAKER_DATE       -- 제조일자
+      ,USE_BY_DATE      -- 유효일자
+      ,BOX_WEIGHT       -- 박스중량
+      ,PRODUCT_WEIGHT   -- 제품중량
+      ,W_D_H            -- 가로*세로*높이
+      ,MINI_EXP_PER     -- 최저잔존수명
+      ,INV_PERCENT      -- 초과납품 허용한도
+      ,INV_ITEM_QTY     -- 초과납품가능수량
+      ,RD_DATE          -- 납기일자 (EKET-EINDT)
+      ,RD_TIME          -- 납품시간 (EKET-UZEIT)
+      ,TO_CHAR(BOX_QTY, 'FM9,999,999,999')    AS BOX_QTY       -- 박스입수
+      ,AREA_QTY         -- 배면
+      ,HEIGH_QTY        -- 배단
+      ,CASE WHEN NVL(PLT_QTY, 0) = 0 THEN NULL
+            ELSE TRUNC(ITEM_QTY / PLT_QTY, 1)
+       END  AS PLT_QTY      
+      ,UNIT_PER_MEASURE -- 가격단위
+      ,CRE_DATE         -- 등록일자
+      ,CRE_USER         -- 등록자ID
+      ,MOD_DATE         -- 수정일자
+      ,MOD_USER         -- 수정자ID
+      ,REVLV            -- 표시자재 버전
+      ,TO_CHAR(BOX_SUM, 'FM9,999,999,999')    AS BOX_SUM       -- 박스수량
+      ,TO_CHAR(AMOUNT, 'FM9,999,999,999')     AS AMOUNT        -- 금액
+      ,A_POBUSI_NO      -- 공급받는자 사업자번호
+      ,A_COMP_NM        -- 공급받는자 상호
+      ,A_PRESIDENT_NM   -- 공급받는자 성명
+      ,B_POBUSI_NO      -- 공급자 사업자번호
+      ,B_COMP_NM        -- 공급자 상호
+      ,B_PRESIDENT_NM   -- 공급자 성명
+      ,GR_PERSON_NAME   -- 인수자
+      ,APPROVE_DOC_TXT  -- 승인자 COMMENT
+      ,RNUM
+      ,CNT
+      ,LOCATION_TXT
+      ,GR_DELY_TIME
+      ,GR_PERSON_TEL
+  FROM (
+        SELECT A.DOC_NO                                  DOC_NO           -- 문서번호
+              ,A.DOC_SEQ                                 DOC_SEQ          -- 문서일련번호
+              ,A.PO_NUMBER                               PO_NUMBER        -- 발주번호
+              ,A.PO_SEQ                                  PO_SEQ           -- 발주항번
+              ,A.MAT_NUMBER                              MAT_NUMBER       -- 자재코드
+              ,A.MAT_DESC                                MAT_DESC         -- 구매품목내역
+              ,A.UNIT_MEASURE                            UNIT_MEASURE     -- 단위
+              ,A.CURR_CD                                 CURR_CD          -- 화폐단위
+              ,A.PO_ITEM_QTY                             PO_ITEM_QTY      -- 발주수량
+              ,A.ADD_GR_QTY                              ADD_GR_QTY       -- 누적입고수량
+              ,A.NON_PAY_QTY                             NON_PAY_QTY      -- 미납수량
+              ,A.ITEM_QTY                                ITEM_QTY         -- 입고수량(납품수량)
+              ,A.UNIT_PRICE                              UNIT_PRICE       -- ITEM단가
+              ,A.PRODUCT_NO                              PRODUCT_NO       -- 제품코드
+              ,A.PRODUCT_TXT                             PRODUCT_TXT      -- 제품명
+              ,A.MAKER_LOT_NO                            MAKER_LOT_NO     -- 로트번호
+              ,A.MAKER_DATE                              MAKER_DATE       -- 제조일자
+              ,A.USE_BY_DATE                             USE_BY_DATE      -- 유효일자
+              ,A.BOX_WEIGHT                              BOX_WEIGHT       -- 박스중량
+              ,A.PRODUCT_WEIGHT                          PRODUCT_WEIGHT   -- 제품중량
+              ,A.W_D_H                                   W_D_H            -- 가로*세로*높이
+              ,A.MINI_EXP_PER                            MINI_EXP_PER     -- 최저잔존수명
+              ,A.INV_PERCENT                             INV_PERCENT      -- 초과납품 허용한도
+              ,A.INV_ITEM_QTY                            INV_ITEM_QTY     -- 초과납품가능수량
+              ,A.RD_DATE                                 RD_DATE          -- 납기일자 (EKET-EINDT)
+              ,A.RD_TIME                                 RD_TIME          -- 납품시간 (EKET-UZEIT)
+              ,A.BOX_QTY                                 BOX_QTY          -- 박스입수
+              ,A.AREA_QTY                                AREA_QTY         -- 배면
+              ,A.HEIGH_QTY                               HEIGH_QTY        -- 배단
+              ,A.PLT_QTY                                 PLT_QTY          -- PLT적재수량
+              ,A.UNIT_PER_MEASURE                        UNIT_PER_MEASURE -- 가격단위
+              ,A.CRE_DATE                                CRE_DATE         -- 등록일자
+              ,A.CRE_USER                                CRE_USER         -- 등록자ID
+              ,A.MOD_DATE                                MOD_DATE         -- 수정일자
+              ,A.MOD_USER                                MOD_USER         -- 수정자ID
+              ,C.REVLV                                   REVLV            -- 표시자재 버전
+              ,NVL(CEIL(A.PO_ITEM_QTY / CASE WHEN A.BOX_QTY = 0 THEN NULL ELSE A.BOX_QTY END),0)            BOX_SUM          -- 박스수량 
+              ,NVL(ROUND(A.PO_ITEM_QTY * CASE WHEN A.UNIT_PRICE  = 0 THEN NULL ELSE A.BOX_QTY END, 2),0)    AMOUNT           -- 금액
+              ,D.ATTR03                                  A_POBUSI_NO      -- 공급받는자 사업자번호
+              ,D.CODE_NM                                 A_COMP_NM        -- 공급받는자 상호
+              ,D.ATTR04                                  A_PRESIDENT_NM   -- 공급받는자 성명
+              ,FUNC_FORMAT_BIZ_NO(E.POBUSI_NO)           B_POBUSI_NO      -- 공급자 사업자번호
+              ,E.VENDOR_NM                               B_COMP_NM        -- 공급자 상호
+              ,E.PRESIDENT_NM                            B_PRESIDENT_NM   -- 공급자 성명
+              ,B.GR_PERSON_NAME                          GR_PERSON_NAME   -- 인수자
+              ,B.APPROVE_DOC_TXT                         APPROVE_DOC_TXT  -- 승인자 COMMENT
+              ,ROW_NUMBER() OVER(ORDER BY A.DOC_NO DESC) RNUM
+              ,COUNT(0) OVER()                           CNT
+              ,FUNC_GET_PLANT_NAME(B.COMP_CD,B.PLANT_CODE)||' '|| B.LOCATION_TXT             LOCATION_TXT  -- 입고장소
+              ,FUNC_FORMAT_DATE(B.GR_DELY_DATE) || ' ' || FUNC_FORMAT_TIME(B.GR_DELY_TIME)   GR_DELY_TIME  -- 입고일시
+              ,FUNC_FORMAT_TEL(B.GR_PERSON_TEL)                                              GR_PERSON_TEL -- 연락처
+          FROM GR_DELIVERY_ITEM A
+              LEFT OUTER JOIN
+               GR_DELIVERY_HEAD B
+              ON B.DOC_NO = A.DOC_NO
+              LEFT OUTER JOIN
+               PO_ITEM C
+              ON    C.COMP_CD   = B.COMP_CD
+                AND C.PO_NUMBER = A.PO_NUMBER
+                AND C.PO_SEQ    = A.PO_SEQ
+              LEFT OUTER JOIN
+               COM_CODE D
+              ON    D.CODE     = B.COMP_CD
+                AND D.CODE_GRP = 'SYS001'
+              LEFT OUTER JOIN
+               VENDOR_INFO E
+              ON E.VENDOR_CD = B.VENDOR_CD
+          WHERE A.DOC_NO = #{DOC_NO}
+       ) A
+  WHERE RNUM BETWEEN #{START_NUM} AND #{END_NUM}
+  </select>
+
+</mapper>

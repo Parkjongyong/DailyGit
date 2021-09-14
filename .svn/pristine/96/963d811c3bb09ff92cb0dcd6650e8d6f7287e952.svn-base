@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.TravelCal">
+
+	<select id="selectTravelCal" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.TravelCal.selectTravelCal
+SELECT COMP_CD     
+      ,CRTN_YYMM   
+      ,CHC_ETC_GBN 
+      ,ORG_CD      
+      ,ORG_NM      
+      ,TRANS_AMT   
+      ,TRAVEL_AMT  
+      ,ROOM_AMT    
+      ,EXCEPT_AMT  
+      ,SEND_AMT    
+      ,SAP_SEND_YN 
+      ,LEGACYNO    
+      ,SAP_SEND_YMD
+  FROM (
+        SELECT COMP_CD                                       COMP_CD       -- 회사코드
+              ,CRTN_YYMM                                     CRTN_YYMM     -- 기준년월
+              ,CHC_ETC_GBN                                   CHC_ETC_GBN   -- CHC/ETC구분
+              ,ORG_CD                                        ORG_CD        -- 부서코드
+              ,FUNC_GET_DEPT_NAME(COMP_CD, ORG_CD, '')       ORG_NM        -- 부서명
+              ,SUM(TRANS_AMT)                                TRANS_AMT     -- 교통비
+              ,SUM(TRAVEL_AMT)                               TRAVEL_AMT    -- 출장비
+              ,SUM(ROOM_AMT)                                 ROOM_AMT      -- 숙박비
+              ,SUM(EXCEPT_AMT)                               EXCEPT_AMT    -- 차감액
+              ,SUM(SEND_AMT)                                 SEND_AMT      -- 송금액
+              ,MAX(SAP_SEND_YN)                              SAP_SEND_YN   -- SAP전송여부
+              ,MAX(LEGACYNO)                                 LEGACYNO      -- Legacy 시스템 관리 번호
+              ,MAX(SAP_SEND_YMD)                             SAP_SEND_YMD  -- SAP전송일자
+          FROM FI_SEND_BUSIN_TRIP
+		 WHERE 1=1 
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND COMP_CD = #{SB_COMP_CD}
+		</if>				   
+		<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+		   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+		</if>				   
+		<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+		   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+		</if>				   
+         GROUP BY COMP_CD
+                 ,CRTN_YYMM
+                 ,CHC_ETC_GBN
+                 ,ORG_CD
+        )
+ WHERE SEND_AMT > 0
+	</select>
+	
+	<select id="createPdf" parameterType="Map" resultType="Map">
+		--com.bdg.com.bdg.TravelCal.createPdf
+		SELECT NVL(FUNC_GET_DEPT_NAME(#{SB_COMP_CD}, A.ORG_CD, ''), ' ') ORG_NM        -- 부서명
+		      ,CASE WHEN A.ORG_CD IS NULL AND A.SABUN IS NULL THEN '합계 :'
+		            WHEN A.SABUN IS NULL THEN '소계 :'
+		            ELSE A.SABUN || ' ' || FUNC_GET_USER_NAME(A.SABUN)
+		       END SABUN_NM
+		      ,NVL((SELECT GRADE_CODE || ' ' || GRADE_NAME
+		          FROM SYS_USER
+		         WHERE USER_ID = A.SABUN), ' ')               AS GRADE_NAME
+		      ,TO_CHAR(SUM(A.TRANS_CNT), 'FM9,999,999,999')   AS TRANS_CNT
+		      ,TO_CHAR(SUM(A.TRANS_AMT), 'FM9,999,999,999')   AS TRANS_AMT
+		      ,TO_CHAR(SUM(A.TRAVEL_AMT), 'FM9,999,999,999')  AS TRAVEL_AMT
+		      ,TO_CHAR(SUM(A.ROOM_AMT), 'FM9,999,999,999')    AS ROOM_AMT
+		      ,TO_CHAR(SUM(A.EXCEPT_AMT), 'FM9,999,999,999')  AS EXCEPT_AMT
+		      ,TO_CHAR(SUM(A.SEND_AMT), 'FM9,999,999,999')    AS SEND_AMT
+		 FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY A.ORG_CD, A.SABUN)  AS RNUM
+				      ,A.ORG_CD                                        ORG_CD        -- 부서코드
+				      ,A.SABUN                                         SABUN         -- 사번
+				      ,NVL(B.TRANS_CNT, 0) + NVL(C.CNT, 0)             TRANS_CNT     -- 출장일수
+				      ,A.TRANS_AMT                                     TRANS_AMT     -- 교통비
+				      ,A.TRAVEL_AMT                                    TRAVEL_AMT    -- 출장비
+				      ,A.ROOM_AMT                                      ROOM_AMT      -- 숙박비
+				      ,A.EXCEPT_AMT                                    EXCEPT_AMT    -- 차감액
+				      ,A.SEND_AMT                                      SEND_AMT      -- 송금액
+				  FROM FI_SEND_BUSIN_TRIP A
+				      LEFT OUTER JOIN
+				       FI_MISO_BUSIN_TRIP B
+				      ON    B.COMP_CD     = A.COMP_CD
+				        AND B.CRTN_YYMM   = A.CRTN_YYMM
+				        AND B.CHC_ETC_GBN = A.CHC_ETC_GBN
+				        AND B.ORG_CD      = A.ORG_CD
+				        AND B.SABUN       = A.SABUN
+				      LEFT OUTER JOIN
+				       (
+				         SELECT COMP_CD
+                               ,CRTN_YYMM
+                               ,CHC_ETC_GBN
+                               ,ORG_CD
+                               ,SABUN
+				               ,COUNT(*) CNT
+				           FROM FI_BUSINESS_MGMT
+				          WHERE 1 = 1
+				            AND COMP_CD     = #{SB_COMP_CD}
+				            AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+				            AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+				          GROUP BY COMP_CD
+                                  ,CRTN_YYMM
+                                  ,CHC_ETC_GBN
+                                  ,ORG_CD
+                                  ,SABUN
+				       ) C
+				      ON    C.COMP_CD     = A.COMP_CD
+				        AND C.CRTN_YYMM   = A.CRTN_YYMM
+				        AND C.CHC_ETC_GBN = A.CHC_ETC_GBN
+				        AND C.ORG_CD      = A.ORG_CD
+				        AND C.SABUN       = A.SABUN				       
+				 WHERE 1=1 
+				   AND A.COMP_CD = #{SB_COMP_CD}
+				   AND A.CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+				   AND A.CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+				   AND NVL(A.SEND_AMT, 0) > 0	 
+		      ) A
+	    GROUP BY ROLLUP(A.ORG_CD,A.SABUN)	      
+	</select>	
+	
+
+	<select id="selectSendTravelCalList" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.TravelCal.selectSendTravelCalList
+WITH TMP_ACC AS
+(
+SELECT COMP_CD     
+      ,CRTN_YYMM   
+      ,CHC_ETC_GBN 
+      ,ORG_CD      
+      ,ORG_NM      
+      ,TRANS_AMT   
+      ,TRAVEL_AMT  
+      ,ROOM_AMT    
+      ,EXCEPT_AMT  
+      ,SEND_AMT    
+      ,SAP_SEND_YN 
+      ,LEGACYNO    
+      ,SAP_SEND_YMD
+  FROM (
+        SELECT COMP_CD                                       COMP_CD       -- 회사코드
+              ,CRTN_YYMM                                     CRTN_YYMM     -- 기준년월
+              ,CHC_ETC_GBN                                   CHC_ETC_GBN   -- CHC/ETC구분
+              ,ORG_CD                                        ORG_CD        -- 부서코드
+              ,FUNC_GET_DEPT_NAME(COMP_CD, ORG_CD, '')       ORG_NM        -- 부서명
+              ,SUM(TRANS_AMT)                                TRANS_AMT     -- 교통비
+              ,SUM(TRAVEL_AMT)                               TRAVEL_AMT    -- 출장비
+              ,SUM(ROOM_AMT)                                 ROOM_AMT      -- 숙박비
+              ,SUM(EXCEPT_AMT)                               EXCEPT_AMT    -- 차감액
+              ,SUM(SEND_AMT)                                 SEND_AMT      -- 송금액
+              ,MAX(SAP_SEND_YN)                              SAP_SEND_YN   -- SAP전송여부
+              ,MAX(LEGACYNO)                                 LEGACYNO      -- Legacy 시스템 관리 번호
+              ,MAX(SAP_SEND_YMD)                             SAP_SEND_YMD  -- SAP전송일자
+          FROM FI_SEND_BUSIN_TRIP
+		 WHERE 1=1 
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND COMP_CD = #{SB_COMP_CD}
+		</if>				   
+		<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+		   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+		</if>				   
+		<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+		   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+		</if>				   
+         GROUP BY COMP_CD
+                 ,CRTN_YYMM
+                 ,CHC_ETC_GBN
+                 ,ORG_CD
+        )
+ WHERE SEND_AMT > 0
+)
+SELECT A.COMP_CD                                                                      BUKRS      -- 회사코드	
+      ,A.CRTN_YYMM                                                                    GJAHR      -- 회계년도	
+      ,NULL                                                                           LEGACYNO   -- Legacy 시스템 관리 번호	
+      ,'P'                                                                            ZACTYTYPE  -- 액티비티구분	
+      ,NULL                                                                           STGRD      -- Reason for reversing	
+      ,NULL                                                                           ZREBUDAT   -- 역분개전기일	
+      ,NULL                                                                           ZREVTXT    -- 역분개사유 입력	
+      ,NULL                                                                           ZTRNSFRSEQ -- 전송일련번호	
+      ,TO_CHAR(SYSDATE,'YYYYMMDD')                                                    BLDAT      -- 증빙일	
+      ,TO_CHAR(SYSDATE,'YYYYMMDD')                                                    BUDAT      -- 전기일	
+      ,'BB'                                                                           BLART      -- 전표유형	
+      ,'KRW'                                                                          WAERS      -- 통화	
+      ,#{CRE_USER}                                                                    ZEMPL_CO   -- 작성자사번	
+      ,FUNC_GET_USER_NAME(#{CRE_USER})                                                ZEMPL_DES  -- 작성자이름	
+      ,FUNC_GET_COST_CODE(A.COMP_CD, A.ORG_CD, '')                                    ZCCTR_CO   -- 작성팀코드	
+      ,FUNC_GET_COST_NAME(A.COMP_CD, FUNC_GET_COST_CODE(A.COMP_CD, A.ORG_CD, ''), '') ZCCTR_DES  -- 작성팀명
+      ,A.ORG_CD	                                                                      ORG_CD
+  FROM FI_SEND_BUSIN_TRIP A
+      INNER JOIN
+       TMP_ACC B
+      ON    B.COMP_CD     = A.COMP_CD
+        AND B.CRTN_YYMM   = A.CRTN_YYMM
+        AND B.CHC_ETC_GBN = A.CHC_ETC_GBN
+        AND B.ORG_CD      = A.ORG_CD
+ WHERE A.SEND_AMT > 0        
+	</select>
+	
+	<select id="selectSendTravelCalIndiv" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.TravelCal.selectSendTravelCalIndiv
+    <![CDATA[
+SELECT COMP_CD                            BUKRS    -- 회사코드
+      ,CRTN_YYMM                          GJAHR    -- 회계년도
+      ,NULL                               LEGACYNO -- Legacy 시스템 관리 번호
+      ,NULL                               BUZEI    -- 개별항목번호  R
+      ,NULL                               KOART    -- 계정유형  R
+      ,'H'                                SHKZG    -- 차/대지시자 R
+      ,'0021031010'                       HKONT    -- G/L 계정  R
+      ,SABUN                              KUNNR    -- 고객번호
+      ,SABUN                              LIFNR    -- 공급처번호
+      ,SEND_AMT                           WRBTR    -- 전표통화금액  R
+      ,SEND_AMT                           DRBTR    -- 전표통화금액  R
+      ,NULL                               BUPLA    -- 사업장
+      ,NULL                               MWSKZ    -- 세금코드
+      ,NULL                               MWSTS    -- 세액(현지 통화)
+      ,NULL                               WMWST    -- 세액(전표 통화)
+      ,NULL                               HWBAS    -- 과세 표준액(현지 통화)
+      ,NULL                               FWBAS    -- 과세 표준액(전표 통화)
+      ,NULL                               KOSTL    -- 코스트센터
+      ,NULL                               PROJT    -- WBS 요소 코드
+      ,NULL                               AUFNR    -- I/O
+  FROM FI_SEND_BUSIN_TRIP
+ WHERE 1=1
+   AND SEND_AMT > 0
+ 	]]>
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD = #{SB_COMP_CD}
+</if>				   
+<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+</if>				   
+<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+</if>
+   AND ORG_CD = #{ORG_CD}
+	</select>
+	
+	<select id="selectSendTravelCalDept" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.TravelCal.selectSendTravelCalDept
+    <![CDATA[
+SELECT COMP_CD                                      BUKRS    -- 회사코드
+      ,CRTN_YYMM                                    GJAHR    -- 회계년도
+      ,NULL                                         LEGACYNO -- Legacy 시스템 관리 번호
+      ,NULL                                         BUZEI    -- 개별항목번호  R
+      ,NULL                                         KOART    -- 계정유형  R
+      ,'S'                                          SHKZG    -- 차/대지시자 R
+      ,'0055004030'                                 HKONT    -- G/L 계정  R
+      ,NULL                                         KUNNR    -- 고객번호
+      ,NULL                                         LIFNR    -- 공급처번호
+      ,SUM(SEND_AMT)                                WRBTR    -- 전표통화금액  R
+      ,SUM(SEND_AMT)                                DRBTR    -- 전표통화금액  R
+      ,NULL                                         BUPLA    -- 사업장
+      ,NULL                                         MWSKZ    -- 세금코드
+      ,NULL                                         MWSTS    -- 세액(현지 통화)
+      ,NULL                                         WMWST    -- 세액(전표 통화)
+      ,NULL                                         HWBAS    -- 과세 표준액(현지 통화)
+      ,NULL                                         FWBAS    -- 과세 표준액(전표 통화)
+      ,FUNC_GET_COST_CODE(COMP_CD,ORG_CD, '')       KOSTL    -- 코스트센터
+      ,NULL                                         PROJT    -- WBS 요소 코드
+      ,NULL                                         AUFNR    -- I/O
+  FROM FI_SEND_BUSIN_TRIP
+ WHERE 1=1 
+   AND SEND_AMT > 0
+ 	]]>
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD = #{SB_COMP_CD}
+</if>				   
+<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+</if>				   
+<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+</if>
+   AND ORG_CD = #{ORG_CD}
+ GROUP BY COMP_CD
+         ,CRTN_YYMM
+         ,CHC_ETC_GBN
+         ,ORG_CD
+	</select>
+
+    <update id="updateSendBusin" parameterType="Map">
+	--com.bdg.com.bdg.TravelCal.updateSendBusin
+UPDATE FI_SEND_BUSIN_TRIP
+   SET SAP_SEND_YN  = 'Y'
+      ,LEGACYNO     = #{LEGACYNO}
+      ,SAP_SEND_YMD = TO_CHAR(SYSDATE,'YYYYMMDD')
+ WHERE COMP_CD     = #{SB_COMP_CD}
+   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+    </update>
+
+    <update id="updateSendCancelBusin" parameterType="Map">
+	--com.bdg.com.bdg.TravelCal.updateSendCancelBusin
+UPDATE FI_SEND_BUSIN_TRIP
+   SET SAP_SEND_YN  = 'N'
+      ,LEGACYNO     = NULL
+      ,SAP_SEND_YMD = NULL
+ WHERE COMP_CD     = #{SB_COMP_CD}
+   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+    </update>
+
+	<select id="selectSendCancelTravelCal" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.TravelCal.selectSendCancelTravelCal
+WITH TMP_ACC AS
+(
+SELECT COMP_CD     
+      ,CRTN_YYMM   
+      ,CHC_ETC_GBN 
+      ,ORG_CD      
+      ,ORG_NM      
+      ,TRANS_AMT   
+      ,TRAVEL_AMT  
+      ,ROOM_AMT    
+      ,EXCEPT_AMT  
+      ,SEND_AMT    
+      ,SAP_SEND_YN 
+      ,LEGACYNO    
+      ,SAP_SEND_YMD
+  FROM (
+        SELECT COMP_CD                                       COMP_CD       -- 회사코드
+              ,CRTN_YYMM                                     CRTN_YYMM     -- 기준년월
+              ,CHC_ETC_GBN                                   CHC_ETC_GBN   -- CHC/ETC구분
+              ,ORG_CD                                        ORG_CD        -- 부서코드
+              ,FUNC_GET_DEPT_NAME(COMP_CD, ORG_CD, '')       ORG_NM        -- 부서명
+              ,SUM(TRANS_AMT)                                TRANS_AMT     -- 교통비
+              ,SUM(TRAVEL_AMT)                               TRAVEL_AMT    -- 출장비
+              ,SUM(ROOM_AMT)                                 ROOM_AMT      -- 숙박비
+              ,SUM(EXCEPT_AMT)                               EXCEPT_AMT    -- 차감액
+              ,SUM(SEND_AMT)                                 SEND_AMT      -- 송금액
+              ,MAX(SAP_SEND_YN)                              SAP_SEND_YN   -- SAP전송여부
+              ,MAX(LEGACYNO)                                 LEGACYNO      -- Legacy 시스템 관리 번호
+              ,MAX(SAP_SEND_YMD)                             SAP_SEND_YMD  -- SAP전송일자
+          FROM FI_SEND_BUSIN_TRIP
+		 WHERE 1=1 
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND COMP_CD = #{SB_COMP_CD}
+		</if>				   
+		<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+		   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+		</if>				   
+		<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+		   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+		</if>				   
+         GROUP BY COMP_CD
+                 ,CRTN_YYMM
+                 ,CHC_ETC_GBN
+                 ,ORG_CD
+        )
+ WHERE SEND_AMT > 0
+)
+SELECT A.COMP_CD                                                                BUKRS      -- 회사코드	
+      ,A.CRTN_YYMM                                                              GJAHR      -- 회계년도	
+      ,A.LEGACYNO                                                               LEGACYNO   -- Legacy 시스템 관리 번호	
+      ,'R'                                                                      ZACTYTYPE  -- 액티비티구분	
+      ,'01'                                                                     STGRD      -- Reason for reversing	
+      ,TO_CHAR(SYSDATE,'YYYYMMDD')                                              ZREBUDAT   -- 역분개전기일	
+      ,NULL                                                                     ZREVTXT    -- 역분개사유 입력	
+      ,NULL                                                                     ZTRNSFRSEQ -- 전송일련번호	
+      ,NULL                                                                     BLDAT      -- 증빙일	
+      ,NULL                                                                     BUDAT      -- 전기일	
+      ,'BB'                                                                     BLART      -- 전표유형	
+      ,NULL                                                                     WAERS      -- 통화	
+      ,NULL                                                                     ZEMPL_CO   -- 작성자사번	
+      ,NULL                                                                     ZEMPL_DES  -- 작성자이름	
+      ,NULL                                                                     ZCCTR_CO   -- 작성팀코드	
+      ,NULL                                                                     ZCCTR_DES  -- 작성팀명	
+      ,A.ORG_CD	                                                                ORG_CD
+  FROM FI_SEND_BUSIN_TRIP A
+      INNER JOIN
+       TMP_ACC B
+      ON    B.COMP_CD     = A.COMP_CD
+        AND B.CRTN_YYMM   = A.CRTN_YYMM
+        AND B.CHC_ETC_GBN = A.CHC_ETC_GBN
+        AND B.ORG_CD      = A.ORG_CD			   
+ WHERE A.SAP_SEND_YN = 'Y'
+   AND A.SEND_AMT > 0
+	</select>
+	
+	<select id="selectSendTravelCalFirst" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.TravelCal.selectSendTravelCalFirst
+SELECT #{SB_COMP_CD}                                                                     BUKRS      -- 회사코드	
+      ,REPLACE(#{TB_CRTN_YYMM},'-','')                                                   GJAHR      -- 회계년도	
+      ,#{LEGACYNO}                                                                       LEGACYNO   -- Legacy 시스템 관리 번호	
+      ,'P'                                                                               ZACTYTYPE  -- 액티비티구분	
+      ,NULL                                                                              STGRD      -- Reason for reversing	
+      ,NULL                                                                              ZREBUDAT   -- 역분개전기일	
+      ,NULL                                                                              ZREVTXT    -- 역분개사유 입력	
+      ,NULL                                                                              ZTRNSFRSEQ -- 전송일련번호	
+      ,TO_CHAR(SYSDATE,'YYYYMMDD')                                                       BLDAT      -- 증빙일	
+      ,TO_CHAR(SYSDATE,'YYYYMMDD')                                                       BUDAT      -- 전기일	
+      ,'BB'                                                                              BLART      -- 전표유형	
+      ,'KRW'                                                                             WAERS      -- 통화	
+      ,#{CRE_USER}                                                                       ZEMPL_CO   -- 작성자사번	
+      ,FUNC_GET_USER_NAME(#{CRE_USER})                                                   ZEMPL_DES  -- 작성자이름	
+      ,FUNC_GET_COST_CODE(#{COMP_CD}, #{ORG_CD}, '')                                     ZCCTR_CO   -- 작성팀코드	
+      ,FUNC_GET_COST_NAME(#{COMP_CD}, FUNC_GET_COST_CODE(#{COMP_CD}, #{ORG_CD}, ''), '') ZCCTR_DES  -- 작성팀명
+  FROM DUAL
+	</select>
+	
+	<select id="selectSendCancelTravelCalFirst" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.TravelCal.selectSendCancelTravelCalFirst
+SELECT #{SB_COMP_CD}                                                                     BUKRS      -- 회사코드	
+      ,REPLACE(#{TB_CRTN_YYMM},'-','')                                                   GJAHR      -- 회계년도	
+      ,#{TB_LEGACYNO}                                                                    LEGACYNO   -- Legacy 시스템 관리 번호	
+      ,'R'                                                                               ZACTYTYPE  -- 액티비티구분	
+      ,'01'                                                                              STGRD      -- Reason for reversing	
+      ,NULL                                                                              ZREBUDAT   -- 역분개전기일
+      ,NULL                                                                              ZREVTXT    -- 역분개사유 입력
+      ,NULL                                                                              ZTRNSFRSEQ -- 전송일련번호
+      ,NULL                                                                              BLDAT      -- 증빙일
+      ,NULL                                                                              BUDAT      -- 전기일
+      ,'BB'                                                                              BLART      -- 전표유형	
+      ,NULL                                                                              WAERS      -- 통화	
+      ,NULL                                                                              ZEMPL_CO   -- 작성자사번	
+      ,NULL                                                                              ZEMPL_DES  -- 작성자이름	
+      ,NULL                                                                              ZCCTR_CO   -- 작성팀코드	
+      ,NULL                                                                              ZCCTR_DES  -- 작성팀명
+  FROM DUAL
+	</select>
+	
+	<select id="selectTravelCalDetail" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.TravelCal.selectTravelCalDetail
+SELECT COMP_CD                                       COMP_CD       -- 회사코드
+      ,CRTN_YYMM                                     CRTN_YYMM     -- 기준년월
+      ,CHC_ETC_GBN                                   CHC_ETC_GBN   -- CHC/ETC구분
+      ,ORG_CD                                        ORG_CD        -- 부서코드
+      ,FUNC_GET_DEPT_NAME(COMP_CD, ORG_CD, CRE_DATE) ORG_NM        -- 부서명
+      ,SABUN                                         SABUN         -- 사번
+      ,FUNC_GET_USER_NAME(SABUN)                     SABUN_NM      -- 사원명
+      ,TRANS_AMT                                     TRANS_AMT     -- 교통비
+      ,TRAVEL_AMT                                    TRAVEL_AMT    -- 출장비
+      ,ROOM_AMT                                      ROOM_AMT      -- 숙박비
+      ,EXCEPT_AMT                                    EXCEPT_AMT    -- 차감액
+      ,SEND_AMT                                      SEND_AMT      -- 송금액
+      ,SAP_SEND_YN                                   SAP_SEND_YN   -- SAP전송여부
+      ,LEGACYNO                                      LEGACYNO      -- Legacy 시스템 관리 번호
+      ,SAP_SEND_YMD                                  SAP_SEND_YMD  -- SAP전송일자
+      ,CRE_DATE                                      CRE_DATE      -- 등록일자
+      ,CRE_USER                                      CRE_USER      -- 등록자ID
+  FROM FI_SEND_BUSIN_TRIP
+ WHERE 1=1 
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD = #{SB_COMP_CD}
+</if>				   
+<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+</if>				   
+<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+</if>
+   AND ORG_CD      = #{TB_ORG_CD}
+	</select>
+	
+</mapper>

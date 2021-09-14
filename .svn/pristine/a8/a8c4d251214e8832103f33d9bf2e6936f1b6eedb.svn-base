@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.SysPopupMgmt">
+	
+	<resultMap id="selectPopContentsResultMap" type="Map">
+        <result property="CONTENTS"    column="CONTENTS"    jdbcType="CLOB" javaType="java.lang.String" />
+    </resultMap>
+	
+	
+	<select id="selectSysPopupMgmtList" parameterType="Map" resultMap="selectPopContentsResultMap">
+	--SysPopupMgmtMapper.selectSysPopupMgmtList
+    SELECT COUNT(*) OVER() AS TOT_CNT 
+	     , RNUM
+	     , SEQ
+	     , START_DATE
+	     , END_DATE
+	     , TOP
+	     , LEFT
+		 , WIDTH
+		 , HEIGHT
+		 , SUBJECT
+		 , CONTENTS
+		 , SITE
+		 , DEL_YN
+		 , PRESENT_FLAG
+		 , RNUM AS RNUM2
+	FROM (
+		   SELECT ROWNUM AS RNUM
+	            , B.POPUP_SEQ AS SEQ
+                , B.START_DT AS START_DATE
+                , B.END_DT AS END_DATE
+                , B.TOP
+                , B.LEFT
+                , B.WIDTH
+                , B.HEIGHT
+                , B.SUBJECT
+                , B.CONTENTS
+                , (CASE B.SITE WHEN 'A' THEN '전체'
+			                   WHEN 'I' THEN '내부'
+                               WHEN 'E' THEN '외부'
+		           END) AS SITE
+                , (CASE B.DEL_YN WHEN 'N' THEN '사용'
+		 	                     WHEN 'Y' THEN '미사용'
+		           END) AS DEL_YN
+                , (CASE B.PRESENT_FLAG WHEN 'A' THEN '로그인후'
+			                           WHEN 'B' THEN '로그인전'
+		           END) AS PRESENT_FLAG
+		      FROM SYS_POPUP B
+		      WHERE 1 = 1
+			  
+                <if test="SB_DEL_YN != '' and SB_DEL_YN != null">
+                    AND B.DEL_YN = #{SB_DEL_YN}
+		  	    </if>
+		  	    <if test="SB_SITE != '' and SB_SITE != null">
+		  	       AND B.SITE = #{SB_SITE}
+		  	    </if>
+			    <if test="TB_START_DT != '' and TB_START_DT != null">
+			    <![CDATA[AND B.START_DT >= REPLACE(#{TB_START_DT}, '-', '') || '000000']]>
+			    </if>
+			    <if test="TB_END_DT != '' and TB_END_DT != null">
+			    <![CDATA[AND B.END_DT <= REPLACE(#{TB_END_DT}, '-', '') || '235959']]>
+			    </if>
+		     ORDER BY B.POPUP_SEQ DESC
+	      )
+	WHERE 1 = 1
+	ORDER BY ROWNUM ASC
+	</select>	
+	
+	<insert id="insertPopupMgmt" parameterType="Map" useGeneratedKeys="true" keyProperty="SEQ">
+        <selectKey keyProperty="SEQ" resultType="int">
+            SELECT NVL(MAX(POPUP_SEQ),0) FROM SYS_POPUP
+        </selectKey>
+	
+	--MgtPopupMgmtMapper.insertPopupMgmt
+	INSERT INTO SYS_POPUP
+		      ( POPUP_SEQ
+		      , START_DT
+              , END_DT
+              , TOP
+              , LEFT
+              , WIDTH
+              , HEIGHT
+              , SUBJECT
+              , CONTENTS
+              , SITE
+              , DEL_YN
+              , PRESENT_FLAG
+              , INS_ID
+              , INS_DT
+		      ) VALUES (
+	            ( SELECT NVL(MAX(A.POPUP_SEQ),0)+1 FROM SYS_POPUP A )
+		      , REPLACE(#{TB_START_DT}, '-', '') || #{START_HOUR} || #{START_MIN} || '00'
+		      , REPLACE(#{TB_END_DT}, '-', '') || #{END_HOUR} || #{END_MIN} || '00'
+              , #{TOP}
+              , #{LEFT}
+              , #{WIDTH}
+              , #{HEIGHT}
+              , #{SUBJECT}
+              , #{CONTENTS}
+              , #{SITE}
+              , #{DEL_YN}
+              , #{PRESENT_FLAG}
+              , #{INS_ID}
+              , SYSDATE
+		      )  
+	</insert>
+	
+	<update id="updatePopupMgmt" parameterType="Map">
+	--SysPopupMgmtMapper.updatePopupMgmt
+	UPDATE SYS_POPUP SET
+		  START_DT     = REPLACE(#{TB_START_DT}, '-', '') || #{START_HOUR} || #{START_MIN}|| '00'
+		, END_DT       = REPLACE(#{TB_END_DT}, '-', '') || #{END_HOUR} || #{END_MIN} || '00'
+		, TOP          = #{TOP}
+		, LEFT         = #{LEFT}
+		, WIDTH        = #{WIDTH}
+		, HEIGHT       = #{HEIGHT}
+		, SUBJECT      = #{SUBJECT}
+		, CONTENTS     = #{CONTENTS}
+		, SITE         = #{SITE}
+		, DEL_YN       = #{DEL_YN}
+		, PRESENT_FLAG = #{PRESENT_FLAG}
+		, MOD_ID       = #{MOD_ID}
+		, MOD_DT       = SYSDATE
+	WHERE POPUP_SEQ    = #{SEQ}
+	</update>
+	
+	<select id="selectPopupMgmt" parameterType="Map" resultMap="selectPopContentsResultMap">
+	--MgtPopupMgmtMapper.selectPopupMgmt
+	SELECT POPUP_SEQ AS SEQ
+	     , TO_CHAR(TO_DATE(START_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS START_DATE
+         , TO_CHAR(TO_DATE(START_DT, 'YYYYMMDDHH24MISS'), 'HH24') AS START_HOUR
+         , TO_CHAR(TO_DATE(START_DT, 'YYYYMMDDHH24MISS'), 'MI') AS START_MIN
+         , TO_CHAR(TO_DATE(END_DT, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD') AS END_DATE
+         , TO_CHAR(TO_DATE(END_DT, 'YYYYMMDDHH24MISS'), 'HH24') AS END_HOUR
+         , TO_CHAR(TO_DATE(END_DT, 'YYYYMMDDHH24MISS'), 'MI') AS END_MIN
+	     , TOP
+	     , LEFT
+		 , WIDTH
+		 , HEIGHT
+		 , SUBJECT
+		 , CONTENTS
+		 , SITE
+		 , DEL_YN
+		 , PRESENT_FLAG
+	  FROM SYS_POPUP
+	 WHERE POPUP_SEQ = #{SEQ}
+	</select>
+	
+	<select id="selectMgtPopupMgmtListMain" parameterType="Map" resultType="Map">
+	--MgtPopupMgmtMapper.selectMgtPopupMgmtListMain
+	SELECT
+		 TP.POPUP_SEQ AS SEQ
+		,TP.START_DT AS START_DATE
+		,TP.END_DT   AS END_DATE
+		,TP.TOP
+		,TP.LEFT
+		,TP.WIDTH
+		,TP.HEIGHT
+		,TP.SUBJECT
+		,TP.CONTENTS
+		,TP.SITE
+		,TP.DEL_YN
+		,TP.PRESENT_FLAG
+		
+	FROM SYS_POPUP AS TP
+	WHERE 1=1
+		AND TP.DEL_YN = 'N'
+		AND TP.SITE IN('I', 'A')
+		AND TO_CHAR(SYSDATE ,'%Y%m%d%H%i00') BETWEEN START_DT  and END_DT
+	ORDER BY TP.POPUP_SEQ
+	</select>
+	
+	<select id="selectPopupMgmtMain" parameterType="Map" resultType="Map">
+	--MgtPopupMgmtMapper.selectPopupMgmtMain
+	SELECT
+		 POPUP_SEQ
+		,START_DT AS START_DATE
+		,END_DT   AS END_DATE
+		,TOP
+		,`LEFT`
+		,WIDTH
+		,HEIGHT
+		,SUBJECT
+		,CONTENTS
+		,SITE
+		,DEL_YN
+		,PRESENT_FLAG
+		
+	FROM SYS_POPUP
+	WHERE 1=1
+		AND POPUP_SEQ = #{SEQ}
+	</select>
+
+</mapper>

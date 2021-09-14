@@ -1,0 +1,12 @@
+#jvm argment\uc5d0 \uc124\uc815\ub41c -Dinstance_id=  \uac12\uc744 \uae30\ubc18\uc73c\ub85c \ud30c\uc77c\uc744 \uc120\ud0dd\ud568
+instance_id=dev-was
+
+
+#### JMX
+jmx.port=10099
+jmx.serviceurl=sprout
+
+
+############### LOGGING ###############  
+log.path=C:/LOG
+log.level=ERROR

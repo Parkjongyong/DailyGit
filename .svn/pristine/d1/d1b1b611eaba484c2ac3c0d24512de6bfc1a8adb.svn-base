@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.VendorMgmt">
+
+	<select id="selectVendorMgmtList" parameterType="Map" resultType="Map">
+--com.wrh.VendorMgmt.selectVendorMgmtList
+SELECT A.*
+  FROM (
+        SELECT ROW_NUMBER() OVER(ORDER BY A.VENDOR_CD, A.VENDOR_NM) AS RNUM
+              ,COUNT(A.VENDOR_CD) OVER() AS TOT_CNT
+              ,A.VENDOR_CD
+              ,A.VENDOR_NM
+              ,A.FUND_TYPE
+              ,FUNC_GET_CODE_NAME('IG006', A.FUND_TYPE) FUND_TYPE_NM
+              ,FUNC_FORMAT_BIZ_NO(A.POBUSI_NO)  POBUSI_NO_DSP
+              ,A.POBUSI_NO
+              ,A.CORP_NO
+              ,A.PRESIDENT_NM
+              ,A.BUSS_TYPE
+              ,A.BUSIN
+              ,A.ADDR1
+              ,A.ADDR2
+              ,A.ADDR1 || ' ' || A.ADDR2    AS ADDR 
+              ,A.ZIP_NO
+              ,A.MAIN_EMAIL
+              ,A.MAIN_TELL_NO
+              ,A.MAIN_FAXNO
+              ,A.DEL_YN
+              ,A.CRE_DATE
+              ,A.CRE_USER
+              ,A.MOD_DATE
+              ,A.MOD_USER
+              ,'R'                                     CRUD 
+          FROM VENDOR_INFO A
+          WHERE 1=1
+          <if test="TB_VENDOR_CD != null and TB_VENDOR_CD != ''">
+            AND A.VENDOR_CD LIKE '%'|| #{TB_VENDOR_CD} || '%'
+          </if>
+          <if test="TB_VENDOR_NM != null and TB_VENDOR_NM != ''">
+            AND A.VENDOR_NM LIKE '%'|| #{TB_VENDOR_NM} || '%'
+          </if>
+       ) A
+    <![CDATA[WHERE A.RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 50)]]>  
+	</select>
+	
+    <insert id="initialWhrVendorMgmt" parameterType="Map">
+--com.wrh.VendorMgmt.insertConfirmUser
+UPDATE SYS_USER
+   SET PWD = #{USER_PW}
+      ,PWD_MOD_DT = NULL
+ WHERE COMP_CD = '1100'
+   AND USER_ID = #{POBUSI_NO}  
+    </insert>	
+</mapper>

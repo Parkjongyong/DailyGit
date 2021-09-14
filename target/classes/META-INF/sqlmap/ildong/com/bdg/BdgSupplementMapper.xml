@@ -1,0 +1,765 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.Supplement">
+	<select id="selectSupplement" parameterType="Map" resultType="Map">
+--com.bdg.Supplement.selectSupplement
+SELECT A.COMP_CD                                           COMP_CD          -- 회사코드
+      ,A.CRTN_YMD                                          CRTN_YMD         -- 기준년월일
+      ,A.CCTR_CD                                           CCTR_CD          -- 코스트코드
+      ,FUNC_GET_COST_NAME(A.COMP_CD, A.CCTR_CD, NULL)      CCTR_NM          -- 코스트명
+      ,A.ACCOUNT_NO                                        ACCOUNT_NO       -- 계정코드
+      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                 ACCOUNT_DESC     -- 계정명
+      ,A.PROCESS_TYPE                                      PROCESS_TYPE     -- 등록구분
+      ,A.STATUS                                            STATUS           -- 승인상태
+      ,A.BUGT_BASIC_AMT                                    BUGT_BASIC_AMT   -- 당월기본예산
+      ,A.BUGT_EXEC_AMT                                     BUGT_EXEC_AMT    -- 배정실행예산
+      ,A.BUGT_RESULT_AMT                                   BUGT_RESULT_AMT  -- 현재실적
+      ,A.BUGT_BALANCE_AMT                                  BUGT_BALANCE_AMT -- 실행잔액
+      ,A.REQUEST_AMT                                       REQUEST_AMT      -- 신청금액
+      ,A.REQUEST_DESC                                      REQUEST_DESC     -- 추가예산내역
+      ,A.SAP_SEND_YN                                       SAP_SEND_YN      -- SAP전송여부
+      ,A.CRE_DATE                                          CRE_DATE         -- 등록일자
+      ,A.CRE_USER                                          CRE_USER         -- 등록자ID
+      ,A.MOD_DATE                                          MOD_DATE         -- 수정일자
+      ,A.MOD_USER                                          MOD_USER         -- 수정자ID
+      ,'R'                                                 CRUD
+      ,'1'                                                 CODEMAPPING1 
+      ,'1'                                                 CODEMAPPING2
+  FROM CO_BUGT_SUPPLEMENT A
+ WHERE 1=1
+	<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND A.COMP_CD  = #{SB_COMP_CD}
+ 	</if>
+   	<if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+   AND A.CCTR_CD   = #{SB_CCTR_CD}
+   	</if>
+   	<if test="SB_SAP_SEND_YN != null and SB_SAP_SEND_YN != ''">
+   AND A.SAP_SEND_YN = #{SB_SAP_SEND_YN}
+   	</if>
+   	
+ 	<if test="TB_CRTN_YMD_I != null and TB_CRTN_YMD_I != ''">
+ 	<![CDATA[
+ 	AND A.CRTN_YMD = REPLACE(#{TB_CRTN_YMD_I}, '-', '')
+ 	]]>
+ 	</if>   	
+ 	<if test="TB_START_DT != null and TB_START_DT != ''">
+ 	<![CDATA[
+ 	AND A.CRTN_YMD >= REPLACE(#{TB_START_DT}, '-', '')
+ 	]]>
+ 	</if>
+ 	<if test="TB_END_DT != null and TB_END_DT != ''">
+ 	<![CDATA[
+ 	AND A.CRTN_YMD <= REPLACE(#{TB_END_DT}, '-', '')
+ 	]]>
+ 	</if>
+	 <if test="SB_STATUS_CD != null and SB_STATUS_CD != ''">
+	   AND A.STATUS  = #{SB_STATUS_CD}
+	 </if>      	
+  </select>
+  
+<select id="selectSupplementDetail" parameterType="Map" resultType="Map">
+--com.bdg.Supplement.selectSupplementDetail
+SELECT A.COMP_CD
+      ,A.CRTN_YMD
+      ,A.CCTR_CD
+      ,A.ACCOUNT_NO
+      ,A.PROCESS_TYPE
+      ,A.SEQ_NO
+      ,A.FROM_YMD
+      ,A.TO_YMD
+      ,A.SABUN
+      ,A.NAME
+      ,A.START_POINT
+      ,A.VIA_POINT
+      ,A.DEST_POINT
+      ,A.TRAFFIC_WAY
+      ,FUNC_GET_CODE_NAME('YS037', A.TRAFFIC_WAY) TRAFFIC_WAY_NM
+      ,A.TRAFFIC_AMT
+      ,A.ROOM_AMT
+      ,A.DAY_PAY
+      ,NVL(A.TRAFFIC_AMT, 0) + NVL(A.ROOM_AMT, 0) + NVL(A.DAY_PAY, 0) TOT_AMT
+      ,A.TRAVEL_GUBN
+      ,FUNC_GET_CODE_NAME('YS036', A.TRAVEL_GUBN) TRAVEL_GUBN_NM
+      ,A.TRIP_GUBN
+      ,FUNC_GET_CODE_NAME('YS038', A.TRIP_GUBN) TRIP_GUBN_NM
+      ,A.PEOPLE_NUM
+      ,A.BIGO_TXT
+      ,A.CRE_DATE
+      ,A.CRE_USER
+      ,A.MOD_DATE
+      ,A.MOD_USER
+      ,'R'                                                 CRUD
+      ,'1'                                                 CODEMAPPING1 
+      ,'1'                                                 CODEMAPPING2
+  FROM CO_BUGT_SUPPLEMENT_DTL A
+ WHERE 1=1
+   AND A.COMP_CD      = #{SB_COMP_CD}
+   AND A.CRTN_YMD     = REPLACE(#{TB_CRTN_YMD}, '-', '')
+   AND A.CCTR_CD      = #{SB_CCTR_CD}
+   AND A.ACCOUNT_NO   = #{TB_ACCOUNT_NO}
+   AND A.PROCESS_TYPE = '1'
+ ORDER BY A.SEQ_NO   
+  </select>  
+
+	<select id="selectSupplementAmt" parameterType="Map" resultType="Map">
+--com.bdg.Supplement.selectSupplementAmt
+SELECT BUGT_BASIC_AMT                          BUGT_BASIC_AMT   -- 당월기본예산
+      ,BUGT_EXEC_AMT                           BUGT_EXEC_AMT    -- 배정실행예산
+      ,BUGT_RESULT_AMT                         BUGT_RESULT_AMT  -- 현재실적
+      ,BUGT_EXEC_AMT - NVL(BUGT_RESULT_AMT,0)  BUGT_BALANCE_AMT -- 실행잔액
+  FROM (
+        SELECT CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '01' THEN B.WK_M01
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '02' THEN B.WK_M02
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '03' THEN B.WK_M03
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '04' THEN B.WK_M04
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '05' THEN B.WK_M05
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '06' THEN B.WK_M06
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '07' THEN B.WK_M07
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '08' THEN B.WK_M08
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '09' THEN B.WK_M09
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '10' THEN B.WK_M10
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '11' THEN B.WK_M11
+                    ELSE                                                                   B.WK_M12
+               END BUGT_BASIC_AMT
+              ,(
+                CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '01' THEN C.WK_M01
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '02' THEN C.WK_M02
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '03' THEN C.WK_M03
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '04' THEN C.WK_M04
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '05' THEN C.WK_M05
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '06' THEN C.WK_M06
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '07' THEN C.WK_M07
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '08' THEN C.WK_M08
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '09' THEN C.WK_M09
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '10' THEN C.WK_M10
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '11' THEN C.WK_M11
+                     ELSE                                                                  C.WK_M12
+                END
+               +
+                NVL(D.REQUEST_AMT,0)
+               )                                                                           BUGT_EXEC_AMT
+              ,E.ACCOUNT_AMT                                                               BUGT_RESULT_AMT
+          FROM (
+                SELECT #{SB_COMP_CD}                    COMP_CD
+                      ,REPLACE(#{TB_CRTN_YMD}, '-', '') CRTN_YY
+                      ,#{SB_CCTR_CD}                    CCTR_CD
+                      ,#{TB_ACCOUNT_NO}                 ACCOUNT_NO
+                  FROM DUAL
+               ) A
+              LEFT OUTER JOIN 
+               CO_BUGT_MODIFY_HEAD B
+              ON    B.COMP_CD    = A.COMP_CD
+                AND B.CRTN_YY    = SUBSTR(A.CRTN_YY,0,4)
+                AND B.CCTR_CD    = A.CCTR_CD
+                AND B.ACCOUNT_NO = A.ACCOUNT_NO
+              LEFT OUTER JOIN 
+               CO_BUGT_EXEC_HEAD C
+              ON    C.COMP_CD    = A.COMP_CD
+                AND C.CRTN_YYMM  = SUBSTR(A.CRTN_YY,0,6)
+                AND C.CCTR_CD    = A.CCTR_CD
+                AND C.ACCOUNT_NO = A.ACCOUNT_NO
+              LEFT OUTER JOIN 
+               (
+                SELECT COMP_CD
+                      ,CCTR_CD
+                      ,ACCOUNT_NO
+                      ,SUBSTR(CRTN_YMD,0,6) CRTN_YMD
+                      ,SUM(REQUEST_AMT)     REQUEST_AMT
+                  FROM CO_BUGT_SUPPLEMENT
+                 WHERE STATUS  = '4'
+                 GROUP BY COMP_CD
+                         ,SUBSTR(CRTN_YMD,0,6)
+                         ,CCTR_CD
+                         ,ACCOUNT_NO
+               ) D
+              ON    D.COMP_CD      = A.COMP_CD
+                AND D.CRTN_YMD     = SUBSTR(A.CRTN_YY,0,6)
+                AND D.CCTR_CD      = A.CCTR_CD
+                AND D.ACCOUNT_NO   = A.ACCOUNT_NO
+              LEFT OUTER JOIN 
+               CO_BUGT_RESULT E
+              ON    E.COMP_CD      = A.COMP_CD
+                AND E.CRTN_YYMM    = SUBSTR(A.CRTN_YY,0,6)
+                AND E.CCTR_CD      = A.CCTR_CD 
+                AND E.ACCOUNT_NO   = A.ACCOUNT_NO
+       )
+  </select>
+  
+	<insert id="insertSupplement" parameterType="Map">
+--com.bdg.Supplement.insertSupplement
+INSERT INTO CO_BUGT_SUPPLEMENT
+ (
+   COMP_CD             -- 회사코드
+  ,CRTN_YMD            -- 기준년월일
+  ,CCTR_CD             -- 코스트코드
+  ,ACCOUNT_NO          -- 계정코드
+  ,PROCESS_TYPE        -- 등록구분
+  ,STATUS              -- 승인상태
+  ,BUGT_BASIC_AMT      -- 당월기본예산
+  ,BUGT_EXEC_AMT       -- 배정실행예산
+  ,BUGT_RESULT_AMT     -- 현재실적
+  ,BUGT_BALANCE_AMT    -- 실행잔액
+  ,REQUEST_AMT         -- 신청금액
+  ,REQUEST_DESC        -- 추가예산내역
+  ,SAP_SEND_YN         -- SAP전송여부
+  ,EPS_DOC_NO          -- 전자결재문서번호
+  ,CRE_DATE            -- 등록일자
+  ,CRE_USER            -- 등록자ID
+  ,MOD_DATE            -- 수정일자
+  ,MOD_USER            -- 수정자ID
+ ) VALUES (
+            #{COMP_CD}
+           ,#{CRTN_YMD}
+           ,#{CCTR_CD}
+           ,#{ACCOUNT_NO}
+           ,'1'
+           ,#{STATUS}
+           ,#{BUGT_BASIC_AMT}
+           ,#{BUGT_EXEC_AMT}
+           ,#{BUGT_RESULT_AMT}
+           ,#{BUGT_BALANCE_AMT}
+           ,#{REQUEST_AMT}
+           ,#{REQUEST_DESC}
+           ,'N'
+           ,#{EPS_DOC_NO}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{MOD_USER}
+           )
+	</insert>
+	
+<insert id="insertSupplementDetail" parameterType="Map">
+--com.bdg.Supplement.insertSupplementDetail
+INSERT INTO CO_BUGT_SUPPLEMENT_DTL
+ (
+   COMP_CD        -- 회사코드
+  ,CRTN_YMD       -- 기준년월일
+  ,CCTR_CD        -- 코스트코드
+  ,ACCOUNT_NO     -- 계정코드
+  ,PROCESS_TYPE   -- 등록구분
+  ,SEQ_NO         -- 일련번호
+  ,FROM_YMD       -- 기간 From
+  ,TO_YMD         -- 기간 To
+  ,SABUN          -- 사번
+  ,NAME           -- 이름
+  ,START_POINT    -- 출발지
+  ,VIA_POINT      -- 경유지
+  ,DEST_POINT     -- 도착지
+  ,TRAFFIC_WAY    -- 교통수단
+  ,TRAFFIC_AMT    -- 교통비
+  ,ROOM_AMT       -- 숙박비
+  ,DAY_PAY        -- 일당
+  ,TRAVEL_GUBN    -- 편도/왕복 구분
+  ,TRIP_GUBN      -- 출장구분
+  ,PEOPLE_NUM     -- 인원
+  ,BIGO_TXT       -- 비고
+  ,CRE_DATE       -- 등록일자
+  ,CRE_USER       -- 등록자ID
+  ,MOD_DATE       -- 수정일자
+  ,MOD_USER       -- 수정자ID
+
+ ) VALUES (
+            #{COMP_CD}
+           ,#{CRTN_YMD}
+           ,#{CCTR_CD}
+           ,#{ACCOUNT_NO}
+           ,#{PROCESS_TYPE}
+           ,(             
+             SELECT NVL(MAX(SEQ_NO),0) + 1
+               FROM CO_BUGT_SUPPLEMENT_DTL
+              WHERE COMP_CD      = #{COMP_CD}
+                AND CRTN_YMD     = #{CRTN_YMD}
+                AND CCTR_CD      = #{CCTR_CD}
+                AND ACCOUNT_NO   = #{ACCOUNT_NO}
+                AND PROCESS_TYPE = '1'
+             )
+           ,#{FROM_YMD}
+           ,#{TO_YMD}
+           ,#{SABUN}
+           ,#{NAME}
+           ,#{START_POINT}
+           ,#{VIA_POINT}
+           ,#{DEST_POINT}
+           ,#{TRAFFIC_WAY}
+           ,#{TRAFFIC_AMT}
+           ,#{ROOM_AMT}
+           ,#{DAY_PAY}
+           ,#{TRAVEL_GUBN}
+           ,#{TRIP_GUBN}
+           ,#{PEOPLE_NUM}
+           ,#{BIGO_TXT}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{MOD_USER}
+           )
+	</insert>	
+	
+	<select id="selectStatusHeader" parameterType="Map" resultType="Map">
+	    --com.bdg.Supplement.selectStatusHeader
+		SELECT MAX(STATUS) STATUS
+		  FROM CO_BUGT_SUPPLEMENT
+		 WHERE 1 = 1
+		   AND COMP_CD  = #{SB_COMP_CD}
+	       AND CRTN_YMD = REPLACE(#{TB_CRTN_YMD}, '-', '')
+	       AND CCTR_CD  = #{SB_CCTR_CD} 		
+	</select>
+		
+	<update id="updateSupplement" parameterType="Map">
+--com.bdg.Supplement.updateSupplement
+UPDATE CO_BUGT_SUPPLEMENT
+   SET REQUEST_AMT  = #{REQUEST_AMT}
+      ,REQUEST_DESC = #{REQUEST_DESC}
+ WHERE COMP_CD    = #{COMP_CD}
+   AND CRTN_YMD   = #{CRTN_YMD}
+   AND CCTR_CD    = #{CCTR_CD}
+   AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</update>
+	
+	<update id="updateSupplementDetail" parameterType="Map">
+--com.bdg.Supplement.updateSupplementDetail
+UPDATE CO_BUGT_SUPPLEMENT_DTL
+   SET FROM_YMD    = #{FROM_YMD}
+      ,TO_YMD      = #{TO_YMD}
+      ,SABUN       = #{SABUN}
+      ,NAME        = #{NAME}
+      ,START_POINT = #{START_POINT}
+      ,VIA_POINT   = #{VIA_POINT}
+      ,DEST_POINT  = #{DEST_POINT}
+      ,TRAFFIC_WAY = #{TRAFFIC_WAY}
+      ,TRAFFIC_AMT = #{TRAFFIC_AMT}
+      ,ROOM_AMT    = #{ROOM_AMT}
+      ,DAY_PAY     = #{DAY_PAY}
+      ,TRAVEL_GUBN = #{TRAVEL_GUBN}
+      ,TRIP_GUBN   = #{TRIP_GUBN}
+      ,PEOPLE_NUM  = #{PEOPLE_NUM}
+      ,BIGO_TXT    = #{BIGO_TXT}
+      ,MOD_DATE    = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER    = #{MOD_USER}
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YMD     = #{CRTN_YMD}
+   AND CCTR_CD      = #{CCTR_CD}
+   AND ACCOUNT_NO   = #{ACCOUNT_NO}
+   AND PROCESS_TYPE = '1'
+   AND SEQ_NO       = #{SEQ_NO}
+	</update>
+	
+	<delete id="delSupplement" parameterType="map">
+--com.bdg.Supplement.delSupplement
+DELETE FROM CO_BUGT_SUPPLEMENT
+ WHERE COMP_CD    = #{COMP_CD}
+   AND CRTN_YMD   = #{CRTN_YMD}
+   AND CCTR_CD    = #{CCTR_CD}
+   AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</delete>
+	
+	<delete id="delSupplementDetail" parameterType="map">
+--com.bdg.Supplement.delSupplementDetail
+DELETE FROM CO_BUGT_SUPPLEMENT_DTL
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YMD     = #{CRTN_YMD}
+   AND CCTR_CD      = #{CCTR_CD}
+   AND ACCOUNT_NO   = #{ACCOUNT_NO}
+   AND PROCESS_TYPE = '1'
+   AND SEQ_NO       = #{SEQ_NO}
+	</delete>	
+	
+	
+	<update id="apprSupplement" parameterType="map">
+--com.bdg.Supplement.apprSupplement
+UPDATE CO_BUGT_SUPPLEMENT
+   SET STATUS     = '2' 
+      ,EPS_DOC_NO = #{EPS_DOC_NO}
+      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER   = #{MOD_USER}
+ WHERE COMP_CD    = #{SB_COMP_CD}
+   AND CRTN_YMD   = REPLACE(#{TB_CRTN_YMD}, '-', '')
+   AND CCTR_CD    = #{SB_CCTR_CD}
+	</update>
+
+	<select id="selectAccountList" parameterType="Map" resultType="Map">
+SELECT ACCOUNT_NO
+      ,ACCOUNT_DESC
+  FROM CO_ACCOUNT_NO
+ WHERE 1=1
+	<if test="TB_ACCOUNT_NO != null and TB_ACCOUNT_NO != ''">
+   AND ACCOUNT_NO LIKE  '%' || #{TB_ACCOUNT_NO} || '%'  
+	</if>
+	<if test="TB_ACCOUNT_DESC != null and TB_ACCOUNT_DESC != ''">
+   AND ACCOUNT_DESC LIKE  '%' || #{TB_ACCOUNT_DESC} || '%'
+	</if> 						
+	</select>	
+	
+	<update id="updateHeader" parameterType="Map">
+	--com.bdg.Supplement.updateHeader
+		UPDATE CO_BUGT_SUPPLEMENT
+		   SET STATUS     = #{STATUS}
+		      ,EPS_DOC_NO = CASE WHEN #{STATUS} = '1' THEN ''
+		                         ELSE EPS_DOC_NO
+		                    END
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER   = #{APPROVAL_ID}
+		 WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+	</update>	
+
+	<update id="returnSupplement" parameterType="map">
+--com.bdg.Supplement.returnSupplement
+UPDATE CO_BUGT_SUPPLEMENT
+   SET STATUS     = '1'
+      ,EPS_DOC_NO = '' 
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD    = #{COMP_CD}
+   AND CRTN_YMD   = #{CRTN_YMD}
+   AND CCTR_CD    = #{CCTR_CD}
+   AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</update>
+
+	<update id="updateSupplementSap" parameterType="map">
+		--com.bdg.Supplement.updateSupplementSap(전자결재완료이전 건은 추가조치!)
+		UPDATE CO_BUGT_SUPPLEMENT
+		   SET SAP_SEND_YN  = 'Y'
+      
+<![CDATA[     ,STATUS     = CASE WHEN STATUS <> '5' THEN '5'
+                                 ELSE STATUS
+                            END
+		      ,EPS_DOC_NO = CASE WHEN STATUS <> '5' THEN ''
+		                        ELSE EPS_DOC_NO
+		                    END
+]]>	
+		      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER = #{MOD_USER}
+		 WHERE COMP_CD    = #{COMP_CD}
+		   AND CRTN_YMD   = #{CRTN_YMD}
+		   AND CCTR_CD    = #{CCTR_CD}
+		   AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</update>
+
+	<select id="selectSupplementPop" parameterType="Map" resultType="Map">
+--com.bdg.Supplement.selectSupplementPop
+SELECT A.COMP_CD                                           COMP_CD          -- 회사코드
+      ,A.CRTN_YMD                                          CRTN_YMD         -- 기준년월일
+      ,A.CCTR_CD                                           CCTR_CD          -- 코스트코드
+      ,FUNC_GET_COST_NAME(A.COMP_CD, A.CCTR_CD, NULL)      CCTR_NM          -- 코스트명
+      ,A.ACCOUNT_NO                                        ACCOUNT_NO       -- 계정코드
+      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                 ACCOUNT_DESC     -- 계정명
+      ,A.PROCESS_TYPE                                      PROCESS_TYPE     -- 등록구분
+      ,A.STATUS                                            STATUS           -- 승인상태
+      ,A.BUGT_BASIC_AMT                                    BUGT_BASIC_AMT   -- 당월기본예산
+      ,A.BUGT_EXEC_AMT                                     BUGT_EXEC_AMT    -- 배정실행예산
+      ,A.BUGT_RESULT_AMT                                   BUGT_RESULT_AMT  -- 현재실적
+      ,A.BUGT_BALANCE_AMT                                  BUGT_BALANCE_AMT -- 실행잔액
+      ,A.REQUEST_AMT                                       REQUEST_AMT      -- 신청금액
+      ,A.REQUEST_DESC                                      REQUEST_DESC     -- 추가예산내역
+      ,A.EPS_DOC_NO                                        EPS_DOC_NO       -- 전자결재문서번호
+      ,A.SAP_SEND_YN                                       SAP_SEND_YN      -- SAP전송여부
+      ,A.CRE_DATE                                          CRE_DATE         -- 등록일자
+      ,A.CRE_USER                                          CRE_USER         -- 등록자ID
+      ,A.MOD_DATE                                          MOD_DATE         -- 수정일자
+      ,A.MOD_USER                                          MOD_USER         -- 수정자ID
+      ,'R'                                                 CRUD
+      ,'1'                                                 CODEMAPPING1 
+      ,'1'                                                 CODEMAPPING2
+  FROM CO_BUGT_SUPPLEMENT A
+ WHERE 1=1
+   AND A.EPS_DOC_NO = #{EPS_DOC_NO}
+  </select>
+  
+  	<select id="selectApprStatus" parameterType="Map" resultType="int">
+	    --com.bdg.Supplement.selectApprStatus
+		SELECT COUNT(0) CNT
+		  FROM CO_BUGT_SUPPLEMENT
+		 WHERE 1 = 1
+		   AND COMP_CD  = #{SB_COMP_CD}
+	       AND CRTN_YMD = REPLACE(#{TB_CRTN_YMD}, '-', '')
+	       AND CCTR_CD  = #{SB_CCTR_CD} 		
+	       AND STATUS   = '2'
+	</select>
+
+  	<select id="selectApprList" parameterType="Map" resultType="Map">
+		--com.bdg.Supplement.selectApprList
+		SELECT A.*
+		      ,CASE WHEN N_RESULT = 0 THEN 0
+		            ELSE TRUNC(CHUJUNG_AMT / N_RESULT -1, 2)
+		       END AS N_RATE
+		      ,CASE WHEN P_RESULT = 0 THEN 0
+		            ELSE TRUNC(CHUJUNG_AMT / P_RESULT -1, 2)
+		       END AS P_RATE		       
+		  FROM (
+				SELECT A.*
+				      ,CASE WHEN SUBSTR(A.CRTN_YMD,5,2) = '01' THEN 0
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '02' THEN M01
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '03' THEN (A.M01 + A.M02) / 2
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '04' THEN (A.M01 + A.M02 + A.M03) / 3
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '05' THEN (A.M01 + A.M02 + A.M03 + A.M04) / 4
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '06' THEN (A.M01 + A.M02 + A.M03 + A.M04 + A.M05) / 5
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '07' THEN (A.M01 + A.M02 + A.M03 + A.M04 + A.M05 + A.M06) / 6
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '08' THEN (A.M01 + A.M02 + A.M03 + A.M04 + A.M05 + A.M06 + A.M07) / 7
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '09' THEN (A.M01 + A.M02 + A.M03 + A.M04 + A.M05 + A.M06 + A.M07 + A.M08) / 8
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '10' THEN (A.M01 + A.M02 + A.M03 + A.M04 + A.M05 + A.M06 + A.M07 + A.M08 + A.M09) / 9
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '11' THEN (A.M01 + A.M02 + A.M03 + A.M04 + A.M05 + A.M06 + A.M07 + A.M08 + A.M09 + A.M10) / 10
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '12' THEN (A.M01 + A.M02 + A.M03 + A.M04 + A.M05 + A.M06 + A.M07 + A.M08 + A.M09 + A.M10 + A.M11) / 11
+				            ELSE 0
+				       END N_RESULT
+				      ,CASE WHEN SUBSTR(A.CRTN_YMD,5,2) = '01' THEN 0
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '02' THEN M01
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '03' THEN (A.P01 + A.P02) / 2
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '04' THEN (A.P01 + A.P02 + A.P03) / 3
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '05' THEN (A.P01 + A.P02 + A.P03 + A.P04) / 4
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '06' THEN (A.P01 + A.P02 + A.P03 + A.P04 + A.P05) / 5
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '07' THEN (A.P01 + A.P02 + A.P03 + A.P04 + A.P05 + A.P06) / 6
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '08' THEN (A.P01 + A.P02 + A.P03 + A.P04 + A.P05 + A.P06 + A.P07) / 7
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '09' THEN (A.P01 + A.P02 + A.P03 + A.P04 + A.P05 + A.P06 + A.P07 + A.P08) / 8
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '10' THEN (A.P01 + A.P02 + A.P03 + A.P04 + A.P05 + A.P06 + A.P07 + A.P08 + A.P09) / 9
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '11' THEN (A.P01 + A.P02 + A.P03 + A.P04 + A.P05 + A.P06 + A.P07 + A.P08 + A.P09 + A.P10) / 10
+				            WHEN SUBSTR(A.CRTN_YMD,5,2) = '12' THEN (A.P01 + A.P02 + A.P03 + A.P04 + A.P05 + A.P06 + A.P07 + A.P08 + A.P09 + A.P10 + A.P11) / 11
+				            ELSE 0
+				       END P_RESULT		       
+				  FROM (
+					    SELECT A.COMP_CD       AS COMP_CD
+		                      ,A.CRTN_YMD      AS CRTN_YMD
+		                      ,A.CCTR_CD       AS CCTR_CD
+		                      ,A.ACCOUNT_NO    AS ACCOUNT_NO
+		                      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)         AS ACCOUNT_DESC
+		                      ,NVL(BUGT_BASIC_AMT, 0)                      AS BUGT_BASIC_AMT
+		                      ,NVL(BUGT_EXEC_AMT, 0)                       AS BUGT_EXEC_AMT
+		                      ,NVL(BUGT_RESULT_AMT, 0)                     AS BUGT_RESULT_AMT
+		                      ,NVL(REQUEST_AMT, 0)                         AS REQUEST_AMT
+		                      ,NVL(BUGT_EXEC_AMT, 0) + NVL(REQUEST_AMT, 0) AS CHUJUNG_AMT
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD      = A.COMP_CD
+		                           AND B.CRTN_YYMM    = SUBSTR(A.CRTN_YMD, 0, 4) || '01'
+		                           AND B.CCTR_CD      = A.CCTR_CD
+		                           AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+		                        ),0)                                          AS M01
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '01'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                        ),0)                                          AS P01                        
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = SUBSTR(A.CRTN_YMD, 0, 4) || '02'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                        ),0)                                          AS M02
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '02'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                        ),0)                                          AS P02           
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = SUBSTR(A.CRTN_YMD, 0, 4) || '03'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                       ),0)                                          AS M03
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '03'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                        ),0)                                          AS P03                        
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = SUBSTR(A.CRTN_YMD, 0, 4) || '04'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                       ),0)                                          AS M04
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '04'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                        ),0)                                          AS P04          
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = SUBSTR(A.CRTN_YMD, 0, 4) || '05'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                       ),0)                                          AS M05
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '05'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                        ),0)                                          AS P05
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = SUBSTR(A.CRTN_YMD, 0, 4) || '06'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                       ),0)                                          AS M06
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '06'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                        ),0)                                          AS P06
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = SUBSTR(A.CRTN_YMD, 0, 4) || '07'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                       ),0)                                         AS M07
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '07'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                        ),0)                                          AS P07                       
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD    = A.COMP_CD
+		                           AND B.CRTN_YYMM  = SUBSTR(A.CRTN_YMD, 0, 4) || '08'
+		                           AND B.CCTR_CD    = A.CCTR_CD
+		                           AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                       ),0)                                         AS M08
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD      = A.COMP_CD
+		                           AND B.CRTN_YYMM    = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '08'
+		                           AND B.CCTR_CD      = A.CCTR_CD
+		                           AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+		                        ),0)                                          AS P08                       
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD      = A.COMP_CD
+		                           AND B.CRTN_YYMM    = SUBSTR(A.CRTN_YMD, 0, 4) || '09'
+		                           AND B.CCTR_CD      = A.CCTR_CD
+		                           AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+		                       ),0)                                        AS M09
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD      = A.COMP_CD
+		                           AND B.CRTN_YYMM    = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '09'
+		                           AND B.CCTR_CD      = A.CCTR_CD
+		                           AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+		                           AND B.PROCESS_TYPE = A.PROCESS_TYPE
+		                        ),0)                                          AS P09
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD      = A.COMP_CD
+		                           AND B.CRTN_YYMM    = SUBSTR(A.CRTN_YMD, 0, 4) || '10'
+		                           AND B.CCTR_CD      = A.CCTR_CD
+		                           AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+		                       ),0)                                         AS M10
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD      = A.COMP_CD
+		                           AND B.CRTN_YYMM    = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '10'
+		                           AND B.CCTR_CD      = A.CCTR_CD
+		                           AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+		                        ),0)                                          AS P10                      
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD      = A.COMP_CD
+		                           AND B.CRTN_YYMM    = SUBSTR(A.CRTN_YMD, 0, 4) || '11'
+		                           AND B.CCTR_CD      = A.CCTR_CD
+		                           AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+		                       ),0)                                         AS M11
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD      = A.COMP_CD
+		                           AND B.CRTN_YYMM    = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '11'
+		                           AND B.CCTR_CD      = A.CCTR_CD
+		                           AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+		                        ),0)                                          AS P11
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD      = A.COMP_CD
+		                           AND B.CRTN_YYMM    = SUBSTR(A.CRTN_YMD, 0, 4) || '12'
+		                           AND B.CCTR_CD      = A.CCTR_CD
+		                           AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+		                       ),0)                                         AS M12
+		                      ,NVL((
+		                        SELECT SUM(NVL(ACCOUNT_AMT, 0)) AMT
+		                          FROM CO_BUGT_RESULT B
+		                         WHERE 1 = 1
+		                           AND B.COMP_CD      = A.COMP_CD
+		                           AND B.CRTN_YYMM    = TO_NUMBER(SUBSTR(A.CRTN_YMD, 0, 4))-1 || '12'
+		                           AND B.CCTR_CD      = A.CCTR_CD
+		                           AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+		                        ),0)                                          AS P12                       
+				           FROM CO_BUGT_SUPPLEMENT A
+				          WHERE 1 = 1
+				            AND EPS_DOC_NO = #{EPS_DOC_NO}
+				         ) A		  
+		       ) A
+         ORDER BY A.COMP_CD
+                 ,A.CRTN_YMD
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+	</select>
+	
+	 <select id="selectEpsInfoData" parameterType="Map" resultType="Map">
+	    --com.bdg.Supplement.selectEpsInfoData
+		SELECT COUNT(*) CNT
+		  FROM CO_BUGT_SUPPLEMENT 
+		 WHERE 1 = 1
+		   AND EPS_DOC_NO = #{EPS_DOC_NO}
+	</select>	
+</mapper>

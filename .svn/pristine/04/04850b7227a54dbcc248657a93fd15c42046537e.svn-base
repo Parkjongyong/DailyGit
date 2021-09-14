@@ -1,0 +1,85 @@
+#\ub85c\uceec \uac1c\ubc1c\ud658\uacbd\uc6a9 \uc124\uc815 \ud30c\uc77c 
+runtime.mode=local
+system.id=pro_dev_loc
+
+#\ud68c\uc0ac\ucf54\ub4dc
+COMP_CD=1000
+#\uad6c\ub9e4\ub2f4\ub2f9\uc790 \ub864
+ROLE_PUR=PUR002
+#\uac8c\uc2dc\ud310\ub2f4\ub2f9\uc790 \ub864
+ROLE_BBS=PUR002
+
+
+############### JDBC INFO FOR NOT USE WAS DATASOURCE (MAIN) DEV ###############
+jdbc.driverClassName=core.log.jdbc.driver.OracleDriver
+jdbc.url=jdbc:oracle:thin:@172.16.17.132:1540:IDAPIDB
+jdbc.username=TSPROD
+jdbc.password=PRODTS01
+jdbc.maxActive=50
+jdbc.initialSize=10
+
+############### \ud30c\uc77c\uc800\uc7a5 \uc704\uce58 ###############
+FILE.UPLOAD.PATH=C:/UPLOAD_FILES
+FILE.UPLOAD.MAXSIZE=314572800
+
+############### \uc5c5\ub85c\ub4dc \uc5d1\uc140 \ud30c\uc77c \uc784\uc2dc\uc800\uc7a5 \uc704\uce58 ###############
+FILE.UPLOAD.TEMP.PATH=C:/UPLOAD_FILES/TMP
+
+############### \uc11c\uc2dd \ud15c\ud50c\ub9bf \uc704\uce58 ###############
+FILE.TEMPLATE.FOLDER=C:/dev_pjt/workspace/pro_dev/template
+
+############### mail template ##########################
+HTTP.SERVER.URL=http://localhost
+HTTP.SERVER.URL.IN =http://localhost
+HTTP.SERVER.URL.OUT=http://localhost
+
+# =============================================================================
+# SAP 
+# =============================================================================
+sap.id=IF_PO
+sap.pw=init1234!
+
+sap.url=http://i4podev.ildong.com:50000
+sap.sender=BGT_D
+
+ldap.SearchBase1=ildongdev
+ldap.SearchBase2=com
+ldap.Url=ldap://ildongdev.com:389
+ldap.Domain=ildongdev.com
+
+# =============================================================================
+# SMS / MAIL configuration
+# =============================================================================
+sms.endpoint.url=http://127.0.0.1/services/INas.svc/ajax/SetOtherSystemSendSMS
+email.smtp.host.ip=mail.ildong.com
+email.smtp.port=25
+#email.smtp.id=parucnc@gmail.com
+#email.smtp.pw=vkfnTldosTl
+
+
+# =============================================================================
+# JCO common configuration
+# =============================================================================
+# jco trace level[0-10:0 - nothing ->8 - verbose debug messages, full execution path, info messages, errors and warnings]
+# jco.trace.level=8
+# JCo trace path
+# jco.trace.path=C:/jcolib
+# =============================================================================
+# JCO client related configuration
+# =============================================================================
+#jco.client.user=user
+#jco.client.passwd=passwd
+#jco.client.lang=KO
+#jco.client.client=100
+#jco.client.ashost=10.10.10.10
+#jco.client.sysnr=10
+#jco.client.gwhost=
+#jco.client.gwserv=
+#jco.lib.path=C:/jcolib
+
+
+# =============================================================================
+# \uac1c\ubc1c\uc790 IP
+# =============================================================================
+sm.user.ip=10.150.47.244, 10.150.28.55, 10.150.46.242, 10.150.47.245, 10.150.47.248, 10.150.47.239, 10.150.47.242, 10.150.1.91, 10.150.47.246, 10.150.2.158
+

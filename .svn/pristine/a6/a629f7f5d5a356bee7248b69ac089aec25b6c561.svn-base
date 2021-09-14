@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.Materials">
+    <insert id="makeMaterialsHeadData">
+    <![CDATA[
+	    --com.bat.Materials.makeMaterialsHeadData
+	    MERGE INTO MAT_HEAD A 
+	    USING (
+	            SELECT I.TRANSACTION_NO
+                      ,I.MATNR
+                      ,I.MTART
+                      ,I.MTBEZ
+                      ,I.MEINS
+                      ,I.MATKL
+                      ,I.MSTAE
+                      ,I.XCHPF
+                      ,I.LVORM
+                      ,I.MAKTX
+                      ,I.SPART
+                      ,I.VTEXT
+                      ,I.PROC_YN
+	              FROM MAT_HEAD_IF I
+	             WHERE I.PROC_YN IS NULL
+	               AND TRANSACTION_NO = (
+	                                     SELECT MAX(F.TRANSACTION_NO)
+	                                       FROM MAT_HEAD_IF F
+	                                      WHERE F.MATNR   = I.MATNR
+	                                    )
+	          ) B
+	    ON (
+	        A.MAT_NUMBER = B.MATNR
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.MAT_TYPE         = B.MTART
+                  ,A.MAT_TYPE_TXT     = B.MTBEZ
+                  ,A.UNIT_MEASURE     = B.MEINS
+                  ,A.MAT_GROUP        = B.MATKL
+                  ,A.PLANT_MAT_STATUS = B.MSTAE
+                  ,A.BATCH_FLAG       = B.XCHPF
+                  ,A.DEL_FLAG         = B.LVORM
+                  ,A.MAT_DESC         = B.MAKTX
+                  ,A.MAT_PRDT         = B.SPART
+                  ,A.MAT_PRDT_DESC    = B.VTEXT
+                  ,A.MOD_DATE         = TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,A.MOD_USER         = 'BATCHSYS'
+	    WHEN NOT MATCHED THEN
+	            INSERT ( 
+	                     A.MAT_NUMBER
+                        ,A.MAT_TYPE
+                        ,A.MAT_TYPE_TXT
+                        ,A.UNIT_MEASURE
+                        ,A.MAT_GROUP
+                        ,A.PLANT_MAT_STATUS
+                        ,A.BATCH_FLAG
+                        ,A.DEL_FLAG
+                        ,A.MAT_DESC
+                        ,A.MAT_PRDT
+                        ,A.MAT_PRDT_DESC
+                        ,A.CRE_DATE
+                        ,A.CRE_USER
+                        ,A.MOD_DATE
+                        ,A.MOD_USER
+	                    ) VALUES ( B.MATNR
+	                              ,B.MTART
+	                              ,B.MTBEZ
+	                              ,B.MEINS
+	                              ,B.MATKL
+	                              ,B.MSTAE
+	                              ,B.XCHPF
+	                              ,B.LVORM
+	                              ,B.MAKTX
+	                              ,B.SPART
+	                              ,B.VTEXT
+	                              ,TO_CHAR(SYSDATE,'YYYYMMDD')
+	                              ,'BATCHSYS'
+	                              ,TO_CHAR(SYSDATE,'YYYYMMDD')
+	                              ,'BATCHSYS'
+	                             )
+     ]]>
+    </insert>
+    
+    <update id="updateMaterialsHeadFlag" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.Materials.updateMaterialsHeadFlag
+	        UPDATE MAT_HEAD_IF
+	           SET PROC_YN = 'S'
+			 WHERE PROC_YN IS NULL
+		   ]]>
+    </update>
+    
+    <insert id="makeMaterialsPlantData">
+    <![CDATA[
+	    --com.bat.Materials.makeMaterialsPlantData
+	    MERGE INTO MAT_PLANT A 
+	    USING (
+	            SELECT I.TRANSACTION_NO
+                      ,I.MATNR
+                      ,I.WERKS
+                      ,I.MMSTA
+                      ,I.LVORM
+                      ,I.ZEDTN
+                      ,I.QTY_ONEBOX
+                      ,I.QTY_PLT
+                      ,I.PROC_YN
+	              FROM MAT_PLANT_IF I
+	             WHERE I.PROC_YN IS NULL
+	               AND I.TRANSACTION_NO = (
+	                                       SELECT MAX(F.TRANSACTION_NO)
+	                                         FROM MAT_PLANT_IF F
+	                                        WHERE F.MATNR = I.MATNR
+	                                          AND F.WERKS = I.WERKS
+	                                       )
+	          ) B
+	    ON (
+	            A.MAT_NUMBER = B.MATNR
+	        AND A.PLANT_CODE = B.WERKS
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.MAT_STATUS = B.MMSTA
+	              ,A.DRAFT_FLAG = B.ZEDTN
+                  ,A.DEL_FLAG   = B.LVORM
+                  ,A.BOX_QTY    = B.QTY_ONEBOX
+                  ,A.PLT_QTY    = B.QTY_PLT
+                  ,A.MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,A.MOD_USER   = 'BATCHSYS'
+	    WHEN NOT MATCHED THEN
+	            INSERT ( 
+	                     A.MAT_NUMBER
+                        ,A.PLANT_CODE
+                        ,A.MAT_STATUS
+                        ,A.DEL_FLAG
+                        ,A.DRAFT_FLAG
+                        ,A.BOX_QTY
+                        ,A.PLT_QTY
+                        ,A.CRE_DATE
+                        ,A.CRE_USER
+                        ,A.MOD_DATE
+                        ,A.MOD_USER
+	                    ) VALUES ( B.MATNR
+	                              ,B.WERKS
+	                              ,B.MMSTA
+	                              ,B.LVORM
+	                              ,B.ZEDTN
+	                              ,B.QTY_ONEBOX
+	                              ,B.QTY_PLT
+	                              ,TO_CHAR(SYSDATE,'YYYYMMDD')
+	                              ,'BATCHSYS'
+	                              ,TO_CHAR(SYSDATE,'YYYYMMDD')
+	                              ,'BATCHSYS'
+	                             )
+     ]]>
+    </insert>
+    
+    <update id="updateMaterialsPlantFlag" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.Materials.updateMaterialsPlantFlag
+	        UPDATE MAT_PLANT_IF
+	           SET PROC_YN = 'S'
+			 WHERE PROC_YN IS NULL
+		   ]]>
+    </update>
+</mapper>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchBugtResult">
+
+    <insert id="mergeBugtResultData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchBugtResult.mergeBugtResultData
+	    MERGE INTO CO_BUGT_RESULT A 
+	    USING (
+               SELECT #{BUKRS}                          AS COMP_CD
+                     ,TRIM(#{GJAHR}) || LPAD(TO_NUMBER(TRIM(#{MONAT})), 2, 0)  AS CRTN_YYMM
+                     ,TRIM(#{AKOSTL})                   AS CCTR_CD
+                     ,TRIM(#{BKOSTL})                   AS BELONG_CCTR_CD
+                     ,#{AUFNR}                          AS PROJECT_CD
+                     ,LPAD(TRIM(#{KSTAR}), 10, 0)       AS ACCOUNT_NO
+                     ,CASE WHEN NVL(#{ZPOST}, ' ') = ' ' THEN 'N' 
+                           WHEN NVL(#{ZPOST}, ' ') = 'X' THEN 'Y'
+                           ELSE ' '
+                      END                               AS APPROVAL_STATUS
+                     ,#{ZSATYP}                         AS DISTR_TYPE
+                     ,#{WKGXXX}                         AS ACCOUNT_AMT
+                     ,#{BUDAT}                          AS ACCOUNT_DATE
+                     ,#{SGTXT}                          AS SUM_DESC
+                     ,CASE WHEN NVL(#{ZSATYP}, ' ') <> ' ' THEN '2'
+                           ELSE CASE WHEN (SELECT COUNT(*) 
+                                             FROM CO_ACCOUNT_MGMT 
+                                            WHERE 1 = 1
+                                              AND COMP_CD    = #{BUKRS}
+                                              AND ACCOUNT_NO = NVL(#{KSTAR}, ' ')
+                                          ) = 0 THEN '1'
+                                     ELSE '2'
+                                END
+                      END                               AS PROCESS_TYPE
+                     ,TO_CHAR(SYSDATE,'YYYYMMDD')       AS CRE_DATE
+                     ,TO_CHAR(SYSDATE,'YYYYMMDD')       AS MOD_DATE
+                     ,'BATCHSYS'                        AS CRE_USER
+                     ,'BATCHSYS'                        AS MOD_USER
+                     ,#{BELNR}                          AS SALE_NO
+                 FROM DUAL
+	          ) B
+	    ON (
+	            A.COMP_CD         = B.COMP_CD
+            AND A.CRTN_YYMM       = B.CRTN_YYMM
+            AND A.CCTR_CD         = B.CCTR_CD
+            AND A.BELONG_CCTR_CD  = B.BELONG_CCTR_CD
+            AND A.SALE_NO         = B.SALE_NO
+            AND A.ACCOUNT_NO      = B.ACCOUNT_NO
+            AND A.APPROVAL_STATUS = B.APPROVAL_STATUS
+            AND A.ACCOUNT_DATE    = B.ACCOUNT_DATE
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.DISTR_TYPE   = B.DISTR_TYPE
+                  ,A.PROJECT_CD   = B.PROJECT_CD
+                  ,A.ACCOUNT_AMT  = B.ACCOUNT_AMT
+                  ,A.SUM_DESC     = B.SUM_DESC
+                  ,A.PROCESS_TYPE = B.PROCESS_TYPE
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.COMP_CD
+                 ,A.CRTN_YYMM
+                 ,A.CCTR_CD
+                 ,A.BELONG_CCTR_CD
+                 ,A.SALE_NO
+                 ,A.ACCOUNT_NO
+                 ,A.APPROVAL_STATUS
+                 ,A.ACCOUNT_DATE
+                 ,A.DISTR_TYPE
+                 ,A.PROJECT_CD
+                 ,A.ACCOUNT_AMT
+                 ,A.SUM_DESC
+                 ,A.PROCESS_TYPE
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( B.COMP_CD
+                          ,B.CRTN_YYMM
+                          ,B.CCTR_CD
+                          ,B.BELONG_CCTR_CD
+                          ,B.SALE_NO
+                          ,B.ACCOUNT_NO
+                          ,B.APPROVAL_STATUS
+                          ,B.ACCOUNT_DATE
+                          ,B.DISTR_TYPE
+                          ,B.PROJECT_CD
+                          ,B.ACCOUNT_AMT
+                          ,B.SUM_DESC
+                          ,B.PROCESS_TYPE
+                          ,B.CRE_DATE
+                          ,B.CRE_USER
+                          ,B.MOD_DATE
+                          ,B.MOD_USER
+	                     )
+     ]]>
+    </insert>
+</mapper>

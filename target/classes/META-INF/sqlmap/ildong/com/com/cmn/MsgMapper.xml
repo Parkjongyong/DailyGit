@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.cmn.Msg">
+    <resultMap id="msg" type="Map">
+        <result property="SUBJECT" column="SUBJECT" jdbcType="CLOB" javaType="java.lang.String" />
+        <result property="CONTENT" column="CONTENT" jdbcType="CLOB" javaType="java.lang.String" />
+    </resultMap>
+    
+	<select id="selectMsgList" parameterType="Map" resultType="Map">
+	--MsgMapper.selectMsgList
+	SELECT	COUNT(1) OVER()				AS	TOT_CNT
+			, #{page}					AS	PAGE
+			, TASK_GUBUN
+			, TASK_DESC
+			, SEND_NM
+			, RECEIVER_NM
+			, MAIL_YN
+			, SMS_YN
+			, MAIL_YN					AS	MAIL_R
+			, SMS_YN					AS	SMS_R
+			, NOTE_YN
+			, SEND_TYPE
+			, ALERT_ID AS MAIL_ID
+			, SMS_MSG
+	FROM	ALERT_INFO
+	WHERE	USE_YN = 'Y'
+		<if test="S_TASK_GUBUN != null and S_TASK_GUBUN != ''">
+			AND	TASK_GUBUN = #{S_TASK_GUBUN}
+		</if>
+		<if test="S_SEARCH_INPUT != null and S_SEARCH_INPUT != ''">
+			AND	(
+				UPPER(TASK_DESC) LIKE  '%' || REPLACE(UPPER(#{S_SEARCH_INPUT}),' ','') || '%'
+				OR	UPPER(SMS_MSG) LIKE '%' || REPLACE(UPPER(#{S_SEARCH_INPUT}),' ','') || '%'
+				OR	UPPER(ALERT_ID) LIKE  '%' || REPLACE(UPPER(#{S_SEARCH_INPUT}),' ','') || '%'
+				)
+		</if>
+		
+		<if test="S_RECEIVER_NM != null and S_RECEIVER_NM != ''">
+			AND	RECEIVER_NM = #{S_RECEIVER_NM}
+		</if>
+		
+		<if test="S_MAIL_YN != null and S_MAIL_YN != ''">
+			AND	MAIL_YN = #{S_MAIL_YN}
+		</if>
+		
+		<if test="S_SMS_YN != null and S_SMS_YN != ''">
+			AND	SMS_YN = #{S_SMS_YN}
+		</if>
+		
+		<if test="S_SEND_TYPE != null and S_SEND_TYPE != ''">
+			AND	SEND_TYPE = #{S_SEND_TYPE}
+		</if>
+		
+		ORDER BY TASK_GUBUN, MAIL_ID
+	</select>
+	
+	<update id="updateMsgDetail" parameterType="Map">
+	--MsgMapper.updateMsgDetail
+	UPDATE	ALERT_INFO
+		SET	  TASK_GUBUN	= #{TASK_GUBUN}
+			, TASK_DESC		= #{TASK_DESC}
+			, SEND_NM		= #{SEND_NM}
+			, RECEIVER_NM	= #{RECEIVER_NM}
+			, MAIL_YN		= #{MAIL_YN}
+			, SMS_YN		= #{SMS_YN}
+			, SEND_TYPE		= #{SEND_TYPE}
+			, UPD_ID		= #{UPD_ID}
+			, UPD_DT		= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			, SMS_MSG		= #{CONTENTS_AREA}
+	WHERE	 ALERT_ID	    = #{MAIL_ID}
+	</update>
+	
+	<update id="deleteMsgInfo" parameterType="Map">
+	--MsgMapper.deleteMsgInfo
+		UPDATE	ALERT_INFO
+		SET		USE_YN  = 'N'
+		WHERE	ALERT_ID = #{MAIL_ID}
+	</update>
+	
+	<select id="selectMsgLogInfo" parameterType="Map" resultType="Map">
+	--MsgMapper.selectMsgLogInfo
+
+	WITH SEARCH_INFO AS
+	(
+		SELECT	  #{MAIL_ID}		AS	MAIL_ID
+				, #{DIV_CD}			AS	DIV_CD   /* MAIL : 메일, SMS : 문자 */
+		FROM	DUAL
+	)
+	SELECT	  T1.MSG_TYPE
+			, TO_CHAR(T1.INS_DT, 'YYYY-MM-DD %H:%i:%s')	AS	REG_DATE
+			, T1.MAIL_ID
+			, T1.FROM_ID
+			, T1.TO_ID
+			, T1.SUBJECT
+			, T1.CONTENT
+			, T2.TASK_GUBUN
+			, T2.TASK_DESC
+			, T2.SMS_MSG
+			, T2.NOTE_MSG
+	FROM	ALERT_LOG T1
+	INNER JOIN ALERT_INFO T2 ON T1.MAIL_ID = T2.ALERT_ID
+	WHERE	SEQ = (	SELECT	MAX(SEQ)	AS	SEQ
+					FROM	ALERT_LOG T01
+					INNER JOIN SEARCH_INFO S01 ON T01.MAIL_ID	 = S01.MAIL_ID
+												AND T01.MSG_TYPE = S01.DIV_CD
+					WHERE	T01.RESULT = 'S'
+				  )
+	</select>
+	
+	<select id="selectMsgLogInfo2" parameterType="Map" resultType="Map">
+	--MsgMapper.selectMsgLogInfo2
+
+SELECT	  #{DIV_CD}													AS	MSG_TYPE
+			, #{MAIL_ID}												AS	MAIL_ID
+			, ''														AS	REG_DATE
+			, SENDER_NM													AS	FROM_ID
+			, RECEIVER_NM												AS	TO_ID
+			, SUBJECT
+			, CASE WHEN #{DIV_CD} = 'MAIL'		THEN	CONTENT_PATH
+				ELSE									SMS_MSG
+				END 													AS	CONTENT
+			, TASK_GUBUN
+			, TASK_DESC
+			, SMS_MSG
+			, NOTE_MSG
+	FROM	ALERT_INFO
+	WHERE	ALERT_ID = #{MAIL_ID}
+	</select>
+	
+	<select id="selectMsgLogList" parameterType="Map" resultType="Map">
+	--MsgMapper.selectMsgLogList
+
+	SELECT	  COUNT(1) OVER()				AS	TOT_CNT
+			, #{page}						AS	PAGE
+			, SEQ
+			, MSG_TYPE
+			, MSG_KEY
+			, FROM_ID
+			, TO_ID
+			, TO_CHAR(INS_DT, 'YYYYMMDDHH24MISS')	AS	REG_DATE
+			, SUBJECT
+			, RESULT
+			, MAIL_ID
+	FROM	ALERT_LOG
+	WHERE	1=1
+		<if test="S_FROM_DATE != null and S_FROM_DATE != ''">
+			AND	TO_CHAR(INS_DT, 'YYYYMMDDHH24MISS') <![CDATA[>=]]> TO_CHAR(CONCAT(REPLACE(#{S_FROM_DATE},'-',''),'000000'),'YYYYMMDDHH24MISS')
+		</if>
+		<if test="S_TO_DATE != null and S_TO_DATE != ''">
+			AND	TO_CHAR(INS_DT, 'YYYYMMDDHH24MISS') <![CDATA[<=]]> TO_CHAR(CONCAT(REPLACE(#{S_TO_DATE},'-',''),'235959'),'YYYYMMDDHH24MISS')
+		</if>
+		<if test="S_RESULT != null and S_RESULT != ''">
+			AND	RESULT = #{S_RESULT}
+		</if>
+		<if test="S_MSG_TYPE != null and S_MSG_TYPE != ''">
+			AND	MSG_TYPE = #{S_MSG_TYPE}
+		</if>
+		<if test="S_FROM_ID != null and S_FROM_ID != ''">
+			AND	UPPER(FROM_ID) LIKE  '%' || REPLACE(UPPER(#{S_FROM_ID}),' ','') || '%'
+		</if>
+		<if test="S_TO_ID != null and S_TO_ID != ''">
+			AND	UPPER(TO_ID) LIKE  '%' || REPLACE(UPPER(#{S_TO_ID}),' ','') || '%'
+		</if>
+		<if test="S_MAIL_ID_SELECT != null and S_MAIL_ID_SELECT != ''">
+			AND	UPPER(MAIL_ID) = UPPER(#{S_MAIL_ID_SELECT})
+		</if>
+		<if test="S_MAIL_ID != null and S_MAIL_ID != ''">
+			AND	UPPER(MAIL_ID) LIKE  '%' || REPLACE(UPPER(#{S_MAIL_ID}),' ','') || '%'
+		</if>
+	ORDER BY SEQ DESC
+	</select>
+	
+	<select id="selectMailIdList" parameterType="Map" resultType="Map">
+	--MsgMapper.selectMailIdList
+
+	SELECT	  DISTINCT 
+			 ALERT_ID AS MAIL_ID
+			, SUBJECT
+	FROM	ALERT_INFO
+	WHERE	USE_YN = 'Y'
+ 	ORDER BY ALERT_ID
+	</select>
+	
+	<select id="selectMsgLogDetailInfo" parameterType="Map" resultType="Map">
+	--MsgMapper.selectMsgLogDetailInfo
+
+	<![CDATA[
+	SELECT	  A.SEQ
+			, A.MSG_TYPE
+			, A.MSG_KEY
+			, A.FROM_ID
+			, A.MAIL_ID
+			, (
+				SELECT	B.USER_NM
+				FROM	SYS_USER B
+				WHERE	A.FROM_ID = B.EMAIL_ID
+				LIMIT 1
+			  )											AS	FROM_NAME
+			, A.TO_ID
+			, (
+				SELECT	B.USER_NM
+				FROM	SYS_USER B
+				WHERE	A.TO_ID = B.EMAIL_ID
+				LIMIT 1
+			  )											AS	TO_NAME
+			, A.SUBJECT
+			, A.CONTENT
+			, CASE	WHEN A.RESULT = '정상처리되었습니다'	THEN	'S'
+					WHEN A.RESULT = 'Success'			THEN	'S'
+			  ELSE 'F'
+			  END										AS	RESULT
+			, TRIM(REPLACE(A.INS_DT, '/', '-'))		AS	REG_DATE
+	FROM	ALERT_LOG A
+	WHERE	SEQ = #{SEQ}
+	]]>
+	</select>
+	
+	<insert id="insertMsgLogInfo" parameterType="Map">
+	--MsgMapper.insertMsgLogInfo
+
+	INSERT INTO ALERT_LOG
+	(
+		  SEQ
+		, MAIL_ID
+		, MSG_TYPE
+		, MSG_KEY
+		, FROM_ID
+		, TO_ID
+		, SUBJECT
+		, CONTENT
+		, RESULT
+		, INS_DT
+	)
+	VALUES
+	(
+		  SEQ_ALERT_LOG.NEXTVAL
+		, #{MAIL_ID}
+		, #{MSG_TYPE}
+		, #{MSG_KEY}
+		, #{FROM_ID}
+		, #{TO_ID}
+		, #{SUBJECT}
+		, #{CONTENT}
+		, #{RESULT}
+		, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+	)
+	</insert>
+	
+	<select id="selectTaskList" parameterType="Map" resultType="Map">
+	--MsgMapper.selectTaskList
+
+	SELECT	DISTINCT	TASK_GUBUN
+	FROM	ALERT_INFO
+	WHERE	TASK_GUBUN IS NOT NULL
+		AND	TASK_GUBUN <![CDATA[<>]]> ''
+		AND USE_YN = 'Y'
+	ORDER BY TASK_GUBUN
+	</select>
+	
+	<select id="selectReceiverNameList" parameterType="Map" resultType="Map">
+	--MsgMapper.selectReceiverNameList
+
+	SELECT	DISTINCT	RECEIVER_NM
+	FROM	ALERT_INFO
+	WHERE	RECEIVER_NM IS NOT NULL
+		AND	RECEIVER_NM <![CDATA[<>]]> ''
+		AND USE_YN = 'Y'
+	ORDER BY RECEIVER_NM
+	</select>
+	
+	
+	<!-- 메일전송 배치대상 등록 -->
+	<insert id="insertBatchMailInfo" parameterType="Map">
+	--MsgMapper.insertBatchMailInfo
+		INSERT INTO ALERT_BULK (
+		    BULK_SEQ
+		   ,COMP_CD 
+		   ,MAIL_ID 
+		   ,MSG_TYPE 
+		   ,SENDER_EMAIL 
+		   ,RECEIVER_EMAIL
+		   ,SENDER_PHONE 
+		   ,RECEIVER_PHONE 
+		   ,SUBJECT 
+		   ,CONTENT
+		   ,CC_EMAIL
+		   ,INS_ID 
+		   ,INS_DT
+		) VALUES (
+		    SEQ_ALERT_BULK.NEXTVAL 
+		   ,#{COMP_CD} 
+		   ,#{MAIL_ID} 
+		   ,#{MSG_TYPE}
+		   ,#{SENDER_EMAIL}
+		   ,#{RECEIVER_EMAIL}
+		   ,#{SENDER_PHONE}
+		   ,#{RECEIVER_PHONE}
+		   ,#{SUBJECT}
+		   ,#{CONTENT}
+		   ,#{CC_EMAIL}
+		   ,#{REG_ID} 
+		   ,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+		) 
+	</insert>
+	
+	
+	<!-- 메일전송일자 업데이트 -->
+	<update id="updateMailSendDate" parameterType="Map">
+	--MsgMapper.updateMailSendDate
+
+		UPDATE ALERT_BULK 
+		   SET SEND_DATE = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+		 WHERE BULK_SEQ = #{BULK_SEQ}
+	</update>
+	
+	
+	<!-- 메일전송 배치대상 목록 -->
+	<select id="selectMailBatchList" parameterType="Map" resultMap="msg">
+	--MsgMapper.selectMailBatchList
+
+		SELECT BULK_SEQ 
+		      ,COMP_CD 
+		      ,MAIL_ID 
+		      ,MSG_TYPE 
+		      ,SENDER_EMAIL 
+		      ,RECEIVER_EMAIL 
+		      ,SENDER_PHONE 
+		      ,RECEIVER_PHONE
+		      ,CC_EMAIL 
+		      ,SUBJECT 
+		      ,CONTENT 
+		      ,SEND_DATE 
+		      ,INS_ID AS REG_ID 
+		      ,INS_DT AS REG_DATE 
+		  FROM ALERT_BULK
+		 WHERE NULLIF(SEND_DATE, '') IS NULL  
+	</select>
+	
+</mapper>

@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchInvoice">
+
+	<select id="selectCountInvoiceHeadInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchInvoice.selectCountInvoiceHeadInfo
+	    SELECT COUNT(*) CNT
+	      FROM IV_HEAD
+	     WHERE 1 = 1
+	       AND IV_NUMBER = #{BELNR}
+           AND IV_YEAR   = #{GJAHR}
+        ]]>
+	</select>
+	
+    <insert id="mergeInvoiceHeadInfo" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchGRItem.mergeInvoiceHeadInfo
+	    MERGE INTO IV_HEAD A 
+	    USING (
+	        SELECT #{BELNR}      AS IV_NUMBER      
+	              ,#{GJAHR}      AS IV_YEAR        
+                  ,#{BLART}      AS IV_TYPE        
+                  ,#{BUDAT}      AS IV_DOC_DATE    
+                  ,#{BLDAT}      AS IV_DATE        
+                  ,#{USNAM}      AS ERP_USER_ID    
+                  ,#{EMP_NAME}   AS ERP_USER_NM    
+                  ,#{BUKRS}      AS COMP_CD        
+                  ,#{LIFNR}      AS VENDOR_CD      
+                  ,#{NAME1}      AS VENDOR_NM      
+                  ,#{ZTERM}      AS PAY_COND       
+                  ,#{TEXT1}      AS PAY_COND_NM    
+                  ,#{WAERS}      AS CURR_CD        
+                  ,#{IVMAT}      AS IV_AMT         
+                  ,#{WMWST1}     AS IV_TAX_AMT     
+                  ,#{RMWWR}      AS IV_AMT_TOT     
+                  ,#{MWSKZ1}     AS TAX_CD         
+                  ,#{TEXT2}      AS TAX_TXT        
+                  ,#{ZISSID}     AS TAX_BILL_NUMBER
+                  ,#{XRECH}      AS DC_INDICATOR   
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.IV_NUMBER = B.IV_NUMBER
+            AND A.IV_YEAR   = B.IV_YEAR
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.IV_TYPE         = B.IV_TYPE        
+                  ,A.IV_DOC_DATE     = B.IV_DOC_DATE    
+                  ,A.IV_DATE         = B.IV_DATE        
+                  ,A.ERP_USER_ID     = B.ERP_USER_ID    
+                  ,A.ERP_USER_NM     = B.ERP_USER_NM    
+                  ,A.COMP_CD         = B.COMP_CD        
+                  ,A.VENDOR_CD       = B.VENDOR_CD      
+                  ,A.VENDOR_NM       = B.VENDOR_NM      
+                  ,A.PAY_COND        = B.PAY_COND       
+                  ,A.PAY_COND_NM     = B.PAY_COND_NM    
+                  ,A.CURR_CD         = B.CURR_CD        
+                  ,A.IV_AMT          = B.IV_AMT         
+                  ,A.IV_TAX_AMT      = B.IV_TAX_AMT     
+                  ,A.IV_AMT_TOT      = B.IV_AMT_TOT     
+                  ,A.TAX_CD          = B.TAX_CD         
+                  ,A.TAX_TXT         = B.TAX_TXT        
+                  ,A.TAX_BILL_NUMBER = B.TAX_BILL_NUMBER
+                  ,A.DC_INDICATOR    = B.DC_INDICATOR   
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.IV_NUMBER      
+	             ,A.IV_YEAR        
+	             ,A.IV_TYPE        
+	             ,A.IV_DOC_DATE    
+	             ,A.IV_DATE        
+                 ,A.ERP_USER_ID    
+                 ,A.ERP_USER_NM    
+                 ,A.COMP_CD        
+                 ,A.VENDOR_CD      
+                 ,A.VENDOR_NM      
+                 ,A.PAY_COND       
+                 ,A.PAY_COND_NM    
+                 ,A.CURR_CD        
+                 ,A.IV_AMT         
+                 ,A.IV_TAX_AMT     
+                 ,A.IV_AMT_TOT     
+                 ,A.TAX_CD         
+                 ,A.TAX_TXT        
+                 ,A.TAX_BILL_NUMBER
+                 ,A.DC_INDICATOR   
+	            ) VALUES ( B.IV_NUMBER      
+	                      ,B.IV_YEAR        
+	                      ,B.IV_TYPE        
+	                      ,B.IV_DOC_DATE    
+	                      ,B.IV_DATE        
+                          ,B.ERP_USER_ID    
+                          ,B.ERP_USER_NM    
+                          ,B.COMP_CD        
+                          ,B.VENDOR_CD      
+                          ,B.VENDOR_NM      
+                          ,B.PAY_COND       
+                          ,B.PAY_COND_NM    
+                          ,B.CURR_CD        
+                          ,B.IV_AMT         
+                          ,B.IV_TAX_AMT     
+                          ,B.IV_AMT_TOT     
+                          ,B.TAX_CD         
+                          ,B.TAX_TXT        
+                          ,B.TAX_BILL_NUMBER
+                          ,B.DC_INDICATOR   
+	                     )
+     ]]>
+    </insert>	
+	
+	<insert id="insertInvoiceHeadData" parameterType="map">
+		<![CDATA[
+		--com.bat.BatchInvoice.insertInvoiceHeadData
+		INSERT INTO IV_HEAD
+		(
+		   IV_NUMBER       -- 송장문서 번호
+          ,IV_YEAR         -- 송장문서 년도
+          ,IV_TYPE         -- 전표유형
+          ,IV_DOC_DATE     -- 전표전기일
+          ,IV_DATE         -- 전표증빙일
+          ,ERP_USER_ID     -- 생성자id
+          ,ERP_USER_NM     -- 생성자이름
+          ,COMP_CD         -- 회사코드
+          ,VENDOR_CD       -- 업체코드
+          ,VENDOR_NM       -- 업체명
+          ,PAY_COND        -- 지급조건
+          ,PAY_COND_NM     -- 지급조건내역
+          ,CURR_CD         -- 통화키
+          ,IV_AMT          -- 송장금액(물대)
+          ,IV_TAX_AMT      -- 부가세
+          ,IV_AMT_TOT      -- 총 송장액
+          ,TAX_CD          -- 세금코드
+          ,TAX_TXT         -- 세금코드내역
+          ,TAX_BILL_NUMBER -- 세금계산서 No
+          ,DC_INDICATOR    -- 차대구분(송장 Header)
+		) VALUES (
+      	           #{BELNR}
+                  ,#{GJAHR}
+                  ,#{BLART}
+                  ,#{BUDAT}
+                  ,#{BLDAT}
+                  ,#{USNAM}
+                  ,#{EMP_NAME}
+                  ,#{BUKRS}
+                  ,#{LIFNR}
+                  ,#{NAME1}
+                  ,#{ZTERM}
+                  ,#{TEXT1}
+                  ,#{WAERS}
+                  ,#{IVMAT}
+                  ,#{WMWST1}
+                  ,#{RMWWR}
+                  ,#{MWSKZ1}
+                  ,#{TEXT2}
+                  ,#{ZISSID}
+                  ,#{XRECH}
+
+		          )
+		]]>
+	</insert>
+	
+    <update id="updateInvoiceHeadData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchInvoice.updateInvoiceHeadData
+	        UPDATE IV_HEAD
+	           SET IV_TYPE          = #{BLART}
+                  ,IV_DOC_DATE      = #{BUDAT}
+                  ,IV_DATE          = #{BLDAT}
+                  ,ERP_USER_ID      = #{USNAM}
+                  ,ERP_USER_NM      = #{EMP_NAME}
+                  ,COMP_CD          = #{BUKRS}
+                  ,VENDOR_CD        = #{LIFNR}
+                  ,VENDOR_NM        = #{NAME1}
+                  ,PAY_COND         = #{ZTERM}
+                  ,PAY_COND_NM      = #{TEXT1}
+                  ,CURR_CD          = #{WAERS}
+                  ,IV_AMT           = #{IVMAT}
+                  ,IV_TAX_AMT       = #{WMWST1}
+                  ,IV_AMT_TOT       = #{RMWWR}
+                  ,TAX_CD           = #{MWSKZ1}
+                  ,TAX_TXT          = #{TEXT2}
+                  ,TAX_BILL_NUMBER  = #{ZISSID}
+                  ,DC_INDICATOR     = #{XRECH}
+	         WHERE IV_NUMBER        = #{BELNR}
+               AND IV_YEAR          = #{GJAHR}
+		   ]]>
+    </update>
+
+    
+	<select id="selectCountInvoiceItemInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchInvoice.selectCountInvoiceItemInfo
+	    SELECT COUNT(*) CNT
+	      FROM IV_ITEM
+         WHERE IV_NUMBER = #{BELNR}
+           AND IV_YEAR   = #{GJAHR}
+           AND IV_SEQ    = #{BUZEI}
+        ]]>
+	</select>
+	
+    <insert id="mergeInvoiceItemInfo" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchGRItem.mergeInvoiceItemInfo
+	    MERGE INTO IV_ITEM A 
+	    USING (
+	        SELECT #{BELNR}   AS IV_NUMBER       
+	              ,#{GJAHR}   AS IV_YEAR         
+                  ,#{BUZEI}   AS IV_SEQ          
+                  ,#{MATNR}   AS MAT_NUMBER      
+                  ,#{TXZ01}   AS MAT_DESC        
+                  ,#{MENGE}   AS IV_QTY          
+                  ,#{BSTME}   AS IV_UNIT_MEASURE 
+                  ,#{WAERS}   AS CURR_CD         
+                  ,#{WRBTR}   AS IV_AMT          
+                  ,#{SHKZG}   AS DC_INDICATOR    
+                  ,#{EBELN}   AS PO_NUMBER       
+                  ,#{EBELP}   AS PO_SEQ          
+                  ,#{LFBNR}   AS GR_NUMBER       
+                  ,#{LFPOS}   AS GR_SEQ          
+                  ,#{LFGJA}   AS GR_YEAR         
+                  ,#{BUDAT}   AS GR_DATE         
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.IV_NUMBER = B.IV_NUMBER
+            AND A.IV_YEAR   = B.IV_YEAR
+            AND A.IV_SEQ    = B.IV_SEQ
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.MAT_NUMBER      = B.MAT_NUMBER      
+                  ,A.MAT_DESC        = B.MAT_DESC        
+                  ,A.IV_QTY          = B.IV_QTY          
+                  ,A.IV_UNIT_MEASURE = B.IV_UNIT_MEASURE 
+                  ,A.CURR_CD         = B.CURR_CD         
+                  ,A.IV_AMT          = B.IV_AMT          
+                  ,A.DC_INDICATOR    = B.DC_INDICATOR    
+                  ,A.PO_NUMBER       = B.PO_NUMBER       
+                  ,A.PO_SEQ          = B.PO_SEQ          
+                  ,A.GR_NUMBER       = B.GR_NUMBER       
+                  ,A.GR_SEQ          = B.GR_SEQ          
+                  ,A.GR_YEAR         = B.GR_YEAR         
+                  ,A.GR_DATE         = B.GR_DATE         
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.IV_NUMBER      
+	             ,A.IV_YEAR        
+	             ,A.IV_SEQ         
+	             ,A.MAT_NUMBER     
+	             ,A.MAT_DESC       
+                 ,A.IV_QTY         
+                 ,A.IV_UNIT_MEASURE
+                 ,A.CURR_CD        
+                 ,A.IV_AMT         
+                 ,A.DC_INDICATOR   
+                 ,A.PO_NUMBER      
+                 ,A.PO_SEQ         
+                 ,A.GR_NUMBER      
+                 ,A.GR_SEQ         
+                 ,A.GR_YEAR        
+                 ,A.GR_DATE        
+	            ) VALUES ( B.IV_NUMBER      
+	                      ,B.IV_YEAR        
+	                      ,B.IV_SEQ         
+	                      ,B.MAT_NUMBER     
+	                      ,B.MAT_DESC       
+                          ,B.IV_QTY         
+                          ,B.IV_UNIT_MEASURE
+                          ,B.CURR_CD        
+                          ,B.IV_AMT         
+                          ,B.DC_INDICATOR   
+                          ,B.PO_NUMBER      
+                          ,B.PO_SEQ         
+                          ,B.GR_NUMBER      
+                          ,B.GR_SEQ         
+                          ,B.GR_YEAR        
+                          ,B.GR_DATE        
+	                     )
+     ]]>
+    </insert>	
+	
+	<insert id="insertInvoiceItemData" parameterType="map">
+		<![CDATA[
+		--com.bat.BatchVendor.insertInvoiceItemData
+		INSERT INTO IV_ITEM
+		(
+		   IV_NUMBER
+          ,IV_YEAR
+          ,IV_SEQ
+          ,MAT_NUMBER
+          ,MAT_DESC
+          ,IV_QTY
+          ,IV_UNIT_MEASURE
+          ,CURR_CD
+          ,IV_AMT
+          ,DC_INDICATOR
+          ,PO_NUMBER
+          ,PO_SEQ
+          ,GR_NUMBER
+          ,GR_SEQ
+          ,GR_YEAR
+          ,GR_DATE
+		) VALUES (
+		           #{BELNR}
+                  ,#{GJAHR}
+                  ,#{BUZEI}
+                  ,#{MATNR}
+                  ,#{TXZ01}
+                  ,#{MENGE}
+                  ,#{BSTME}
+                  ,#{WAERS}
+                  ,#{WRBTR}
+                  ,#{SHKZG}
+                  ,#{EBELN}
+                  ,#{EBELP}
+                  ,#{LFBNR}
+                  ,#{LFPOS}
+                  ,#{LFGJA}
+                  ,#{BUDAT}
+		          )
+		]]>
+	</insert>
+	
+    <update id="updateInvoiceItemData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchVendor.updateInvoiceItemData
+	        UPDATE IV_ITEM
+	           SET MAT_NUMBER      = #{MATNR}
+                  ,MAT_DESC        = #{TXZ01}
+                  ,IV_QTY          = #{MENGE}
+                  ,IV_UNIT_MEASURE = #{BSTME}
+                  ,CURR_CD         = #{WAERS}
+                  ,IV_AMT          = #{WRBTR}
+                  ,DC_INDICATOR    = #{SHKZG}
+                  ,PO_NUMBER       = #{EBELN}
+                  ,PO_SEQ          = #{EBELP}
+                  ,GR_NUMBER       = #{LFBNR}
+                  ,GR_SEQ          = #{LFPOS}
+                  ,GR_YEAR         = #{LFGJA}
+                  ,GR_DATE         = #{BUDAT}
+              WHERE IV_NUMBER      = #{BELNR}
+                AND IV_YEAR        = #{GJAHR}
+                AND IV_SEQ         = #{BUZEI}
+		   ]]>
+    </update>
+    
+</mapper>

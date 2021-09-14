@@ -1,0 +1,1009 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.BasicMgt">
+	<select id="selectBasicMgtHeader" parameterType="Map" resultType="Map">
+--com.bdg.BasicMgt.selectBasicMgtHeader
+SELECT COMP_CD                                                            COMP_CD      -- 회사코드
+      ,CRTN_YY                                                            CRTN_YY      -- 기준년도
+      ,CCTR_CD                                                            CCTR_CD      -- 코스트코드
+      ,FUNC_GET_COST_NAME(COMP_CD, CCTR_CD, CRE_DATE)                     CCTR_NM      -- 코스트명
+      ,ACCOUNT_NO                                                         ACCOUNT_NO   -- 계정코드
+      ,PROCESS_TYPE                                                       PROCESS_TYPE -- 등록구분
+      ,ACCOUNT_DESC                                                       ACCOUNT_DESC -- 계정명
+      ,CASE WHEN NVL(#{MODIFY_GUBN}, 'N') = 'Y' THEN 'Y'
+            WHEN FUNC_GET_CODE_NAME('YS031', ACCOUNT_NO) IS NOT NULL THEN 'N'
+            ELSE 'Y'
+       END                                                                ACCOUNT_GUBN -- 계정 구분
+      ,A_BUDGET                                                           A_BUDGET     -- 당기기본예산
+      ,B_BUDGET                                                           B_BUDGET     -- 산정추정
+      ,PRESUME_AMT                                                        PRESUME_AMT  -- 예상추정
+      ,TRUNC( PRESUME_AMT
+             /CASE WHEN A_BUDGET = 0 THEN NULL 
+                   ELSE              A_BUDGET 
+             END,2)                                                       D_BUDGET     -- 집행률
+      ,STATUS                                                             STATUS       -- 승인상태
+      ,DISTR_TYPE                                                         DISTR_TYPE   -- 유통판촉비 종류
+      ,WK_M01                                                             WK_M01       -- 1월
+      ,WK_M02                                                             WK_M02       -- 2월
+      ,WK_M03                                                             WK_M03       -- 3월
+      ,WK_M04                                                             WK_M04       -- 4월
+      ,WK_M05                                                             WK_M05       -- 5월
+      ,WK_M06                                                             WK_M06       -- 6월
+      ,A_SUM                                                              A_SUM        -- 상반기
+      ,WK_M07                                                             WK_M07       -- 7월
+      ,WK_M08                                                             WK_M08       -- 8월
+      ,WK_M09                                                             WK_M09       -- 9월
+      ,WK_M10                                                             WK_M10       -- 10월
+      ,WK_M11                                                             WK_M11       -- 11월
+      ,WK_M12                                                             WK_M12       -- 12월
+      ,B_SUM                                                              B_SUM        -- 하반기
+      ,C_SUM                                                              C_SUM        -- 합계
+      ,TRUNC(A_BUDGET/CASE WHEN C_SUM = 0 THEN NULL ELSE C_SUM END ,2)    A_RATE       -- 예산증감율
+      ,TRUNC(B_BUDGET/CASE WHEN C_SUM = 0 THEN NULL ELSE C_SUM END ,2)    B_RATE       -- 산정증감율
+      ,TRUNC(PRESUME_AMT/CASE WHEN C_SUM = 0 THEN NULL ELSE C_SUM END ,2) C_RATE       -- 예상증감율
+      ,REMARK                                                             REMARK       -- 증감요인
+      ,EPS_DOC_NO                                                         EPS_DOC_NO   -- 전자결재문서번호
+      ,CRE_DATE                                                           CRE_DATE     -- 등록일자
+      ,CRE_USER                                                           CRE_USER     -- 등록자ID
+      ,MOD_DATE                                                           MOD_DATE     -- 수정일자
+      ,MOD_USER                                                           MOD_USER     -- 수정자ID
+      ,SEND_CHASU                                                         SEND_CHASU   -- 차수
+      ,SEND_YMD                                                           SEND_YMD     -- 전송일자
+      ,'R'                                                                CRUD
+      ,'1'                                                                CODEMAPPING1
+      ,'1'                                                                CODEMAPPING2
+      ,(
+        SELECT MAX(CODE) CODE
+          FROM COM_CODE
+         WHERE CODE_GRP = 'SYS003'
+       )                                                                  W_CODE
+  FROM (
+        SELECT A.COMP_CD                                                                                                           COMP_CD
+              ,A.CRTN_YY                                                                                                           CRTN_YY
+              ,A.CCTR_CD                                                                                                           CCTR_CD
+              ,A.ACCOUNT_NO                                                                                                        ACCOUNT_NO
+              ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                                                                                 ACCOUNT_DESC
+              ,A.PROCESS_TYPE                                                                                                      PROCESS_TYPE
+              ,(                                                                                                                   
+                NVL(B.WK_M01,0)+NVL(B.WK_M02,0)+NVL(B.WK_M03,0)+NVL(B.WK_M04,0)+NVL(B.WK_M05,0)+NVL(B.WK_M06,0)                    
+               +NVL(B.WK_M07,0)+NVL(B.WK_M08,0)+NVL(B.WK_M09,0)+NVL(B.WK_M10,0)+NVL(B.WK_M11,0)+NVL(B.WK_M12,0)                    
+               )                                                                                                                   A_BUDGET
+              ,C.ACCOUNT_AMT                                                                  
+              +                                                                                                                    
+               (                                                                                                                   
+                NVL(B.WK_M10,0)+NVL(B.WK_M11,0)+NVL(B.WK_M12,0)                                                                    
+               )                                                                                                                   B_BUDGET
+              ,NVL(A.PRESUME_AMT,C.ACCOUNT_AMT                                                                                                                   
+                               +                                                                                                                    
+                                (                                                                                                                   
+                                 NVL(B.WK_M10,0)+NVL(B.WK_M11,0)+NVL(B.WK_M12,0)                                                                    
+                                )
+                  )                                                                                                                PRESUME_AMT
+              ,A.STATUS                                                                                                            STATUS
+              ,A.DISTR_TYPE                                                                                                        DISTR_TYPE
+              ,A.WK_M01                                                                                                            WK_M01
+              ,A.WK_M02                                                                                                            WK_M02
+              ,A.WK_M03                                                                                                            WK_M03
+              ,A.WK_M04                                                                                                            WK_M04
+              ,A.WK_M05                                                                                                            WK_M05
+              ,A.WK_M06                                                                                                            WK_M06
+              ,(
+                NVL(A.WK_M01,0)+NVL(A.WK_M02,0)+NVL(A.WK_M03,0)+NVL(A.WK_M04,0)+NVL(A.WK_M05,0)+NVL(A.WK_M06,0)
+               )                                                                                                                   A_SUM
+              ,A.WK_M07                                                                                                            WK_M07
+              ,A.WK_M08                                                                                                            WK_M08
+              ,A.WK_M09                                                                                                            WK_M09
+              ,A.WK_M10                                                                                                            WK_M10
+              ,A.WK_M11                                                                                                            WK_M11
+              ,A.WK_M12                                                                                                            WK_M12
+              ,(
+                NVL(A.WK_M07,0)+NVL(A.WK_M08,0)+NVL(A.WK_M09,0)+NVL(A.WK_M10,0)+NVL(A.WK_M11,0)+NVL(A.WK_M12,0)
+               )                                                                                                                   B_SUM
+              ,(
+                NVL(A.WK_M01,0)+NVL(A.WK_M02,0)+NVL(A.WK_M03,0)+NVL(A.WK_M04,0)+NVL(A.WK_M05,0)+NVL(A.WK_M06,0)
+               +NVL(A.WK_M07,0)+NVL(A.WK_M08,0)+NVL(A.WK_M09,0)+NVL(A.WK_M10,0)+NVL(A.WK_M11,0)+NVL(A.WK_M12,0)
+               )                                                                                                                   C_SUM
+              ,A.REMARK                                                                                                            REMARK
+              ,A.EPS_DOC_NO                                                                                                        EPS_DOC_NO
+              ,A.CRE_DATE                                                                                                          CRE_DATE
+              ,A.CRE_USER                                                                                                          CRE_USER
+              ,A.MOD_DATE                                                                                                          MOD_DATE
+              ,A.MOD_USER                                                                                                          MOD_USER
+              ,D.SEND_CHASU                                                                                                        SEND_CHASU
+              ,D.SEND_YMD                                                                                                          SEND_YMD
+          FROM CO_BUGT_BASIC_HEAD A
+              LEFT OUTER JOIN
+               CO_BUGT_MODIFY_HEAD B
+              ON    B.COMP_CD      = A.COMP_CD
+                AND B.CRTN_YY      = A.CRTN_YY - '1'
+                AND B.CCTR_CD      = A.CCTR_CD
+                AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+                AND B.PROCESS_TYPE = A.PROCESS_TYPE
+              LEFT OUTER JOIN
+               (
+                SELECT COMP_CD               COMP_CD
+                      ,CCTR_CD               CCTR_CD
+                      ,SUBSTR(CRTN_YYMM,0,4) CRTN_YYMM
+                      ,SUM(ACCOUNT_AMT)      ACCOUNT_AMT
+                  FROM CO_BUGT_RESULT
+                 WHERE CRTN_YYMM BETWEEN #{TB_CRTN_YY} - '1' || '01' AND #{TB_CRTN_YY} - '1' || '09'
+                 GROUP BY COMP_CD
+                         ,SUBSTR(CRTN_YYMM,0,4)
+                         ,CCTR_CD
+               )  C
+              ON    C.COMP_CD               = A.COMP_CD
+                AND SUBSTR(C.CRTN_YYMM,0,4) = A.CRTN_YY - '1'
+                AND C.CCTR_CD               = A.CCTR_CD
+              LEFT OUTER JOIN
+               CO_BUGT_BASIC_MASTER D
+              ON    D.COMP_CD = A.COMP_CD
+                AND D.CRTN_YY = A.CRTN_YY 
+		 WHERE 1=1
+		  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND A.COMP_CD = #{SB_COMP_CD}
+		  </if>
+		  <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+		   AND A.CRTN_YY   = #{TB_CRTN_YY}
+		  </if>    
+		  <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+		   AND A.CCTR_CD   = #{SB_CCTR_CD}
+		  </if>   
+		  <if test="SB_STATUS_CD != null and SB_STATUS_CD != ''">
+		   AND A.STATUS   = #{SB_STATUS_CD}
+		  </if>   
+     )
+ORDER BY COMP_CD
+        ,CRTN_YY
+        ,CCTR_CD
+        ,ACCOUNT_NO
+  </select>
+
+	<select id="selectBasicMgtDetail" parameterType="Map" resultType="Map">
+--com.bdg.BasicMgt.selectBasicMgtDetail
+SELECT A.COMP_CD
+      ,A.CRTN_YY
+      ,A.CCTR_CD
+      ,A.ACCOUNT_NO
+      ,A.PROCESS_TYPE
+      ,A.SEQ_NO
+      ,A.DETAIL_DESC
+      ,A.BELONG_CCTR_CD
+      ,A.BELONG_CCTR_CD|| '-' || FUNC_GET_COST_NAME(A.COMP_CD , A.BELONG_CCTR_CD, TO_CHAR(SYSDATE,'YYYYMMDD')) BELONG_CCTR
+      ,A.PROJECT_CD
+      ,A.PROJECT_CD || '-' || CASE WHEN A.PROCESS_TYPE = '2' 
+                                     THEN FUNC_GET_ORDER_DESC(A.COMP_CD, A.PROJECT_CD, 'ZSAL', A.CCTR_CD)
+                                     ELSE FUNC_GET_ORDER_DESC2(A.COMP_CD, A.PROJECT_CD, 'ZPMS', A.CCTR_CD, A.ACCOUNT_NO)
+                               END PROJECT -- 프로젝명
+      ,A.UNIT_PRICE
+      ,A.UNIT_QTY
+      ,A.WK_M01
+      ,A.WK_M02
+      ,A.WK_M03
+      ,A.WK_M04
+      ,A.WK_M05
+      ,A.WK_M06
+      ,(
+        NVL(A.WK_M01,0)+NVL(A.WK_M02,0)+NVL(A.WK_M03,0)+NVL(A.WK_M04,0)+NVL(A.WK_M05,0)+NVL(A.WK_M06,0)
+       )                                                                                                                   A_SUM
+      ,A.WK_M07
+      ,A.WK_M08
+      ,A.WK_M09
+      ,A.WK_M10
+      ,A.WK_M11
+      ,A.WK_M12
+      ,(
+        NVL(A.WK_M07,0)+NVL(A.WK_M08,0)+NVL(A.WK_M09,0)+NVL(A.WK_M10,0)+NVL(A.WK_M11,0)+NVL(A.WK_M12,0)
+       )                                                                                                                   B_SUM
+      ,(
+        NVL(A.WK_M01,0)+NVL(A.WK_M02,0)+NVL(A.WK_M03,0)+NVL(A.WK_M04,0)+NVL(A.WK_M05,0)+NVL(A.WK_M06,0)
+       +NVL(A.WK_M07,0)+NVL(A.WK_M08,0)+NVL(A.WK_M09,0)+NVL(A.WK_M10,0)+NVL(A.WK_M11,0)+NVL(A.WK_M12,0)
+       )                                                                                                                   C_SUM
+      ,A.CRE_DATE
+      ,A.CRE_USER
+      ,A.MOD_DATE
+      ,A.MOD_USER
+      ,'1'                                                                CODEMAPPING1
+      ,'1'                                                                CODEMAPPING2
+      ,B.STATUS
+      ,(                                                                                                                   
+        NVL(D.WK_M10,0)+NVL(D.WK_M11,0)+NVL(D.WK_M12,0)
+       ) 
+      +
+       NVL(C.ACCOUNT_AMT,0)                                               B_BUDGET
+  FROM CO_BUGT_BASIC_DETAIL A
+      LEFT OUTER JOIN
+       CO_BUGT_BASIC_HEAD B
+      ON    B.COMP_CD      = A.COMP_CD
+        AND B.CRTN_YY      = A.CRTN_YY
+        AND B.CCTR_CD       = A.CCTR_CD
+        AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+      LEFT OUTER JOIN
+       (
+        SELECT COMP_CD               COMP_CD
+              ,CCTR_CD                CCTR_CD
+              ,SUBSTR(CRTN_YYMM,0,4) CRTN_YYMM
+              ,SUM(ACCOUNT_AMT)      ACCOUNT_AMT
+          FROM CO_BUGT_RESULT
+         WHERE CRTN_YYMM BETWEEN  #{TB_CRTN_YY} - '1' || '01' AND  #{TB_CRTN_YY} - '1' || '09'
+         GROUP BY COMP_CD
+                 ,SUBSTR(CRTN_YYMM,0,4)
+                 ,CCTR_CD
+       )  C
+      ON    C.COMP_CD               = A.COMP_CD
+        AND SUBSTR(C.CRTN_YYMM,0,4) = A.CRTN_YY - '1'
+        AND C.CCTR_CD                = A.CCTR_CD
+      LEFT OUTER JOIN 
+       CO_BUGT_MODIFY_HEAD D
+      ON    D.COMP_CD       = C.COMP_CD
+        AND D.CRTN_YY - '1' = SUBSTR(C.CRTN_YYMM,0,4)
+        AND D.CCTR_CD        = C.CCTR_CD
+ WHERE A.COMP_CD      = #{SB_COMP_CD}
+   AND A.CRTN_YY      = #{TB_CRTN_YY}
+   AND A.CCTR_CD      = #{SB_CCTR_CD}
+   AND A.ACCOUNT_NO   = #{TB_ACCOUNT_NO}
+   AND A.PROCESS_TYPE = #{TB_PROCESS_TYPE} 
+ ORDER BY A.COMP_CD
+         ,A.CRTN_YY
+         ,A.CCTR_CD
+         ,A.ACCOUNT_NO
+         ,A.SEQ_NO   
+	</select>
+
+	
+	<insert id="saveBasicMgtHeader" parameterType="Map">
+	--com.bdg.BasicMgt.saveBasicMgtHeader
+MERGE INTO CO_BUGT_BASIC_HEAD A
+USING (
+       SELECT #{SB_COMP_CD}                COMP_CD
+             ,#{TB_CRTN_YY}                CRTN_YY
+             <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+             ,#{SB_CCTR_CD}                CCTR_CD
+             </if>
+             <if test="TB_CCTR_CD != null and TB_CCTR_CD != ''">
+             ,#{TB_CCTR_CD}                CCTR_CD
+             </if>
+             ,#{TB_ACCOUNT_NO}             ACCOUNT_NO
+             ,'1'                          PROCESS_TYPE
+             ,'1'                          STATUS
+             ,#{DISTR_TYPE}                DISTR_TYPE
+             ,B.WK_M01                     WK_M01
+             ,B.WK_M02                     WK_M02
+             ,B.WK_M03                     WK_M03
+             ,B.WK_M04                     WK_M04
+             ,B.WK_M05                     WK_M05
+             ,B.WK_M06                     WK_M06
+             ,B.WK_M07                     WK_M07
+             ,B.WK_M08                     WK_M08
+             ,B.WK_M09                     WK_M09
+             ,B.WK_M10                     WK_M10
+             ,B.WK_M11                     WK_M11
+             ,B.WK_M12                     WK_M12
+             ,#{TB_REMARK}                 REMARK
+             ,NULL                         PRESUME_AMT
+             ,#{EPS_DOC_NO}                EPS_DOC_NO
+             ,TO_CHAR(SYSDATE,'YYYYMMDD')  CRE_DATE
+             ,#{CRE_USER}                  CRE_USER
+             ,TO_CHAR(SYSDATE,'YYYYMMDD')  MOD_DATE
+             ,#{MOD_USER}                  MOD_USER
+         FROM DUAL A
+             LEFT OUTER JOIN
+             (
+              SELECT COMP_CD   
+                     ,CRTN_YY   
+                     ,CCTR_CD    
+                     ,PROCESS_TYPE
+                     ,ACCOUNT_NO
+                     ,SUM(WK_M01) WK_M01
+                     ,SUM(WK_M02) WK_M02
+                     ,SUM(WK_M03) WK_M03
+                     ,SUM(WK_M04) WK_M04
+                     ,SUM(WK_M05) WK_M05
+                     ,SUM(WK_M06) WK_M06
+                     ,SUM(WK_M07) WK_M07
+                     ,SUM(WK_M08) WK_M08
+                     ,SUM(WK_M09) WK_M09
+                     ,SUM(WK_M10) WK_M10
+                     ,SUM(WK_M11) WK_M11
+                     ,SUM(WK_M12) WK_M12
+                FROM CO_BUGT_BASIC_DETAIL
+               GROUP BY COMP_CD
+                       ,CRTN_YY
+                       ,CCTR_CD
+                       ,ACCOUNT_NO
+                       ,PROCESS_TYPE
+             ) B
+             ON    B.COMP_CD      = #{SB_COMP_CD}
+               AND B.CRTN_YY      = #{TB_CRTN_YY}
+               AND B.CCTR_CD      = #{SB_CCTR_CD}
+               AND B.ACCOUNT_NO   = #{TB_ACCOUNT_NO}
+               AND B.PROCESS_TYPE = '1' 
+      ) B
+ON (
+        A.COMP_CD      = B.COMP_CD
+    AND A.CRTN_YY      = B.CRTN_YY
+    AND A.CCTR_CD       = B.CCTR_CD
+    AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+    AND A.PROCESS_TYPE = B.PROCESS_TYPE
+   )
+WHEN MATCHED THEN
+    UPDATE
+       SET WK_M01     = B.WK_M01
+          ,WK_M02     = B.WK_M02
+          ,WK_M03     = B.WK_M03
+          ,WK_M04     = B.WK_M04
+          ,WK_M05     = B.WK_M05
+          ,WK_M06     = B.WK_M06
+          ,WK_M07     = B.WK_M07
+          ,WK_M08     = B.WK_M08
+          ,WK_M09     = B.WK_M09
+          ,WK_M10     = B.WK_M10
+          ,WK_M11     = B.WK_M11
+          ,WK_M12     = B.WK_M12
+          ,REMARK     = #{TB_REMARK}
+          ,PRESUME_AMT= #{TB_PRESUME_AMT}
+          ,EPS_DOC_NO = #{EPS_DOC_NO}
+          ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,MOD_USER   = #{MOD_USER}
+WHEN NOT MATCHED THEN
+        INSERT
+        (
+          A.COMP_CD
+         ,A.CRTN_YY
+         ,A.CCTR_CD
+         ,A.ACCOUNT_NO
+         ,A.PROCESS_TYPE
+         ,A.STATUS
+         ,A.DISTR_TYPE
+         ,A.WK_M01
+         ,A.WK_M02
+         ,A.WK_M03
+         ,A.WK_M04
+         ,A.WK_M05
+         ,A.WK_M06
+         ,A.WK_M07
+         ,A.WK_M08
+         ,A.WK_M09
+         ,A.WK_M10
+         ,A.WK_M11
+         ,A.WK_M12
+         ,A.REMARK
+         ,A.PRESUME_AMT
+         ,A.EPS_DOC_NO
+         ,A.CRE_DATE
+         ,A.CRE_USER
+         ,A.MOD_DATE
+         ,A.MOD_USER
+        ) VALUES (
+                   B.COMP_CD
+                  ,B.CRTN_YY
+                  ,B.CCTR_CD
+                  ,B.ACCOUNT_NO
+                  ,B.PROCESS_TYPE
+                  ,B.STATUS
+                  ,B.DISTR_TYPE
+                  ,B.WK_M01
+                  ,B.WK_M02
+                  ,B.WK_M03
+                  ,B.WK_M04
+                  ,B.WK_M05
+                  ,B.WK_M06
+                  ,B.WK_M07
+                  ,B.WK_M08
+                  ,B.WK_M09
+                  ,B.WK_M10
+                  ,B.WK_M11
+                  ,B.WK_M12
+                  ,B.REMARK
+                  ,B.PRESUME_AMT
+                  ,B.EPS_DOC_NO
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,B.CRE_USER
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,B.MOD_USER
+                 )
+	</insert>
+	
+	<insert id="saveBasicMgtDetail" parameterType="Map">
+--com.bdg.BasicMgt.saveBasicMgtDetail
+MERGE INTO CO_BUGT_BASIC_DETAIL A
+USING (
+       SELECT #{COMP_CD}        COMP_CD
+             ,#{CRTN_YY}        CRTN_YY
+             ,#{CCTR_CD}        CCTR_CD
+             ,#{ACCOUNT_NO}     ACCOUNT_NO
+             ,'1'               PROCESS_TYPE
+             ,#{SEQ_NO}         SEQ_NO
+             ,#{DETAIL_DESC}    DETAIL_DESC
+             ,#{BELONG_CCTR_CD} BELONG_CCTR_CD
+             ,#{PROJECT_CD}     PROJECT_CD
+             ,#{UNIT_PRICE}     UNIT_PRICE
+             ,#{UNIT_QTY}       UNIT_QTY
+             ,#{WK_M01}         WK_M01
+             ,#{WK_M02}         WK_M02
+             ,#{WK_M03}         WK_M03
+             ,#{WK_M04}         WK_M04
+             ,#{WK_M05}         WK_M05
+             ,#{WK_M06}         WK_M06
+             ,#{WK_M07}         WK_M07
+             ,#{WK_M08}         WK_M08
+             ,#{WK_M09}         WK_M09
+             ,#{WK_M10}         WK_M10
+             ,#{WK_M11}         WK_M11
+             ,#{WK_M12}         WK_M12
+             ,#{CRE_USER}       CRE_USER
+             ,#{MOD_USER}       MOD_USER
+         FROM DUAL
+      ) B
+ON (
+        A.COMP_CD      = B.COMP_CD
+    AND A.CRTN_YY      = B.CRTN_YY
+    AND A.CCTR_CD       = B.CCTR_CD
+    AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+    AND A.PROCESS_TYPE = B.PROCESS_TYPE
+    AND A.SEQ_NO       = B.SEQ_NO
+   )
+WHEN MATCHED THEN
+    UPDATE
+       SET DETAIL_DESC   = #{DETAIL_DESC}
+          ,BELONG_CCTR_CD = #{BELONG_CCTR_CD}
+          ,PROJECT_CD    = #{PROJECT_CD}
+          ,UNIT_PRICE    = #{UNIT_PRICE}
+          ,UNIT_QTY      = #{UNIT_QTY}
+          ,WK_M01        = #{WK_M01}
+          ,WK_M02        = #{WK_M02}
+          ,WK_M03        = #{WK_M03}
+          ,WK_M04        = #{WK_M04}
+          ,WK_M05        = #{WK_M05}
+          ,WK_M06        = #{WK_M06}
+          ,WK_M07        = #{WK_M07}
+          ,WK_M08        = #{WK_M08}
+          ,WK_M09        = #{WK_M09}
+          ,WK_M10        = #{WK_M10}
+          ,WK_M11        = #{WK_M11}
+          ,WK_M12        = #{WK_M12}
+          ,MOD_DATE      = TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,MOD_USER      = #{MOD_USER}
+WHEN NOT MATCHED THEN
+        INSERT
+        (
+          A.COMP_CD
+         ,A.CRTN_YY
+         ,A.CCTR_CD
+         ,A.ACCOUNT_NO
+         ,A.PROCESS_TYPE
+         ,A.SEQ_NO
+         ,A.DETAIL_DESC
+         ,A.BELONG_CCTR_CD
+         ,A.PROJECT_CD
+         ,A.UNIT_PRICE
+         ,A.UNIT_QTY
+         ,A.WK_M01
+         ,A.WK_M02
+         ,A.WK_M03
+         ,A.WK_M04
+         ,A.WK_M05
+         ,A.WK_M06
+         ,A.WK_M07
+         ,A.WK_M08
+         ,A.WK_M09
+         ,A.WK_M10
+         ,A.WK_M11
+         ,A.WK_M12
+         ,A.CRE_DATE
+         ,A.CRE_USER
+         ,A.MOD_DATE
+         ,A.MOD_USER
+        ) VALUES (
+                   B.COMP_CD
+                  ,B.CRTN_YY
+                  ,B.CCTR_CD
+                  ,B.ACCOUNT_NO
+                  ,B.PROCESS_TYPE
+                  ,B.SEQ_NO
+                  ,B.DETAIL_DESC
+                  ,B.BELONG_CCTR_CD
+                  ,B.PROJECT_CD
+                  ,B.UNIT_PRICE
+                  ,B.UNIT_QTY
+                  ,B.WK_M01
+                  ,B.WK_M02
+                  ,B.WK_M03
+                  ,B.WK_M04
+                  ,B.WK_M05
+                  ,B.WK_M06
+                  ,B.WK_M07
+                  ,B.WK_M08
+                  ,B.WK_M09
+                  ,B.WK_M10
+                  ,B.WK_M11
+                  ,B.WK_M12
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,B.CRE_USER
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,B.MOD_USER
+                 )
+	</insert>
+	
+	<delete id="delBasicH" parameterType="map">
+	--com.bdg.BasicMgt.delBasicH
+DELETE FROM CO_BUGT_BASIC_HEAD
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YY      = #{CRTN_YY}
+   AND CCTR_CD       = #{CCTR_CD}
+   AND ACCOUNT_NO   = #{ACCOUNT_NO}
+   AND PROCESS_TYPE = #{PROCESS_TYPE}
+	</delete>
+	
+	<delete id="delBasicD" parameterType="map">
+	--com.bdg.BasicMgt.delBasicD
+DELETE FROM CO_BUGT_BASIC_DETAIL
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YY      = #{CRTN_YY}
+   AND CCTR_CD       = #{CCTR_CD}
+   AND ACCOUNT_NO   = #{ACCOUNT_NO}
+   AND PROCESS_TYPE = #{PROCESS_TYPE}
+	</delete>
+	
+	<delete id="delBasicMgtDetail" parameterType="map">
+	--com.bdg.BasicMgt.delBasicMgtDetail
+DELETE FROM CO_BUGT_BASIC_DETAIL
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YY      = #{CRTN_YY}
+   AND CCTR_CD       = #{CCTR_CD}
+   AND ACCOUNT_NO   = #{ACCOUNT_NO}
+   AND PROCESS_TYPE = #{PROCESS_TYPE}
+   AND SEQ_NO       = #{SEQ_NO}
+	</delete>
+	
+	<select id="selectStatusHeader" parameterType="Map" resultType="Map">
+	    --com.bdg.BasicMgt.selectStatusHeader
+		SELECT MAX(STATUS) STATUS
+		  FROM CO_BUGT_BASIC_HEAD
+		 WHERE 1 = 1
+		   AND COMP_CD = #{SB_COMP_CD}
+	       AND CRTN_YY = #{TB_CRTN_YY}
+	       AND CCTR_CD = #{SB_CCTR_CD} 		
+	</select>
+	
+	<select id="selectBugtSumData" parameterType="Map" resultType="Map">
+	    --com.bdg.BasicMgt.selectBugtSumData
+		SELECT SUM(                                                                                                                   
+                NVL(B.WK_M01,0)+NVL(B.WK_M02,0)+NVL(B.WK_M03,0)+NVL(B.WK_M04,0)+NVL(B.WK_M05,0)+NVL(B.WK_M06,0)                    
+               +NVL(B.WK_M07,0)+NVL(B.WK_M08,0)+NVL(B.WK_M09,0)+NVL(B.WK_M10,0)+NVL(B.WK_M11,0)+NVL(B.WK_M12,0)                    
+               ) SUM_A_BUDGET
+		  FROM CO_BUGT_BASIC_HEAD A
+              LEFT OUTER JOIN
+               CO_BUGT_MODIFY_HEAD B
+              ON    B.COMP_CD      = A.COMP_CD
+                AND B.CRTN_YY      = A.CRTN_YY - '1'
+                AND B.CCTR_CD      = A.CCTR_CD
+                AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+                AND B.PROCESS_TYPE = A.PROCESS_TYPE  	  
+		 WHERE 1 = 1
+		   AND A.COMP_CD = #{SB_COMP_CD}
+	       AND A.CRTN_YY = #{TB_CRTN_YY}
+	       AND A.CCTR_CD = #{SB_CCTR_CD} 		
+	</select>	
+	
+	<select id="selectStatusHeader2" parameterType="Map" resultType="Map">
+	    --com.bdg.BasicMgt.selectStatusHeader2
+	    SELECT MAX(NVL(A.STATUS, '1')) STATUS
+	          ,#{TB_PROCESS_TYPE}      PROCESS_TYPE
+          FROM (
+				SELECT MAX(STATUS) STATUS
+				  FROM CO_BUGT_BASIC_HEAD
+				 WHERE 1 = 1
+				   AND COMP_CD    = #{SB_COMP_CD}
+			       AND CRTN_YY    = #{TB_CRTN_YY}
+			       AND CCTR_CD    = #{SB_CCTR_CD}
+			    UNION ALL
+			    SELECT '1' STATUS
+			      FROM DUAL	          
+               ) A
+	</select> 
+	
+	<update id="apprBasicMgtHeader" parameterType="map">
+	--com.bdg.BasicMgt.apprBasicMgtHeader
+		UPDATE CO_BUGT_BASIC_HEAD
+		   SET STATUS      = '2'
+		      ,EPS_DOC_NO  = #{EPS_DOC_NO}
+		      ,MOD_DATE    = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER    = #{MOD_USER}
+		 WHERE COMP_CD     = #{SB_COMP_CD}
+		   AND CRTN_YY     = #{TB_CRTN_YY}
+		   AND CCTR_CD     = #{SB_CCTR_CD}
+	</update>
+
+	<update id="returnBasicMgtHeader" parameterType="map">
+	--com.bdg.BasicMgt.returnBasicMgtHeader
+UPDATE CO_BUGT_BASIC_HEAD
+   SET STATUS     = '1' 
+      ,EPS_DOC_NO = ''
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD  = #{SB_COMP_CD}
+   AND CRTN_YY  = #{TB_CRTN_YY}
+   AND CCTR_CD  = #{SB_CCTR_CD}
+	</update>
+
+	<select id="selectAccountList" parameterType="Map" resultType="Map">
+	--com.bdg.BasicMgt.selectAccountList
+SELECT A.ACCOUNT_NO
+      ,A.ACCOUNT_DESC
+      ,(
+        SELECT MAX(CODE) CODE
+          FROM COM_CODE
+         WHERE CODE_GRP = 'SYS003'
+       )                              W_CODE
+  FROM CO_ACCOUNT_NO A
+ WHERE 1=1
+	<if test="TB_ACCOUNT_NO != null and TB_ACCOUNT_NO != ''">
+   AND A.ACCOUNT_NO LIKE  '%' || #{TB_ACCOUNT_NO} || '%'  
+	</if>
+	<if test="TB_ACCOUNT_DESC != null and TB_ACCOUNT_DESC != ''">
+   AND A.ACCOUNT_DESC LIKE  '%' || #{TB_ACCOUNT_DESC} || '%'
+	</if>
+	
+    <if test="TB_ACCOUNT_GUBN != null and TB_ACCOUNT_GUBN != ''">
+		<choose>
+			<when test='TB_ACCOUNT_GUBN=="E" or TB_ACCOUNT_GUBN=="O"'>
+		AND NOT EXISTS (SELECT 1
+		            FROM COM_CODE C
+		           WHERE C.CODE_GRP = 'YS031'
+		             AND C.CODE = A.ACCOUNT_NO 
+		         ) 
+			</when>
+			<when test='TB_ACCOUNT_GUBN=="S" or TB_ACCOUNT_GUBN=="B" or TB_ACCOUNT_GUBN=="M"'>
+		AND NOT EXISTS (SELECT 1
+		            FROM COM_CODE C
+		           WHERE C.CODE_GRP = 'YS032'
+		             AND C.CODE = A.ACCOUNT_NO 
+		         ) 
+		   	</when>			   	
+		</choose>        
+	</if>
+   AND NOT EXISTS (SELECT 1
+                     FROM CO_ACCOUNT_MGMT B
+                    WHERE B.ACCOUNT_NO = A.ACCOUNT_NO
+                      AND NVL(DISPLAY_YN,  'N') = 'N'
+                  ) 						
+	</select>	
+	
+	<select id="selectProjList" parameterType="Map" resultType="Map">
+--com.bdg.BasicMgt.selectProjList
+SELECT COMP_CD
+      ,ORDER_NO
+      ,ORDER_GUBUN
+      ,CCTR_CD
+      ,ORDER_DESC
+      ,INVEST_NO
+      ,ACCOUNT_NO
+  FROM CO_ORDER_MST
+ WHERE 1=1
+	<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD LIKE  '%' || #{SB_COMP_CD} || '%'  
+	</if>
+   AND ORDER_GUBUN = 'ZPMS'
+	<if test="TB_ORDER_NO != null and TB_ORDER_NO != ''">
+   AND ORDER_NO LIKE  '%' || #{TB_ORDER_NO} || '%'  
+	</if>
+	<if test="TB_ORDER_DESC != null and TB_ORDER_DESC != ''">
+   AND ORDER_DESC LIKE  '%' || #{TB_ORDER_DESC} || '%'  
+	</if>
+	<if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+   AND CCTR_CD = #{SB_CCTR_CD}
+	</if>
+   AND ACCOUNT_NO = #{TB_ACCOUNT_NO}
+	</select>	
+
+	<update id="saveHeader" parameterType="Map">
+	--com.bdg.BasicMgt.saveHeader
+	UPDATE CO_BUGT_BASIC_HEAD
+	   SET PRESUME_AMT = #{PRESUME_AMT}
+	      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+	      ,MOD_USER   = #{MOD_USER}
+	 WHERE COMP_CD    = #{COMP_CD}
+          AND CRTN_YY    = #{CRTN_YY}
+          AND CCTR_CD    = #{CCTR_CD}
+          AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</update>
+	
+	<update id="updateHeader" parameterType="Map">
+	--com.bdg.BasicMgt.updateHeader
+		UPDATE CO_BUGT_BASIC_HEAD
+		   SET STATUS     = #{STATUS}
+		      ,EPS_DOC_NO = CASE WHEN #{STATUS} = '1' THEN ''
+		                         ELSE EPS_DOC_NO
+		                    END
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER   = #{APPROVAL_ID}
+		 WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+	</update>	
+
+	<insert id="saveBasicMaster" parameterType="Map">
+	--com.bdg.BasicMgt.saveBasicMaster
+	BEGIN
+		MERGE INTO CO_BUGT_BASIC_MASTER A
+		USING (
+		       SELECT #{SB_COMP_CD}       COMP_CD
+		             ,#{TB_CRTN_YY}       CRTN_YY
+		         FROM DUAL
+		       ) B
+		ON (
+		        A.COMP_CD = B.COMP_CD
+		    AND A.CRTN_YY = B.CRTN_YY
+		   )
+		WHEN MATCHED THEN
+		    UPDATE
+		       SET SEND_CHASU = #{SB_CHASU}
+		          ,SEND_YMD   = TO_CHAR(SYSDATE,'YYYYMMDD')
+		WHEN NOT MATCHED THEN
+		        INSERT
+		        (
+		          A.COMP_CD
+		         ,A.CRTN_YY
+		         ,A.SEND_CHASU
+		         ,A.SEND_YMD
+		        ) VALUES (
+		                   B.COMP_CD
+		                  ,B.CRTN_YY
+		                  ,#{SB_CHASU}
+		                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+		                 )	
+		;
+		
+		UPDATE CO_BUGT_BASIC_HEAD
+		   SET STATUS   = '5' 
+		      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER = #{MOD_USER}
+		 WHERE COMP_CD  = #{SB_COMP_CD}
+		   AND CRTN_YY  = #{TB_CRTN_YY}
+		;		
+	END;
+
+	</insert>
+
+	<select id="apprBasicMgtHeader2" parameterType="Map" resultType="Map">
+	--com.bdg.BasicMgt.apprBasicMgtHeader2
+SELECT COMP_CD
+      ,CRTN_YY
+      ,CCTR_CD
+      ,ACCOUNT_NO
+      ,PROCESS_TYPE
+      ,STATUS
+      ,DISTR_TYPE
+      ,WK_M01
+      ,WK_M02
+      ,WK_M03
+      ,WK_M04
+      ,WK_M05
+      ,WK_M06
+      ,WK_M07
+      ,WK_M08
+      ,WK_M09
+      ,WK_M10
+      ,WK_M11
+      ,WK_M12
+      ,REMARK
+      ,PRESUME_AMT
+      ,EPS_DOC_NO
+      ,CRE_DATE
+      ,CRE_USER
+      ,MOD_DATE
+      ,MOD_USER
+  FROM CO_BUGT_BASIC_HEAD
+ WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+	</select>
+
+	<select id="selectBasicMgtHeaderPop" parameterType="Map" resultType="Map">
+--com.bdg.BasicMgt.selectBasicMgtHeaderPop
+SELECT COMP_CD                                                            COMP_CD      -- 회사코드
+      ,CRTN_YY                                                            CRTN_YY      -- 기준년도
+      ,CCTR_CD                                                            CCTR_CD      -- 부서코드
+      ,FUNC_GET_COST_NAME(COMP_CD, CCTR_CD, CRE_DATE)                     CCTR_NM      -- 부서명
+      ,ACCOUNT_NO                                                         ACCOUNT_NO   -- 계정코드
+      ,PROCESS_TYPE                                                       PROCESS_TYPE -- 등록구분
+      ,ACCOUNT_DESC                                                       ACCOUNT_DESC -- 계정명
+      ,A_BUDGET                                                           A_BUDGET     -- 당기기본예산
+      ,B_BUDGET                                                           B_BUDGET     -- 산정추정
+      ,PRESUME_AMT                                                        PRESUME_AMT  -- 예상추정
+      ,TRUNC( PRESUME_AMT
+             /CASE WHEN A_BUDGET = 0 THEN NULL 
+                   ELSE              A_BUDGET 
+             END,2)                                                       D_BUDGET     -- 집행률
+      ,STATUS                                                             STATUS       -- 승인상태
+      ,DISTR_TYPE                                                         DISTR_TYPE   -- 유통판촉비 종류
+      ,WK_M01                                                             WK_M01       -- 1월
+      ,WK_M02                                                             WK_M02       -- 2월
+      ,WK_M03                                                             WK_M03       -- 3월
+      ,WK_M04                                                             WK_M04       -- 4월
+      ,WK_M05                                                             WK_M05       -- 5월
+      ,WK_M06                                                             WK_M06       -- 6월
+      ,A_SUM                                                              A_SUM        -- 상반기
+      ,WK_M07                                                             WK_M07       -- 7월
+      ,WK_M08                                                             WK_M08       -- 8월
+      ,WK_M09                                                             WK_M09       -- 9월
+      ,WK_M10                                                             WK_M10       -- 10월
+      ,WK_M11                                                             WK_M11       -- 11월
+      ,WK_M12                                                             WK_M12       -- 12월
+      ,B_SUM                                                              B_SUM        -- 하반기
+      ,C_SUM                                                              C_SUM        -- 합계
+      ,TRUNC(A_BUDGET/CASE WHEN C_SUM = 0 THEN NULL ELSE C_SUM END ,2)    A_RATE       -- 예산증감율
+      ,TRUNC(B_BUDGET/CASE WHEN C_SUM = 0 THEN NULL ELSE C_SUM END ,2)    B_RATE       -- 산정증감율
+      ,TRUNC(PRESUME_AMT/CASE WHEN C_SUM = 0 THEN NULL ELSE C_SUM END ,2) C_RATE       -- 예상증감율
+      ,REMARK                                                             REMARK       -- 증감요인
+      ,EPS_DOC_NO                                                         EPS_DOC_NO   -- 전자결재문서번호
+      ,CRE_DATE                                                           CRE_DATE     -- 등록일자
+      ,CRE_USER                                                           CRE_USER     -- 등록자ID
+      ,MOD_DATE                                                           MOD_DATE     -- 수정일자
+      ,MOD_USER                                                           MOD_USER     -- 수정자ID
+      ,SEND_CHASU                                                         SEND_CHASU   -- 차수
+      ,SEND_YMD                                                           SEND_YMD     -- 전송일자
+      ,'R'                                                                CRUD
+      ,'1'                                                                CODEMAPPING1
+      ,'1'                                                                CODEMAPPING2
+  FROM (
+        SELECT A.COMP_CD                                                                                                           COMP_CD
+              ,A.CRTN_YY                                                                                                           CRTN_YY
+              ,A.CCTR_CD                                                                                                           CCTR_CD
+              ,A.ACCOUNT_NO                                                                                                        ACCOUNT_NO
+              ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                                                                                 ACCOUNT_DESC
+              ,A.PROCESS_TYPE                                                                                                      PROCESS_TYPE
+              ,(                                                                                                                   
+                NVL(B.WK_M01,0)+NVL(B.WK_M02,0)+NVL(B.WK_M03,0)+NVL(B.WK_M04,0)+NVL(B.WK_M05,0)+NVL(B.WK_M06,0)                    
+               +NVL(B.WK_M07,0)+NVL(B.WK_M08,0)+NVL(B.WK_M09,0)+NVL(B.WK_M10,0)+NVL(B.WK_M11,0)+NVL(B.WK_M12,0)                    
+               )                                                                                                                   A_BUDGET
+              ,C.ACCOUNT_AMT                                                                  
+              +                                                                                                                    
+               (                                                                                                                   
+                NVL(B.WK_M10,0)+NVL(B.WK_M11,0)+NVL(B.WK_M12,0)                                                                    
+               )                                                                                                                   B_BUDGET
+              ,NVL(A.PRESUME_AMT,C.ACCOUNT_AMT                                                                                                                   
+                               +                                                                                                                    
+                                (                                                                                                                   
+                                 NVL(B.WK_M10,0)+NVL(B.WK_M11,0)+NVL(B.WK_M12,0)                                                                    
+                                )
+                  )                                                                                                                PRESUME_AMT
+              ,A.STATUS                                                                                                            STATUS
+              ,A.DISTR_TYPE                                                                                                        DISTR_TYPE
+              ,A.WK_M01                                                                                                            WK_M01
+              ,A.WK_M02                                                                                                            WK_M02
+              ,A.WK_M03                                                                                                            WK_M03
+              ,A.WK_M04                                                                                                            WK_M04
+              ,A.WK_M05                                                                                                            WK_M05
+              ,A.WK_M06                                                                                                            WK_M06
+              ,(
+                NVL(A.WK_M01,0)+NVL(A.WK_M02,0)+NVL(A.WK_M03,0)+NVL(A.WK_M04,0)+NVL(A.WK_M05,0)+NVL(A.WK_M06,0)
+               )                                                                                                                   A_SUM
+              ,A.WK_M07                                                                                                            WK_M07
+              ,A.WK_M08                                                                                                            WK_M08
+              ,A.WK_M09                                                                                                            WK_M09
+              ,A.WK_M10                                                                                                            WK_M10
+              ,A.WK_M11                                                                                                            WK_M11
+              ,A.WK_M12                                                                                                            WK_M12
+              ,(
+                NVL(A.WK_M07,0)+NVL(A.WK_M08,0)+NVL(A.WK_M09,0)+NVL(A.WK_M10,0)+NVL(A.WK_M11,0)+NVL(A.WK_M12,0)
+               )                                                                                                                   B_SUM
+              ,(
+                NVL(A.WK_M01,0)+NVL(A.WK_M02,0)+NVL(A.WK_M03,0)+NVL(A.WK_M04,0)+NVL(A.WK_M05,0)+NVL(A.WK_M06,0)
+               +NVL(A.WK_M07,0)+NVL(A.WK_M08,0)+NVL(A.WK_M09,0)+NVL(A.WK_M10,0)+NVL(A.WK_M11,0)+NVL(A.WK_M12,0)
+               )                                                                                                                   C_SUM
+              ,A.REMARK                                                                                                            REMARK
+              ,A.EPS_DOC_NO                                                                                                        EPS_DOC_NO
+              ,A.CRE_DATE                                                                                                          CRE_DATE
+              ,A.CRE_USER                                                                                                          CRE_USER
+              ,A.MOD_DATE                                                                                                          MOD_DATE
+              ,A.MOD_USER                                                                                                          MOD_USER
+              ,D.SEND_CHASU                                                                                                        SEND_CHASU
+              ,D.SEND_YMD                                                                                                          SEND_YMD
+          FROM CO_BUGT_BASIC_HEAD A
+              LEFT OUTER JOIN
+               CO_BUGT_MODIFY_HEAD B
+              ON    B.COMP_CD      = A.COMP_CD
+                AND B.CRTN_YY      = A.CRTN_YY - '1'
+                AND B.CCTR_CD      = A.CCTR_CD
+                AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+                AND B.PROCESS_TYPE = A.PROCESS_TYPE
+              LEFT OUTER JOIN
+               (
+                SELECT COMP_CD               COMP_CD
+                      ,CCTR_CD               CCTR_CD
+                      ,SUBSTR(CRTN_YYMM,0,4) CRTN_YYMM
+                      ,SUM(ACCOUNT_AMT)      ACCOUNT_AMT
+                  FROM CO_BUGT_RESULT
+                 WHERE CRTN_YYMM BETWEEN (
+                                          SELECT MAX(CRTN_YY)
+                                            FROM CO_BUGT_BASIC_HEAD
+                                           WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+                                         ) - '1' || '01' AND (
+                                                              SELECT MAX(CRTN_YY)
+                                                                FROM CO_BUGT_BASIC_HEAD
+                                                               WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+                                                             ) - '1' || '09'
+                 GROUP BY COMP_CD
+                         ,SUBSTR(CRTN_YYMM,0,4)
+                         ,CCTR_CD
+               )  C
+              ON    C.COMP_CD               = A.COMP_CD
+                AND SUBSTR(C.CRTN_YYMM,0,4) = A.CRTN_YY - '1'
+                AND C.CCTR_CD               = A.CCTR_CD
+              LEFT OUTER JOIN
+               CO_BUGT_BASIC_MASTER D
+              ON    D.COMP_CD = A.COMP_CD
+                AND D.CRTN_YY = A.CRTN_YY 
+		 WHERE 1=1
+		   AND A.EPS_DOC_NO = #{EPS_DOC_NO}
+     )
+ORDER BY COMP_CD
+        ,CRTN_YY
+        ,CCTR_CD
+        ,ACCOUNT_NO
+  </select>
+  
+	<select id="selectDeptList" parameterType="Map" resultType="Map">
+	--com.bdg.BasicMgt.selectDeptList
+		SELECT A.DEPT_CD
+		      ,A.DEPT_NM
+		  FROM DEPT A
+		 WHERE 1=1
+			<if test="TB_COMP_CD != null and TB_COMP_CD != ''">
+		   AND COMP_CD LIKE  '%' || #{TB_COMP_CD} || '%'  
+			</if>
+			<if test="TB_DEPT_CD != null and TB_DEPT_CD != ''">
+		   AND DEPT_CD LIKE  '%' || #{TB_DEPT_CD} || '%'  
+			</if>
+			<if test="TB_DEPT_NM != null and TB_DEPT_NM != ''">
+		   AND DEPT_NM LIKE  '%' || UPPER(#{TB_DEPT_NM}) || '%'  
+			</if>
+		   AND A.DEPT_CD NOT IN ('V0000001')
+		   AND A.DEL_YN = 'N'
+		   AND A.SDATE = (SELECT MAX(SDATE) FROM DEPT B WHERE B.COMP_CD = A.COMP_CD AND B.DEPT_CD = A.DEPT_CD)	
+	 	 ORDER BY A.DEPT_NM
+	</select>	  
+
+	<select id="selectBbugdet" parameterType="Map" resultType="Map">
+--com.bdg.BasicMgt.selectBbugdet
+SELECT (                                                                                                                   
+        NVL(D.WK_M10,0)+NVL(D.WK_M11,0)+NVL(D.WK_M12,0)
+       ) 
+      +
+       NVL(C.ACCOUNT_AMT,0)                                               B_BUDGET
+      ,STATUS
+  FROM (
+        SELECT COMP_CD               COMP_CD
+              ,CCTR_CD                CCTR_CD
+              ,SUBSTR(CRTN_YYMM,0,4) CRTN_YYMM
+              ,SUM(ACCOUNT_AMT)      ACCOUNT_AMT
+          FROM CO_BUGT_RESULT
+         WHERE CRTN_YYMM BETWEEN   #{TB_CRTN_YY} - '1' || '01' AND   #{TB_CRTN_YY} - '1' || '09'
+         GROUP BY COMP_CD
+                 ,SUBSTR(CRTN_YYMM,0,4)
+                 ,CCTR_CD
+       ) C
+      LEFT OUTER JOIN 
+       CO_BUGT_MODIFY_HEAD D
+      ON    D.COMP_CD       = C.COMP_CD
+        AND D.CRTN_YY - '1' = SUBSTR(C.CRTN_YYMM,0,4)
+        AND D.CCTR_CD        = C.CCTR_CD
+		 WHERE 1=1
+		  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND C.COMP_CD = #{SB_COMP_CD}
+		  </if>
+		  <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+		   AND SUBSTR(C.CRTN_YYMM,0,4) = #{TB_CRTN_YY} - '1'
+		  </if>    
+		  <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+		   AND C.CCTR_CD   = #{SB_CCTR_CD}
+		  </if>   
+  </select>
+  
+	<select id="selectEpsInfoData" parameterType="Map" resultType="Map">
+	    --com.bdg.BasicMgt.selectEpsInfoData
+		SELECT COUNT(*) CNT
+		  FROM CO_BUGT_BASIC_HEAD 
+		 WHERE 1 = 1
+		   AND EPS_DOC_NO = #{EPS_DOC_NO}
+	</select>  
+
+</mapper>

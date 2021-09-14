@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.DeliveryHistory">
+
+	<select id="selectDeliveryHistoryList" parameterType="Map" resultType="Map">
+		--com.wrh.DeliveryHistory.selectDeliveryHistoryList
+		SELECT DOC_NO
+              ,DOC_SEQ
+              ,USER_ID
+              ,FUNC_GET_USER_NAME(USER_ID)  USER_NM
+              ,PROC_DATE
+              ,REMARK
+              ,FUNC_GET_CODE_NAME('IG007', DOC_STATUS) DOC_STATUS     
+              ,CRE_DATE
+              ,CRE_USER
+              ,MOD_DATE
+              ,MOD_USER
+          FROM GR_DELIVERY_HISTORY
+         WHERE DOC_NO = #{TB_DOC_NO}
+         ORDER BY DOC_SEQ
+	</select>
+	
+</mapper>

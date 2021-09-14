@@ -1,0 +1,314 @@
+<%@ page language="java" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page import="java.util.*"%>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.app.common.util.StringUtil"%>
+<%@page import="org.apache.commons.collections.MapUtils"%>
+<%@page import="org.apache.commons.lang.*"%>
+<%@page import="com.app.common.util.StringUtilEx"%>
+<%@page import="com.app.common.util.PropertiesUtil"%>
+
+<%@ taglib prefix="c"       uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring"  uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"     uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fmt"    uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%
+/*******************************************************************/
+// 구매오더 변경 결재폼.
+/*******************************************************************/
+String URL_IN = PropertiesUtil.getProperty("HTTP.SERVER.URL.IN");
+request.setAttribute("URL_IN" ,  URL_IN);
+/*******************************************************************
+  httpclient 호출로 파라미터 전송시 object 전송 불가
+  list,map => json string 유형으로 변환 전송 됨
+  json string 유형 데이터를 jstl 사용 가능하도록 object로 변경
+*******************************************************************/
+String PO_INFO            = request.getParameter("purOrdInfo");
+String PO_ITEM_LIST       = request.getParameter("purOrdItemList");
+String PREV_PO_ITEM_LIST  = request.getParameter("prevPurOrdItemList");
+String PR_INFO            = request.getParameter("purReqInfo");
+String FILE_LIST          = request.getParameter("fileList");
+
+request.setAttribute("PO_INFO" ,           com.app.common.util.JsonUtil.getMapFromJsonString (PO_INFO)); //MAP
+request.setAttribute("PO_ITEM_LIST",       com.app.common.util.JsonUtil.getListFromJsonString(PO_ITEM_LIST)); //LISTMAP
+request.setAttribute("PREV_PO_ITEM_LIST",  com.app.common.util.JsonUtil.getListFromJsonString(PREV_PO_ITEM_LIST)); //LISTMAP
+request.setAttribute("PR_INFO" ,           com.app.common.util.JsonUtil.getMapFromJsonString (PR_INFO));   //MAP
+request.setAttribute("FILE_LIST" ,         com.app.common.util.JsonUtil.getListFromJsonString(FILE_LIST)); //LISTMAP
+
+Map<String, Object> poInfo = (Map<String, Object>)request.getAttribute("PO_INFO");
+if (MapUtils.getDoubleValue(poInfo, "EXC_RATE") == 0 || MapUtils.getDoubleValue(poInfo, "EXC_RATE") == 1) {
+	poInfo.put("EXC_RATE","");
+}else{
+    poInfo.put("EXC_RATE", StringUtilEx.digitFormat(MapUtils.getDoubleValue(poInfo, "EXC_RATE")));
+}
+
+String currencyFormat = "#,###";
+if ( !"KRW".equals(MapUtils.getString(poInfo, "CURRENCY_CD")) ){
+    currencyFormat = "#,###.00";
+}
+
+poInfo.put("AMT", StringUtilEx.digitFormat(MapUtils.getDoubleValue(poInfo, "AMT"), currencyFormat));
+
+poInfo.put("REMARK", StringUtils.replace(MapUtils.getString(poInfo, "REMARK", ""), "\n", "<br>"));
+
+List<Map<String, Object>> poItemList = (List<Map<String, Object>>)request.getAttribute("PO_ITEM_LIST");
+for(Map<String, Object> poItem : poItemList){
+    poItem.put("PO_QTY",             StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "PO_QTY")                   ) );
+    poItem.put("UNIT_PRICE",         StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "UNIT_PRICE"),currencyFormat) );
+    poItem.put("PO_AMT",             StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "PO_AMT"),    currencyFormat) );
+    poItem.put("DELY_DATE_TO",       StringUtilEx.formatDate (MapUtils.getString     (poItem, "DELY_DATE_TO"), "-")                 );
+    poItem.put("SUPPLY_UNIT_PRICE",  StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "SUPPLY_UNIT_PRICE"), currencyFormat) );
+    poItem.put("UNIT_PRICE_d",         MapUtils.getDoubleValue(poItem, "UNIT_PRICE")        );
+    poItem.put("SUPPLY_UNIT_PRICE_d",  MapUtils.getDoubleValue(poItem, "SUPPLY_UNIT_PRICE") );
+}
+
+List<Map<String, Object>> prevPoItemList = (List<Map<String, Object>>)request.getAttribute("PREV_PO_ITEM_LIST");
+for(Map<String, Object> poItem : prevPoItemList){
+    poItem.put("PO_QTY",             StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "PO_QTY")                   ) );
+    poItem.put("UNIT_PRICE",         StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "UNIT_PRICE"),currencyFormat) );
+    poItem.put("PO_AMT",             StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "PO_AMT"),    currencyFormat) );
+    poItem.put("DELY_DATE_TO",       StringUtilEx.formatDate (MapUtils.getString     (poItem, "DELY_DATE_TO"), "-")                 );
+    poItem.put("SUPPLY_UNIT_PRICE",  StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "SUPPLY_UNIT_PRICE"), currencyFormat) );
+    poItem.put("UNIT_PRICE_d",         MapUtils.getDoubleValue(poItem, "UNIT_PRICE")        );
+    poItem.put("SUPPLY_UNIT_PRICE_d",  MapUtils.getDoubleValue(poItem, "SUPPLY_UNIT_PRICE") );
+}
+
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<link href="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_reset.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_common.css'/>" rel="stylesheet"/>
+<!-- jquery -->
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-1.12.3/jquery-1.12.3.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/attach.js'/>"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+   //전자결재 페이지에서 창에 높이 확인 가능하도록 수정
+    document.domain="parucnc.com";
+    //전자결재 부모창으로 높이 전송
+    var maxHeight = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight,document.documentElement.offsetHeight);
+    window.parent.postMessage(maxHeight, '*');	
+	
+});
+</script>
+<style>
+    .ellipsis{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    } 
+</style>
+</head>
+<body>
+    <div class="pop-wrap">
+        <div class="pop-cont link">
+            <div class="section1 scrolls">
+                <div class="sub-tit first" id="section1">
+                    <h4>기본정보</h4>
+                </div>
+                <table  id="basicInfo" class="table-style">
+                    <colgroup>
+                        <col style="width: 15%;">
+                        <col>
+                        <col style="width: 15%;">
+                        <col>
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <th style="text-align: left;"><span>PO 일련번호 / PO번호</span></th>
+                            <td>${PO_INFO.PO_SEQ} / ${PO_INFO.PO_NO}</td>
+                            <th style="text-align: left;"><span>PO 건명</span></th>
+                            <td>${PO_INFO.PO_NM}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;"><span>PLANT</span></th>
+                            <td>${PO_INFO.PLANT_NM}</td>
+                            <th style="text-align: left;"><span>구매담당자</span></th>
+                            <td>${PO_INFO.DEPT_NM} ${PO_INFO.USER_NM}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;"><span>구분</span></th>
+                            <td>${PO_INFO.PR_SRC_TYPE_NM}</td>
+                            <th style="text-align: left;"><span>내/외자</span></th>
+                            <td>${PO_INFO.IM_DO_NM}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;"><span>지급조건</span></th>
+                            <td>${PO_INFO.CHARGE_COND_CD_NM}</td>
+                            <th style="text-align: left;"><span>인도조건 / 인도장소</span></th>
+                            <td>[${PO_INFO.INCOTERMS_CD}]${PO_INFO.INCOTERMS_NM} / ${PO_INFO.INCOTERMS_RMK}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;">세금코드</th>
+                            <td>${PO_INFO.TAX_CODE_NM}</td>
+                            <th style="text-align: left;"><span>통화 / 환율</span></th>
+                            <td>${PO_INFO.CURRENCY_CD} / ${PO_INFO.EXC_RATE}</td>
+                        </tr>
+                        <tr>
+                           <th style="text-align: left;">총 금액</th>
+                           <td colspan="3">${PO_INFO.AMT}</td>
+                        </tr>
+	                </tbody>
+                </table>
+                <div class="sub-tit">
+	                <h4>PO변경 개요</h4>
+	            </div>
+	            <div>
+    	            <table  id="basicInfo" class="table-style"><tr><td>${PO_INFO.REMARK}</td></tr></table>
+	            </div>
+            </div>
+
+            <div class="section3 scrolls">
+                <div class="sub-tit"  id="section3">
+                    <h4>변경 전 품목정보</h4>
+                </div>
+                <div>
+                    <table class="table-style">
+                        <colgroup>
+            				<col style="width:5%">
+            				<col style="width:5%">
+            				<col style="width:5%">
+            				<col style="width:10%">
+            				<col>
+            				<col style="width:5%">
+            				<col style="width:5%">
+            				<col style="width:5%">
+            				<col style="width:10%">
+            				<col style="width:10%">
+            				<col style="width:5%">
+            				<col style="width:10%">
+        				</colgroup>
+                        <thead>
+                            <tr>
+                				<th>No</th>
+                				<th>품목상태</th>
+                				<th>삭제여부</th>
+                				<th>품목번호</th>
+                				<th>품목명</th>
+                				<th>수량</th>
+                				<th>단위</th>
+                				<th>단가</th>
+                				<th>PER</th>
+                				<th>금액</th>
+                				<th>통화</th>
+                				<th>납품일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="ITEM" items="${PREV_PO_ITEM_LIST}" varStatus="status">
+            				<tr>
+                				<td style="text-align: center;">${ITEM.PO_LINE_NO}</td>
+                				<td style="text-align: center;">${ITEM.PO_ITEM_STATUS}</td>
+                				<td style="text-align: center;">${ITEM.DEL_YN=='Y'?'삭제':''}</td>
+                				<td style="text-align: center;">${ITEM.ITEM_CD}</td>
+                				<td align="left" class="ellipsis">${ITEM.ITEM_NM}</td>
+                				<td style="text-align: right;">${ITEM.PO_QTY}</td>
+                				<td style="text-align: center;">${ITEM.ORDER_UNIT}</td>
+                				<td style="text-align: right;">${ITEM.UNIT_PRICE}</td>
+                				<td style="text-align: right;">${ITEM.PER}</td>
+                				<td style="text-align: right;">${ITEM.PO_AMT}</td>
+                				<td style="text-align: center;">${ITEM.CURRENCY_CD}</td>
+                				<td style="text-align: center;">${ITEM.DELY_DATE_TO}</td>
+            				</tr>
+            				</c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section3 scrolls">
+                <div class="sub-tit"  id="section3">
+                    <h4>변경 후 품목정보</h4>
+                </div>
+                <div>
+                    <table class="table-style">
+                        <colgroup>
+                            <col style="width:5%">
+                            <col style="width:5%">
+                            <col style="width:5%">
+                            <col style="width:10%">
+                            <col>
+                            <col style="width:5%">
+                            <col style="width:5%">
+                            <col style="width:5%">
+                            <col style="width:10%">
+                            <col style="width:10%">
+                            <col style="width:5%">
+                            <col style="width:10%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>품목상태</th>
+                                <th>삭제여부</th>
+                                <th>품목번호</th>
+                                <th>품목명</th>
+                                <th>수량</th>
+                                <th>단위</th>
+                                <th>단가</th>
+                                <th>PER</th>
+                                <th>금액</th>
+                                <th>통화</th>
+                                <th>납품일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="ITEM" items="${PO_ITEM_LIST}" varStatus="status">
+                            <tr>
+                                <td style="text-align: center;">${ITEM.PO_LINE_NO}</td>
+                                <td style="text-align: center;" <c:if test="${ITEM.PO_ITEM_STATUS=='C'}">style="text-align: center;background-color:#e67b50"</c:if>>
+                                ${ITEM.PO_ITEM_STATUS}
+                                </td>
+                                <td style="text-align: center;" <c:if test="${ITEM.DEL_YN=='Y'}">style="text-align: center;background-color:#e67b50"</c:if>>
+                                ${ITEM.DEL_YN=='Y'?'삭제':''}
+                                </td>
+                                <td style="text-align: center;">${ITEM.ITEM_CD}</td>
+                                <td class="ellipsis">${ITEM.ITEM_NM}</td>
+                                <td style="text-align: right;">${ITEM.PO_QTY}</td>
+                                <td style="text-align: center;">${ITEM.ORDER_UNIT}</td>
+                                <td style="text-align: right;">${ITEM.UNIT_PRICE}</td>
+                                <td style="text-align: right;">${ITEM.PER}</td>
+                                <td style="text-align: right;">${ITEM.PO_AMT}</td>
+                                <td style="text-align: center;">${ITEM.CURRENCY_CD}</td>
+                                <td style="text-align: center;">${ITEM.DELY_DATE_TO}</td>
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <c:if test="${PO_INFO.APP_SEQ_ETC != null and PO_INFO.APP_SEQ_ETC != ''}">
+            <div class="section6 scrolls">
+                <div class="sub-tit">
+	                <h4>기타</h4>
+	                <input type="hidden" id="APP_SEQ_ETC" value="${PO_INFO.APP_SEQ_ETC}">
+	            </div>
+	            <div id="fileUploadTableEtc" class="jqGridArea m_t5">
+                    <table class="table-style">
+                        <tbody>
+                            <tr>
+                                <th style="text-align: center;" width="10%">No</th>
+                                <th style="text-align: center;">파일명</th>
+                                <!-- <th class="center">등록일자</th>
+                                <th class="center">파일크기</th> -->
+                            </tr>
+                            <c:forEach var="FILE" items="${FILE_LIST}" varStatus="status">
+                            <tr class="F_File_ROW">
+                                <td style="text-align: center;">${status.count}</td>
+                                <td class="t_left">
+                                <a href="${URL_IN}/download.do?APP_SEQ=${FILE.APP_SEQ}&amp;ATTACHMENT_SEQ=${FILE.ATTACHMENT_SEQ}" title="${FILE.FILE_NAME}" style="color:blue;" download="${FILE.FILE_NAME}">${FILE.FILE_NAME}</a></td>
+                                <!-- <td class="t_center">2019-12-12</td>
+                                <td class="t_right">0.06 KB</td> -->
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+	                </table>
+	            </div>
+            </div>
+            </c:if>
+        </div>
+        <!-- //popCont -->
+    </div>
+</body>

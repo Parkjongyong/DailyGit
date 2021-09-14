@@ -1,0 +1,855 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.BdgYearResult">
+
+	<select id="selectBasicYearResult" parameterType="Map" resultType="Map">
+	--com.bdg.BdgYearResult.selectBasicYearResult
+	WITH ACCOUNT_LIST AS (
+		SELECT A.COMP_CD
+              ,A.CRTN_YY
+              ,A.CCTR_CD
+              ,A.ACCOUNT_NO
+              ,A.PROCESS_TYPE
+		  FROM CO_BUGT_BASIC_HEAD A
+		 WHERE 1 = 1
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+           AND A.COMP_CD = #{SB_COMP_CD}
+</if>
+<if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+           AND A.CRTN_YY = #{TB_CRTN_YY}
+</if>
+<if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+           AND A.CCTR_CD = #{SB_CCTR_CD}
+</if>
+           AND A.STATUS = '5'
+         GROUP BY A.COMP_CD
+                 ,A.CRTN_YY
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+         ORDER BY A.COMP_CD
+                 ,A.CRTN_YY
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+	), BASIC_LIST AS (
+		SELECT 'D1' AS DATA_GUBN
+		      ,ACCOUNT_NO
+		      ,PROCESS_TYPE
+		      ,WK_M01
+		      ,WK_M02
+		      ,WK_M03
+		      ,WK_M04
+		      ,WK_M05
+		      ,WK_M06
+		      ,WK_M07
+		      ,WK_M08
+		      ,WK_M09
+		      ,WK_M10
+		      ,WK_M11
+		      ,WK_M12
+		  FROM CO_BUGT_BASIC_HEAD
+		 WHERE 1=1 
+		   AND ( COMP_CD
+		        ,CRTN_YY
+		        ,CCTR_CD
+		        ,ACCOUNT_NO
+		        ,PROCESS_TYPE ) IN (SELECT COMP_CD
+		                                  ,CRTN_YY
+		                                  ,CCTR_CD
+		                                  ,ACCOUNT_NO
+		                                  ,PROCESS_TYPE
+		                              FROM ACCOUNT_LIST)	
+	
+	), RESULT_LIST AS (
+	    SELECT 'D2' AS DATA_GUBN
+	          ,A.ACCOUNT_NO
+	          ,A.PROCESS_TYPE
+	          ,B.WK_M01
+	          ,B.WK_M02
+	          ,B.WK_M03
+	          ,B.WK_M04
+	          ,B.WK_M05
+	          ,B.WK_M06
+	          ,B.WK_M07
+	          ,B.WK_M08
+	          ,B.WK_M09
+	          ,B.WK_M10
+	          ,B.WK_M11
+	          ,B.WK_M12
+	      FROM ACCOUNT_LIST A
+	          LEFT OUTER JOIN
+	           (
+				SELECT A.*
+				  FROM ((
+				        SELECT A.ACCOUNT_NO
+				              ,A.PROCESS_TYPE
+		                      ,SUBSTR(A.CRTN_YYMM, 5) AS MON		        
+				              ,A.ACCOUNT_AMT
+				          FROM CO_BUGT_RESULT A
+				         WHERE 1 = 1 
+						<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+                           AND A.COMP_CD = #{SB_COMP_CD}
+                        </if>
+                        <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+                           AND A.CRTN_YYMM LIKE #{TB_CRTN_YY} || '%'
+                        </if>
+                        <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+                           AND A.CCTR_CD = #{SB_CCTR_CD}
+                        </if>
+				       ) A
+				       PIVOT
+				       (SUM(A.ACCOUNT_AMT) FOR MON IN ('01' AS WK_M01, '02' AS WK_M02, '03' AS WK_M03, '04' AS WK_M04, '05' AS WK_M05, '06' AS WK_M06
+				                                     , '07' AS WK_M07, '08' AS WK_M08, '09' AS WK_M09, '10' AS WK_M10, '11' AS WK_M11, '12' AS WK_M12))) A
+		       ) B 
+		      ON    B.ACCOUNT_NO   = A.ACCOUNT_NO
+		        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+	)
+	SELECT A.*
+	      ,NVL(A.WK_M01, 0) + NVL(A.WK_M02, 0) + NVL(A.WK_M03, 0) + NVL(A.WK_M04, 0) + NVL(A.WK_M05, 0) + NVL(A.WK_M06, 0) AS A_SUM
+	      ,NVL(A.WK_M07, 0) + NVL(A.WK_M08, 0) + NVL(A.WK_M09, 0) + NVL(A.WK_M10, 0) + NVL(A.WK_M11, 0) + NVL(A.WK_M12, 0) AS B_SUM
+	      ,  NVL(A.WK_M01, 0) + NVL(A.WK_M02, 0) + NVL(A.WK_M03, 0) + NVL(A.WK_M04, 0) + NVL(A.WK_M05, 0) + NVL(A.WK_M06, 0)
+	       + NVL(A.WK_M07, 0) + NVL(A.WK_M08, 0) + NVL(A.WK_M09, 0) + NVL(A.WK_M10, 0) + NVL(A.WK_M11, 0) + NVL(A.WK_M12, 0) AS C_SUM	      
+	      ,B.ACCOUNT_DESC AS ACCOUNT_DESC  -- 계정명
+	      ,CASE WHEN A.DATA_GUBN = 'D1' THEN '예산'
+	            WHEN A.DATA_GUBN = 'D2' THEN '실적'
+	            WHEN A.DATA_GUBN = 'D3' THEN '잔액'
+	            ELSE ''
+	       END DATA_GUBN_NM
+	  FROM (
+	        SELECT A.DATA_GUBN
+	        	  ,A.ACCOUNT_NO
+	        	  ,A.PROCESS_TYPE
+	        	  ,A.WK_M01
+	        	  ,A.WK_M02
+	        	  ,A.WK_M03
+	        	  ,A.WK_M04
+	        	  ,A.WK_M05
+	        	  ,A.WK_M06
+	        	  ,A.WK_M07
+	        	  ,A.WK_M08
+	        	  ,A.WK_M09
+	        	  ,A.WK_M10
+	        	  ,A.WK_M11
+	        	  ,A.WK_M12
+              FROM BASIC_LIST A
+            UNION ALL
+	        SELECT B.DATA_GUBN
+	        	  ,B.ACCOUNT_NO
+	        	  ,B.PROCESS_TYPE
+	        	  ,B.WK_M01
+	        	  ,B.WK_M02
+	        	  ,B.WK_M03
+	        	  ,B.WK_M04
+	        	  ,B.WK_M05
+	        	  ,B.WK_M06
+	        	  ,B.WK_M07
+	        	  ,B.WK_M08
+	        	  ,B.WK_M09
+	        	  ,B.WK_M10
+	        	  ,B.WK_M11
+	        	  ,B.WK_M12
+              FROM RESULT_LIST B
+            UNION ALL
+	        SELECT 'D3' AS DATA_GUBN
+	        	  ,C.ACCOUNT_NO
+	        	  ,C.PROCESS_TYPE
+	        	  ,NVL(C.WK_M01, 0) - NVL(D.WK_M01, 0) AS WK_M01
+	        	  ,NVL(C.WK_M02, 0) - NVL(D.WK_M02, 0) AS WK_M02
+	        	  ,NVL(C.WK_M03, 0) - NVL(D.WK_M03, 0) AS WK_M03
+	        	  ,NVL(C.WK_M04, 0) - NVL(D.WK_M04, 0) AS WK_M04
+	        	  ,NVL(C.WK_M05, 0) - NVL(D.WK_M05, 0) AS WK_M05
+	        	  ,NVL(C.WK_M06, 0) - NVL(D.WK_M06, 0) AS WK_M06
+	        	  ,NVL(C.WK_M07, 0) - NVL(D.WK_M07, 0) AS WK_M07
+	        	  ,NVL(C.WK_M08, 0) - NVL(D.WK_M08, 0) AS WK_M08
+	        	  ,NVL(C.WK_M09, 0) - NVL(D.WK_M09, 0) AS WK_M09
+	        	  ,NVL(C.WK_M10, 0) - NVL(D.WK_M10, 0) AS WK_M10
+	        	  ,NVL(C.WK_M11, 0) - NVL(D.WK_M11, 0) AS WK_M11
+	        	  ,NVL(C.WK_M12, 0) - NVL(D.WK_M12, 0) AS WK_M12
+              FROM BASIC_LIST C
+                  INNER JOIN
+                   RESULT_LIST D
+                  ON C.ACCOUNT_NO = D.ACCOUNT_NO
+          ) A
+		  LEFT OUTER JOIN
+		   CO_ACCOUNT_NO B
+		  ON B.ACCOUNT_NO = A.ACCOUNT_NO
+    ORDER BY A.ACCOUNT_NO
+            ,A.DATA_GUBN
+            ,A.PROCESS_TYPE
+
+	</select>
+
+	<select id="selectModifyYearResult" parameterType="Map" resultType="Map">
+	--com.bdg.BdgYearResult."selectModifyYearResult"
+	WITH ACCOUNT_LIST AS (
+		SELECT A.COMP_CD
+              ,A.CRTN_YY
+              ,A.CCTR_CD
+              ,A.ACCOUNT_NO
+              ,A.PROCESS_TYPE
+		  FROM CO_BUGT_MODIFY_HEAD A
+		 WHERE 1 = 1
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+           AND A.COMP_CD = #{SB_COMP_CD}
+</if>
+<if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+           AND A.CRTN_YY = #{TB_CRTN_YY}
+</if>
+<if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+           AND A.CCTR_CD = #{SB_CCTR_CD}
+</if>
+           AND A.STATUS = '5'
+         GROUP BY A.COMP_CD
+                 ,A.CRTN_YY
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+         ORDER BY A.COMP_CD
+                 ,A.CRTN_YY
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+	), MODIFY_LIST AS (
+		SELECT 'D1' AS DATA_GUBN
+		      ,ACCOUNT_NO
+		      ,PROCESS_TYPE
+		      ,WK_M01
+		      ,WK_M02
+		      ,WK_M03
+		      ,WK_M04
+		      ,WK_M05
+		      ,WK_M06
+		      ,WK_M07
+		      ,WK_M08
+		      ,WK_M09
+		      ,WK_M10
+		      ,WK_M11
+		      ,WK_M12
+		  FROM CO_BUGT_MODIFY_HEAD
+		 WHERE 1=1 
+		   AND ( COMP_CD
+		        ,CRTN_YY
+		        ,CCTR_CD
+		        ,ACCOUNT_NO
+		        ,PROCESS_TYPE ) IN (SELECT COMP_CD
+		                                  ,CRTN_YY
+		                                  ,CCTR_CD
+		                                  ,ACCOUNT_NO
+		                                  ,PROCESS_TYPE
+		                              FROM ACCOUNT_LIST)	
+	
+	), RESULT_LIST AS (
+	    SELECT 'D2' AS DATA_GUBN
+	          ,A.ACCOUNT_NO
+	          ,A.PROCESS_TYPE
+	          ,B.WK_M01
+	          ,B.WK_M02
+	          ,B.WK_M03
+	          ,B.WK_M04
+	          ,B.WK_M05
+	          ,B.WK_M06
+	          ,B.WK_M07
+	          ,B.WK_M08
+	          ,B.WK_M09
+	          ,B.WK_M10
+	          ,B.WK_M11
+	          ,B.WK_M12
+	      FROM ACCOUNT_LIST A
+	          LEFT OUTER JOIN
+	           (
+				SELECT A.*
+				  FROM ((
+				        SELECT A.ACCOUNT_NO
+				              ,A.PROCESS_TYPE
+		                      ,SUBSTR(A.CRTN_YYMM, 5) AS MON		        
+				              ,A.ACCOUNT_AMT
+				          FROM CO_BUGT_RESULT A
+				         WHERE 1 = 1 
+						<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+                           AND A.COMP_CD = #{SB_COMP_CD}
+                        </if>
+                        <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+                           AND A.CRTN_YYMM LIKE #{TB_CRTN_YY} || '%'
+                        </if>
+                        <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+                           AND A.CCTR_CD = #{SB_CCTR_CD}
+                        </if>
+				       ) A
+				       PIVOT
+				       (SUM(A.ACCOUNT_AMT) FOR MON IN ('01' AS WK_M01, '02' AS WK_M02, '03' AS WK_M03, '04' AS WK_M04, '05' AS WK_M05, '06' AS WK_M06
+				                                     , '07' AS WK_M07, '08' AS WK_M08, '09' AS WK_M09, '10' AS WK_M10, '11' AS WK_M11, '12' AS WK_M12))) A
+		       ) B 
+		      ON    B.ACCOUNT_NO   = A.ACCOUNT_NO
+		        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+	)
+	SELECT A.*
+	      ,NVL(A.WK_M01, 0) + NVL(A.WK_M02, 0) + NVL(A.WK_M03, 0) + NVL(A.WK_M04, 0) + NVL(A.WK_M05, 0) + NVL(A.WK_M06, 0) AS A_SUM
+	      ,NVL(A.WK_M07, 0) + NVL(A.WK_M08, 0) + NVL(A.WK_M09, 0) + NVL(A.WK_M10, 0) + NVL(A.WK_M11, 0) + NVL(A.WK_M12, 0) AS B_SUM
+	      ,  NVL(A.WK_M01, 0) + NVL(A.WK_M02, 0) + NVL(A.WK_M03, 0) + NVL(A.WK_M04, 0) + NVL(A.WK_M05, 0) + NVL(A.WK_M06, 0)
+	       + NVL(A.WK_M07, 0) + NVL(A.WK_M08, 0) + NVL(A.WK_M09, 0) + NVL(A.WK_M10, 0) + NVL(A.WK_M11, 0) + NVL(A.WK_M12, 0) AS C_SUM	      
+	      ,B.ACCOUNT_DESC AS ACCOUNT_DESC  -- 계정명
+	      ,CASE WHEN A.DATA_GUBN = 'D1' THEN '예산'
+	            WHEN A.DATA_GUBN = 'D2' THEN '실적'
+	            WHEN A.DATA_GUBN = 'D3' THEN '잔액'
+	            ELSE ''
+	       END DATA_GUBN_NM	      
+	  FROM (
+	        SELECT A.DATA_GUBN
+	        	  ,A.ACCOUNT_NO
+	        	  ,A.PROCESS_TYPE
+	        	  ,A.WK_M01
+	        	  ,A.WK_M02
+	        	  ,A.WK_M03
+	        	  ,A.WK_M04
+	        	  ,A.WK_M05
+	        	  ,A.WK_M06
+	        	  ,A.WK_M07
+	        	  ,A.WK_M08
+	        	  ,A.WK_M09
+	        	  ,A.WK_M10
+	        	  ,A.WK_M11
+	        	  ,A.WK_M12
+              FROM MODIFY_LIST A
+            UNION ALL
+	        SELECT B.DATA_GUBN
+	        	  ,B.ACCOUNT_NO
+	        	  ,B.PROCESS_TYPE
+	        	  ,B.WK_M01
+	        	  ,B.WK_M02
+	        	  ,B.WK_M03
+	        	  ,B.WK_M04
+	        	  ,B.WK_M05
+	        	  ,B.WK_M06
+	        	  ,B.WK_M07
+	        	  ,B.WK_M08
+	        	  ,B.WK_M09
+	        	  ,B.WK_M10
+	        	  ,B.WK_M11
+	        	  ,B.WK_M12
+              FROM RESULT_LIST B
+            UNION ALL
+	        SELECT 'D3' AS DATA_GUBN
+	        	  ,C.ACCOUNT_NO
+	        	  ,C.PROCESS_TYPE
+	        	  ,NVL(C.WK_M01, 0) - NVL(D.WK_M01, 0) AS WK_M01
+	        	  ,NVL(C.WK_M02, 0) - NVL(D.WK_M02, 0) AS WK_M02
+	        	  ,NVL(C.WK_M03, 0) - NVL(D.WK_M03, 0) AS WK_M03
+	        	  ,NVL(C.WK_M04, 0) - NVL(D.WK_M04, 0) AS WK_M04
+	        	  ,NVL(C.WK_M05, 0) - NVL(D.WK_M05, 0) AS WK_M05
+	        	  ,NVL(C.WK_M06, 0) - NVL(D.WK_M06, 0) AS WK_M06
+	        	  ,NVL(C.WK_M07, 0) - NVL(D.WK_M07, 0) AS WK_M07
+	        	  ,NVL(C.WK_M08, 0) - NVL(D.WK_M08, 0) AS WK_M08
+	        	  ,NVL(C.WK_M09, 0) - NVL(D.WK_M09, 0) AS WK_M09
+	        	  ,NVL(C.WK_M10, 0) - NVL(D.WK_M10, 0) AS WK_M10
+	        	  ,NVL(C.WK_M11, 0) - NVL(D.WK_M11, 0) AS WK_M11
+	        	  ,NVL(C.WK_M12, 0) - NVL(D.WK_M12, 0) AS WK_M12
+              FROM MODIFY_LIST C
+                  INNER JOIN
+                   RESULT_LIST D
+                  ON C.ACCOUNT_NO = D.ACCOUNT_NO
+          ) A
+		  LEFT OUTER JOIN
+		   CO_ACCOUNT_NO B
+		  ON B.ACCOUNT_NO = A.ACCOUNT_NO
+    ORDER BY A.PROCESS_TYPE	
+            ,A.ACCOUNT_NO
+            ,A.DATA_GUBN
+ 
+	</select>
+
+	<select id="selectExecYearResult" parameterType="Map" resultType="Map">
+	--com.bdg.BdgYearResult.selectExecResult
+	WITH ACCOUNT_LIST AS (
+		SELECT A.COMP_CD
+              ,SUBSTR(A.CRTN_YYMM, 0, 4) AS CRTN_YY
+              ,A.CCTR_CD
+              ,A.ACCOUNT_NO
+              ,A.PROCESS_TYPE
+		  FROM CO_BUGT_EXEC_HEAD A
+		 WHERE 1 = 1
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+           AND A.COMP_CD = #{SB_COMP_CD}
+</if>
+<if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+           AND A.CRTN_YYMM LIKE #{TB_CRTN_YY} || '%'
+</if>
+<if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+           AND A.CCTR_CD = #{SB_CCTR_CD}
+</if>
+           AND A.STATUS = '5'
+         GROUP BY A.COMP_CD
+                 ,SUBSTR(A.CRTN_YYMM, 0, 4)
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+         ORDER BY A.COMP_CD
+                 ,SUBSTR(A.CRTN_YYMM, 0, 4)
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+	), EXEC_LIST AS (
+	    SELECT 'D1' AS DATA_GUBN
+	          ,A.ACCOUNT_NO
+	          ,A.PROCESS_TYPE
+	          ,B.WK_M01
+	          ,B.WK_M02
+	          ,B.WK_M03
+	          ,B.WK_M04
+	          ,B.WK_M05
+	          ,B.WK_M06
+	          ,B.WK_M07
+	          ,B.WK_M08
+	          ,B.WK_M09
+	          ,B.WK_M10
+	          ,B.WK_M11
+	          ,B.WK_M12
+	      FROM ACCOUNT_LIST A
+	          LEFT OUTER JOIN
+	           (
+				SELECT A.*
+				  FROM ((
+				        SELECT A.ACCOUNT_NO
+				              ,A.PROCESS_TYPE
+		                      ,SUBSTR(A.CRTN_YYMM, 5) AS MON		        
+				              ,CASE WHEN SUBSTR(A.CRTN_YYMM, 5) = '01' THEN A.WK_M01
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '02' THEN A.WK_M02
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '03' THEN A.WK_M03
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '04' THEN A.WK_M04
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '05' THEN A.WK_M05
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '06' THEN A.WK_M06
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '07' THEN A.WK_M07
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '08' THEN A.WK_M08
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '09' THEN A.WK_M09
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '10' THEN A.WK_M10
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '11' THEN A.WK_M11
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '12' THEN A.WK_M12
+				                    ELSE NULL
+				               END AS ACCOUNT_AMT
+				          FROM CO_BUGT_EXEC_HEAD A
+				         WHERE 1 = 1 
+						<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+                           AND A.COMP_CD = #{SB_COMP_CD}
+                        </if>
+                        <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+                           AND A.CRTN_YYMM LIKE #{TB_CRTN_YY} || '%'
+                        </if>
+                        <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+                           AND A.CCTR_CD = #{SB_CCTR_CD}
+                        </if>
+				       ) A
+				       PIVOT
+				       (SUM(A.ACCOUNT_AMT) FOR MON IN ('01' AS WK_M01, '02' AS WK_M02, '03' AS WK_M03, '04' AS WK_M04, '05' AS WK_M05, '06' AS WK_M06
+				                                     , '07' AS WK_M07, '08' AS WK_M08, '09' AS WK_M09, '10' AS WK_M10, '11' AS WK_M11, '12' AS WK_M12))) A
+		       ) B 
+		      ON    B.ACCOUNT_NO   = A.ACCOUNT_NO
+		        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+
+	), RESULT_LIST AS (
+	    SELECT 'D2' AS DATA_GUBN
+	          ,A.ACCOUNT_NO
+	          ,A.PROCESS_TYPE
+	          ,B.WK_M01
+	          ,B.WK_M02
+	          ,B.WK_M03
+	          ,B.WK_M04
+	          ,B.WK_M05
+	          ,B.WK_M06
+	          ,B.WK_M07
+	          ,B.WK_M08
+	          ,B.WK_M09
+	          ,B.WK_M10
+	          ,B.WK_M11
+	          ,B.WK_M12
+	      FROM ACCOUNT_LIST A
+	          LEFT OUTER JOIN
+	           (
+				SELECT A.*
+				  FROM ((
+				        SELECT A.ACCOUNT_NO
+				              ,A.PROCESS_TYPE
+		                      ,SUBSTR(A.CRTN_YYMM, 5) AS MON		        
+				              ,A.ACCOUNT_AMT
+				          FROM CO_BUGT_RESULT A
+				         WHERE 1 = 1 
+						<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+                           AND A.COMP_CD = #{SB_COMP_CD}
+                        </if>
+                        <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+                           AND A.CRTN_YYMM LIKE #{TB_CRTN_YY} || '%'
+                        </if>
+                        <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+                           AND A.CCTR_CD = #{SB_CCTR_CD}
+                        </if>
+				       ) A
+				       PIVOT
+				       (SUM(A.ACCOUNT_AMT) FOR MON IN ('01' AS WK_M01, '02' AS WK_M02, '03' AS WK_M03, '04' AS WK_M04, '05' AS WK_M05, '06' AS WK_M06
+				                                     , '07' AS WK_M07, '08' AS WK_M08, '09' AS WK_M09, '10' AS WK_M10, '11' AS WK_M11, '12' AS WK_M12))) A
+		       ) B 
+		      ON    B.ACCOUNT_NO   = A.ACCOUNT_NO
+		        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+	)
+	SELECT A.*
+	      ,NVL(A.WK_M01, 0) + NVL(A.WK_M02, 0) + NVL(A.WK_M03, 0) + NVL(A.WK_M04, 0) + NVL(A.WK_M05, 0) + NVL(A.WK_M06, 0) AS A_SUM
+	      ,NVL(A.WK_M07, 0) + NVL(A.WK_M08, 0) + NVL(A.WK_M09, 0) + NVL(A.WK_M10, 0) + NVL(A.WK_M11, 0) + NVL(A.WK_M12, 0) AS B_SUM
+	      ,  NVL(A.WK_M01, 0) + NVL(A.WK_M02, 0) + NVL(A.WK_M03, 0) + NVL(A.WK_M04, 0) + NVL(A.WK_M05, 0) + NVL(A.WK_M06, 0)
+	       + NVL(A.WK_M07, 0) + NVL(A.WK_M08, 0) + NVL(A.WK_M09, 0) + NVL(A.WK_M10, 0) + NVL(A.WK_M11, 0) + NVL(A.WK_M12, 0) AS C_SUM	      
+	      ,B.ACCOUNT_DESC AS ACCOUNT_DESC  -- 계정명
+	      ,CASE WHEN A.DATA_GUBN = 'D1' THEN '예산'
+	            WHEN A.DATA_GUBN = 'D2' THEN '실적'
+	            WHEN A.DATA_GUBN = 'D3' THEN '잔액'
+	            ELSE ''
+	       END DATA_GUBN_NM	      
+	  FROM (
+	        SELECT A.DATA_GUBN
+	        	  ,A.ACCOUNT_NO
+	        	  ,A.PROCESS_TYPE
+	        	  ,A.WK_M01
+	        	  ,A.WK_M02
+	        	  ,A.WK_M03
+	        	  ,A.WK_M04
+	        	  ,A.WK_M05
+	        	  ,A.WK_M06
+	        	  ,A.WK_M07
+	        	  ,A.WK_M08
+	        	  ,A.WK_M09
+	        	  ,A.WK_M10
+	        	  ,A.WK_M11
+	        	  ,A.WK_M12
+              FROM EXEC_LIST A
+            UNION ALL
+	        SELECT B.DATA_GUBN
+	        	  ,B.ACCOUNT_NO
+	        	  ,B.PROCESS_TYPE
+	        	  ,B.WK_M01
+	        	  ,B.WK_M02
+	        	  ,B.WK_M03
+	        	  ,B.WK_M04
+	        	  ,B.WK_M05
+	        	  ,B.WK_M06
+	        	  ,B.WK_M07
+	        	  ,B.WK_M08
+	        	  ,B.WK_M09
+	        	  ,B.WK_M10
+	        	  ,B.WK_M11
+	        	  ,B.WK_M12
+              FROM RESULT_LIST B
+            UNION ALL
+	        SELECT 'D3' AS DATA_GUBN
+	        	  ,C.ACCOUNT_NO
+	        	  ,C.PROCESS_TYPE
+	        	  ,NVL(C.WK_M01, 0) - NVL(D.WK_M01, 0) AS WK_M01
+	        	  ,NVL(C.WK_M02, 0) - NVL(D.WK_M02, 0) AS WK_M02
+	        	  ,NVL(C.WK_M03, 0) - NVL(D.WK_M03, 0) AS WK_M03
+	        	  ,NVL(C.WK_M04, 0) - NVL(D.WK_M04, 0) AS WK_M04
+	        	  ,NVL(C.WK_M05, 0) - NVL(D.WK_M05, 0) AS WK_M05
+	        	  ,NVL(C.WK_M06, 0) - NVL(D.WK_M06, 0) AS WK_M06
+	        	  ,NVL(C.WK_M07, 0) - NVL(D.WK_M07, 0) AS WK_M07
+	        	  ,NVL(C.WK_M08, 0) - NVL(D.WK_M08, 0) AS WK_M08
+	        	  ,NVL(C.WK_M09, 0) - NVL(D.WK_M09, 0) AS WK_M09
+	        	  ,NVL(C.WK_M10, 0) - NVL(D.WK_M10, 0) AS WK_M10
+	        	  ,NVL(C.WK_M11, 0) - NVL(D.WK_M11, 0) AS WK_M11
+	        	  ,NVL(C.WK_M12, 0) - NVL(D.WK_M12, 0) AS WK_M12
+              FROM EXEC_LIST C
+                  INNER JOIN
+                   RESULT_LIST D
+                  ON C.ACCOUNT_NO = D.ACCOUNT_NO
+          ) A
+		  LEFT OUTER JOIN
+		   CO_ACCOUNT_NO B
+		  ON B.ACCOUNT_NO = A.ACCOUNT_NO
+    ORDER BY A.PROCESS_TYPE
+            ,A.ACCOUNT_NO
+            ,A.DATA_GUBN
+ 
+	</select>
+
+	<select id="selectSuppleYearResult" parameterType="Map" resultType="Map">
+	--com.bdg.BdgYearResult.selectSuppleYearResult
+	WITH ACCOUNT_LIST AS (
+		SELECT A.COMP_CD
+              ,SUBSTR(A.CRTN_YMD, 0, 4) AS CRTN_YY
+              ,A.CCTR_CD
+              ,A.ACCOUNT_NO
+              ,A.PROCESS_TYPE
+		  FROM CO_BUGT_SUPPLEMENT A
+		 WHERE 1 = 1
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+           AND A.COMP_CD = #{SB_COMP_CD}
+</if>
+<if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+           AND A.CRTN_YMD LIKE #{TB_CRTN_YY} || '%'
+</if>
+<if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+           AND A.CCTR_CD = #{SB_CCTR_CD}
+</if>
+           AND A.STATUS = '5'
+         GROUP BY A.COMP_CD
+                 ,SUBSTR(A.CRTN_YMD, 0, 4)
+                 ,A.CCTR_CD
+                 ,A.ACCOUNT_NO
+                 ,A.PROCESS_TYPE
+         UNION
+         SELECT B.COMP_CD
+               ,SUBSTR(B.CRTN_YYMM, 0, 4) AS CRTN_YY
+               ,B.CCTR_CD
+               ,B.ACCOUNT_NO
+               ,B.PROCESS_TYPE
+           FROM CO_BUGT_EXEC_HEAD B
+          WHERE 1 = 1
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+           AND B.COMP_CD = #{SB_COMP_CD}
+</if>
+<if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+           AND B.CRTN_YYMM LIKE #{TB_CRTN_YY} || '%'
+</if>
+<if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+           AND B.CCTR_CD = #{SB_CCTR_CD}
+</if>
+           AND B.STATUS = '5'
+          GROUP BY B.COMP_CD
+                  ,SUBSTR(B.CRTN_YYMM, 0, 4)
+                  ,B.CCTR_CD
+                  ,B.ACCOUNT_NO
+                  ,B.PROCESS_TYPE                     
+	), SUPP_LIST AS (
+	 SELECT 'D1' AS DATA_GUBN
+	          ,A.ACCOUNT_NO
+	          ,A.PROCESS_TYPE
+	          ,B.WK_M01
+	          ,B.WK_M02
+	          ,B.WK_M03
+	          ,B.WK_M04
+	          ,B.WK_M05
+	          ,B.WK_M06
+	          ,B.WK_M07
+	          ,B.WK_M08
+	          ,B.WK_M09
+	          ,B.WK_M10
+	          ,B.WK_M11
+	          ,B.WK_M12
+	      FROM ACCOUNT_LIST A
+	          LEFT OUTER JOIN
+	           (
+				SELECT A.*
+				  FROM ((
+				        SELECT A.ACCOUNT_NO
+				              ,A.PROCESS_TYPE
+		                      ,SUBSTR(A.CRTN_YMD, 5, 2) AS MON		        
+				              ,A.REQUEST_AMT
+				          FROM CO_BUGT_SUPPLEMENT A
+				         WHERE 1 = 1 
+						<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+                           AND A.COMP_CD = #{SB_COMP_CD}
+                        </if>
+                        <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+                           AND A.CRTN_YMD LIKE #{TB_CRTN_YY} || '%'
+                        </if>
+                        <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+                           AND A.CCTR_CD = #{SB_CCTR_CD}
+                        </if>
+				       ) A
+				       PIVOT
+				       (SUM(A.REQUEST_AMT) FOR MON IN ('01' AS WK_M01, '02' AS WK_M02, '03' AS WK_M03, '04' AS WK_M04, '05' AS WK_M05, '06' AS WK_M06
+				                                     , '07' AS WK_M07, '08' AS WK_M08, '09' AS WK_M09, '10' AS WK_M10, '11' AS WK_M11, '12' AS WK_M12))) A
+		       ) B 
+		      ON    B.ACCOUNT_NO   = A.ACCOUNT_NO
+		        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+		      
+	), EXEC_LIST AS (
+	    SELECT 'D1' AS DATA_GUBN
+	          ,A.ACCOUNT_NO
+	          ,A.PROCESS_TYPE
+	          ,B.WK_M01
+	          ,B.WK_M02
+	          ,B.WK_M03
+	          ,B.WK_M04
+	          ,B.WK_M05
+	          ,B.WK_M06
+	          ,B.WK_M07
+	          ,B.WK_M08
+	          ,B.WK_M09
+	          ,B.WK_M10
+	          ,B.WK_M11
+	          ,B.WK_M12
+	      FROM ACCOUNT_LIST A
+	          LEFT OUTER JOIN
+	           (
+				SELECT A.*
+				  FROM ((
+				        SELECT A.ACCOUNT_NO
+				              ,A.PROCESS_TYPE
+		                      ,SUBSTR(A.CRTN_YYMM, 5) AS MON		        
+				              ,CASE WHEN SUBSTR(A.CRTN_YYMM, 5) = '01' THEN A.WK_M01
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '02' THEN A.WK_M02
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '03' THEN A.WK_M03
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '04' THEN A.WK_M04
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '05' THEN A.WK_M05
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '06' THEN A.WK_M06
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '07' THEN A.WK_M07
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '08' THEN A.WK_M08
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '09' THEN A.WK_M09
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '10' THEN A.WK_M10
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '11' THEN A.WK_M11
+				                    WHEN SUBSTR(A.CRTN_YYMM, 5) = '12' THEN A.WK_M12
+				                    ELSE NULL
+				               END AS ACCOUNT_AMT
+				          FROM CO_BUGT_EXEC_HEAD A
+				         WHERE 1 = 1 
+						<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+                           AND A.COMP_CD = #{SB_COMP_CD}
+                        </if>
+                        <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+                           AND A.CRTN_YYMM LIKE #{TB_CRTN_YY} || '%'
+                        </if>
+                        <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+                           AND A.CCTR_CD = #{SB_CCTR_CD}
+                        </if>
+				       ) A
+				       PIVOT
+				       (SUM(A.ACCOUNT_AMT) FOR MON IN ('01' AS WK_M01, '02' AS WK_M02, '03' AS WK_M03, '04' AS WK_M04, '05' AS WK_M05, '06' AS WK_M06
+				                                     , '07' AS WK_M07, '08' AS WK_M08, '09' AS WK_M09, '10' AS WK_M10, '11' AS WK_M11, '12' AS WK_M12))) A
+		       ) B 
+		      ON    B.ACCOUNT_NO   = A.ACCOUNT_NO
+		        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+
+	), RESULT_LIST AS (
+	    SELECT 'D2' AS DATA_GUBN
+	          ,A.ACCOUNT_NO
+	          ,A.PROCESS_TYPE
+	          ,B.WK_M01
+	          ,B.WK_M02
+	          ,B.WK_M03
+	          ,B.WK_M04
+	          ,B.WK_M05
+	          ,B.WK_M06
+	          ,B.WK_M07
+	          ,B.WK_M08
+	          ,B.WK_M09
+	          ,B.WK_M10
+	          ,B.WK_M11
+	          ,B.WK_M12
+	      FROM ACCOUNT_LIST A
+	          LEFT OUTER JOIN
+	           (
+				SELECT A.*
+				  FROM ((
+				        SELECT A.ACCOUNT_NO
+				              ,A.PROCESS_TYPE
+		                      ,SUBSTR(A.CRTN_YYMM, 5) AS MON		        
+				              ,A.ACCOUNT_AMT
+				          FROM CO_BUGT_RESULT A
+				         WHERE 1 = 1 
+						<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+                           AND A.COMP_CD = #{SB_COMP_CD}
+                        </if>
+                        <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+                           AND A.CRTN_YYMM LIKE #{TB_CRTN_YY} || '%'
+                        </if>
+                        <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+                           AND A.CCTR_CD = #{SB_CCTR_CD}
+                        </if>
+				       ) A
+				       PIVOT
+				       (SUM(A.ACCOUNT_AMT) FOR MON IN ('01' AS WK_M01, '02' AS WK_M02, '03' AS WK_M03, '04' AS WK_M04, '05' AS WK_M05, '06' AS WK_M06
+				                                     , '07' AS WK_M07, '08' AS WK_M08, '09' AS WK_M09, '10' AS WK_M10, '11' AS WK_M11, '12' AS WK_M12))) A
+		       ) B 
+		      ON    B.ACCOUNT_NO = A.ACCOUNT_NO
+		        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+	)
+	SELECT A.*
+	      ,NVL(A.WK_M01, 0) + NVL(A.WK_M02, 0) + NVL(A.WK_M03, 0) + NVL(A.WK_M04, 0) + NVL(A.WK_M05, 0) + NVL(A.WK_M06, 0) AS A_SUM
+	      ,NVL(A.WK_M07, 0) + NVL(A.WK_M08, 0) + NVL(A.WK_M09, 0) + NVL(A.WK_M10, 0) + NVL(A.WK_M11, 0) + NVL(A.WK_M12, 0) AS B_SUM
+	      ,  NVL(A.WK_M01, 0) + NVL(A.WK_M02, 0) + NVL(A.WK_M03, 0) + NVL(A.WK_M04, 0) + NVL(A.WK_M05, 0) + NVL(A.WK_M06, 0)
+	       + NVL(A.WK_M07, 0) + NVL(A.WK_M08, 0) + NVL(A.WK_M09, 0) + NVL(A.WK_M10, 0) + NVL(A.WK_M11, 0) + NVL(A.WK_M12, 0) AS C_SUM	      
+	      ,B.ACCOUNT_DESC AS ACCOUNT_DESC  -- 계정명
+	      ,CASE WHEN A.DATA_GUBN = 'D1' THEN '예산'
+	            WHEN A.DATA_GUBN = 'D2' THEN '실적'
+	            WHEN A.DATA_GUBN = 'D3' THEN '잔액'
+	            ELSE ''
+	       END DATA_GUBN_NM	      
+	  FROM (
+	        SELECT 'D1' DATA_GUBN
+	        	  ,A.ACCOUNT_NO
+	        	  ,A.PROCESS_TYPE
+	        	  ,NVL(S.WK_M01, 0) + NVL(E.WK_M01, 0) AS WK_M01
+	        	  ,NVL(S.WK_M02, 0) + NVL(E.WK_M02, 0) AS WK_M02
+	        	  ,NVL(S.WK_M03, 0) + NVL(E.WK_M03, 0) AS WK_M03
+	        	  ,NVL(S.WK_M04, 0) + NVL(E.WK_M04, 0) AS WK_M04
+	        	  ,NVL(S.WK_M05, 0) + NVL(E.WK_M05, 0) AS WK_M05
+	        	  ,NVL(S.WK_M06, 0) + NVL(E.WK_M06, 0) AS WK_M06
+	        	  ,NVL(S.WK_M07, 0) + NVL(E.WK_M07, 0) AS WK_M07
+	        	  ,NVL(S.WK_M08, 0) + NVL(E.WK_M08, 0) AS WK_M08
+	        	  ,NVL(S.WK_M09, 0) + NVL(E.WK_M09, 0) AS WK_M09
+	        	  ,NVL(S.WK_M10, 0) + NVL(E.WK_M10, 0) AS WK_M10
+	        	  ,NVL(S.WK_M11, 0) + NVL(E.WK_M11, 0) AS WK_M11
+	        	  ,NVL(S.WK_M12, 0) + NVL(E.WK_M12, 0) AS WK_M12
+              FROM ACCOUNT_LIST A
+                  LEFT OUTER JOIN
+                   SUPP_LIST S
+                  ON    S.ACCOUNT_NO   = A.ACCOUNT_NO
+                    AND S.PROCESS_TYPE = A.PROCESS_TYPE
+                  LEFT OUTER JOIN
+                   EXEC_LIST E
+                  ON    E.ACCOUNT_NO   = A.ACCOUNT_NO
+                    AND E.PROCESS_TYPE = A.PROCESS_TYPE
+            UNION ALL
+	        SELECT 'D2' DATA_GUBN
+	        	  ,B.ACCOUNT_NO
+	        	  ,B.PROCESS_TYPE
+	        	  ,R.WK_M01
+	        	  ,R.WK_M02
+	        	  ,R.WK_M03
+	        	  ,R.WK_M04
+	        	  ,R.WK_M05
+	        	  ,R.WK_M06
+	        	  ,R.WK_M07
+	        	  ,R.WK_M08
+	        	  ,R.WK_M09
+	        	  ,R.WK_M10
+	        	  ,R.WK_M11
+	        	  ,R.WK_M12
+              FROM ACCOUNT_LIST B
+                  LEFT OUTER JOIN
+                   RESULT_LIST R
+                  ON    R.ACCOUNT_NO   = B.ACCOUNT_NO
+                    AND R.PROCESS_TYPE = B.PROCESS_TYPE              
+            UNION ALL
+	        SELECT 'D3' AS DATA_GUBN
+	        	  ,C.ACCOUNT_NO
+	        	  ,C.PROCESS_TYPE
+	        	  ,NVL(S.WK_M01, 0) + NVL(E.WK_M01, 0) - NVL(R.WK_M01, 0) AS WK_M01
+	        	  ,NVL(S.WK_M02, 0) + NVL(E.WK_M02, 0) - NVL(R.WK_M02, 0) AS WK_M02
+	        	  ,NVL(S.WK_M03, 0) + NVL(E.WK_M03, 0) - NVL(R.WK_M03, 0) AS WK_M03
+	        	  ,NVL(S.WK_M04, 0) + NVL(E.WK_M04, 0) - NVL(R.WK_M04, 0) AS WK_M04
+	        	  ,NVL(S.WK_M05, 0) + NVL(E.WK_M05, 0) - NVL(R.WK_M05, 0) AS WK_M05
+	        	  ,NVL(S.WK_M06, 0) + NVL(E.WK_M06, 0) - NVL(R.WK_M06, 0) AS WK_M06
+	        	  ,NVL(S.WK_M07, 0) + NVL(E.WK_M07, 0) - NVL(R.WK_M07, 0) AS WK_M07
+	        	  ,NVL(S.WK_M08, 0) + NVL(E.WK_M08, 0) - NVL(R.WK_M08, 0) AS WK_M08
+	        	  ,NVL(S.WK_M09, 0) + NVL(E.WK_M09, 0) - NVL(R.WK_M09, 0) AS WK_M09
+	        	  ,NVL(S.WK_M10, 0) + NVL(E.WK_M10, 0) - NVL(R.WK_M10, 0) AS WK_M10
+	        	  ,NVL(S.WK_M11, 0) + NVL(E.WK_M11, 0) - NVL(R.WK_M11, 0) AS WK_M11
+	        	  ,NVL(S.WK_M12, 0) + NVL(E.WK_M12, 0) - NVL(R.WK_M12, 0) AS WK_M12
+              FROM ACCOUNT_LIST C
+                  LEFT OUTER JOIN
+                   SUPP_LIST S
+                  ON    S.ACCOUNT_NO   = C.ACCOUNT_NO
+                    AND S.PROCESS_TYPE = C.PROCESS_TYPE
+                  LEFT OUTER JOIN
+                   EXEC_LIST E
+                  ON    E.ACCOUNT_NO   = C.ACCOUNT_NO
+                    AND E.PROCESS_TYPE = C.PROCESS_TYPE
+                  LEFT OUTER JOIN
+                   RESULT_LIST R
+                  ON    R.ACCOUNT_NO   = C.ACCOUNT_NO
+                    AND R.PROCESS_TYPE = C.PROCESS_TYPE                     
+          ) A
+		  LEFT OUTER JOIN
+		   CO_ACCOUNT_NO B
+		  ON B.ACCOUNT_NO = A.ACCOUNT_NO
+    ORDER BY A.PROCESS_TYPE
+            ,A.ACCOUNT_NO
+            ,A.DATA_GUBN
+ 
+	</select>
+</mapper>

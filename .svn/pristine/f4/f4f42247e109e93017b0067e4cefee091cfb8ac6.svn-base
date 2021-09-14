@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.SerialRegister">
+
+	<select id="selectWrhSerialRegisterList" parameterType="Map" resultType="Map">
+		--com.wrh.SerialRegister.selectWrhSerialRegisterList
+SELECT A.*
+  FROM (
+        SELECT ROW_NUMBER() OVER(ORDER BY VENDOR_CD, GR_DELY_DATE, GR_DELY_TIME, SEQ) RNUM
+              ,COUNT(0) OVER()                                                        TOT_CNT
+              ,VENDOR_CD                                                              VENDOR_CD    -- 업체코드
+              ,GR_DELY_DATE                                                           GR_DELY_DATE -- 입고예정일
+              ,GR_DELY_TIME                                                           GR_DELY_TIME -- 입고예정시간
+              ,SEQ                                                                    SEQ          -- 시퀀스
+              ,PROD_ID                                                                PROD_ID      -- 제품ID
+              ,STND_CD                                                                STND_CD      -- 표준코드
+              ,MNFC_NB                                                                MNFC_NB      -- 제조번호
+              ,MNFC_DATE                                                              MNFC_DATE    -- 제조일자
+              ,DSTR_DATE                                                              DSTR_DATE    -- 유통기간
+              ,LBOX_ID                                                                LBOX_ID      -- 대박스ID
+              ,RECV_YN                                                                RECV_YN      -- 수신여부
+              ,CRE_DATE                                                               CRE_DATE     -- 등록일자
+              ,CRE_USER                                                               CRE_USER     -- 등록자ID
+              ,MOD_DATE                                                               MOD_DATE     -- 수정일자
+              ,MOD_USER                                                               MOD_USER     -- 수정자ID
+              ,'R'                                                                    CRUD
+          FROM SERIAL_REGIST
+          WHERE 1 =1 
+            AND VENDOR_CD = #{TB_VENDOR_CD}
+        <if test="TB_GR_DELY_DATE != null and TB_GR_DELY_DATE != ''">
+        	AND GR_DELY_DATE = REPLACE(#{TB_GR_DELY_DATE},'-','')
+        </if>
+        <if test="TB_GR_DELY_TIME != null and TB_GR_DELY_TIME != ''">
+        	AND GR_DELY_TIME = REPLACE(#{TB_GR_DELY_TIME},':','')
+        </if>
+   ) A
+    <![CDATA[WHERE A.RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 500)]]>  
+ORDER BY VENDOR_CD
+        ,GR_DELY_DATE
+        ,GR_DELY_TIME
+        ,SEQ
+        ,PROD_ID
+	</select>
+	
+    <insert id="insertSerialRegister" parameterType="Map">
+--com.wrh.SerialRegister.insertSerialRegister
+INSERT INTO SERIAL_REGIST 
+(
+  VENDOR_CD
+ ,GR_DELY_DATE
+ ,GR_DELY_TIME
+ ,SEQ
+ ,PROD_ID
+ ,STND_CD
+ ,MNFC_NB
+ ,MNFC_DATE
+ ,DSTR_DATE
+ ,LBOX_ID
+ ,RECV_YN
+ ,CRE_DATE
+ ,CRE_USER
+ ,MOD_DATE
+ ,MOD_USER
+) VALUES (
+           #{VENDOR_CD}
+          ,REPLACE(#{GR_DELY_DATE},'-','')
+          ,REPLACE(#{GR_DELY_TIME},':','')
+          ,(
+            SELECT NVL(MAX(SEQ),0) + 1
+              FROM SERIAL_REGIST
+           )
+          ,#{PROD_ID}
+          ,#{STND_CD}
+          ,#{MNFC_NB}
+          ,#{MNFC_DATE}
+          ,#{DSTR_DATE}
+          ,#{LBOX_ID}
+          ,#{RECV_YN}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{CRE_USER}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{MOD_USER}
+         )
+    </insert>
+       	
+    <delete id="deleteSerialRegisterH" parameterType="Map">
+--com.wrh.SerialRegister.deleteSerialRegisterH
+DELETE FROM SERIAL_REGIST
+ WHERE VENDOR_CD    = #{TB_VENDOR_CD}
+   AND GR_DELY_DATE = REPLACE(#{TB_GR_DELY_DATE},'-','')
+   AND GR_DELY_TIME = REPLACE(#{TB_GR_DELY_TIME},':','')
+    </delete>
+
+    <delete id="deleteSerialRegister" parameterType="Map">
+--com.wrh.SerialRegister.deleteSerialRegister
+DELETE FROM SERIAL_REGIST
+ WHERE VENDOR_CD    = #{VENDOR_CD}
+   AND GR_DELY_DATE = REPLACE(#{GR_DELY_DATE},'-','')
+   AND GR_DELY_TIME = REPLACE(#{GR_DELY_TIME},':','')
+   AND SEQ          = #{SEQ}    
+    </delete>
+
+
+	<select id="selectDateTime" parameterType="Map" resultType="Map">
+--com.wrh.SerialRegister.selectDateTime
+SELECT '10:00' DELY_TIME FROM DUAL UNION ALL
+SELECT '10:30' DELY_TIME FROM DUAL UNION ALL
+SELECT '11:00' DELY_TIME FROM DUAL UNION ALL
+SELECT '11:30' DELY_TIME FROM DUAL UNION ALL
+SELECT '12:00' DELY_TIME FROM DUAL UNION ALL
+SELECT '12:30' DELY_TIME FROM DUAL UNION ALL
+SELECT '13:30' DELY_TIME FROM DUAL UNION ALL
+SELECT '14:00' DELY_TIME FROM DUAL UNION ALL
+SELECT '14:30' DELY_TIME FROM DUAL UNION ALL
+SELECT '15:00' DELY_TIME FROM DUAL UNION ALL
+SELECT '15:30' DELY_TIME FROM DUAL UNION ALL
+SELECT '16:00' DELY_TIME FROM DUAL
+	</select>
+
+
+</mapper>

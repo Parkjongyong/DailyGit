@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.StorageSpace">
+
+	<select id="selectWhrStorageSpaceMgmtList" parameterType="Map" resultType="Map">
+		--com.wrh.StorageSpace.selectWhrStorageSpaceMgmtList
+		<![CDATA[
+		WITH CAL AS (
+			SELECT TO_CHAR(FIRST_DAY + LEVEL - 1, 'D')        AS DAYS 
+			      ,TO_CHAR(FIRST_DAY + LEVEL - 1, 'MM-DD')    AS TODAY 
+			      ,TO_CHAR(FIRST_DAY + LEVEL - 1, 'YYYYMMDD') AS TODAY_STR 
+			      ,TO_CHAR(FIRST_DAY + LEVEL - 1 ,'DY')       AS DAYS_K 
+			  FROM (SELECT TRUNC(ADD_MONTHS(TO_DATE(REPLACE(#{YYYYMMDD}, '-', ''), 'YYYYMMDD'),  -1), 'MM') FIRST_DAY FROM DUAL) 
+			CONNECT BY FIRST_DAY + LEVEL - 1 <= TRUNC(LAST_DAY(ADD_MONTHS(TO_DATE(REPLACE(#{YYYYMMDD}, '-', ''), 'YYYYMMDD'),  1))) 
+		)	
+		SELECT A.TODAY_STR                                               AS STRD_DATE
+		      ,TO_CHAR(TO_DATE(A.TODAY_STR, 'YYYY-MM-DD'), 'YYYY-MM-DD') AS START_DATE
+		      ,NVL(B.STORAGE_SPACE, 50)                                  AS TITLE_TXT
+		      ,NVL(B.STORAGE_SPACE, 50)                                  AS TITLE_TXT_OLD
+		      ,NVL((SELECT COUNT(*)
+		          FROM GR_DELIVERY_HEAD C
+		         WHERE 1 = 1
+		           AND C.COMP_CD      = B.COMP_CD
+                   AND C.PLANT_CODE   = B.PLANT_CD
+                   AND C.LOCATION     = B.STORAGE_CD
+                   AND C.GR_DELY_DATE = B.STRD_DATE), 0)                 AS CNT
+              ,DAYS_K
+              ,CASE WHEN C.CODE IS NOT NULL THEN '휴'
+                    ELSE A.DAYS_K
+               END                                                       AS DAYS_GUBN
+              ,CASE WHEN C.CONFIRM_USER = #{USER_ID} THEN 'Y' ELSE 'N' END  BTN_YN
+              ,E.SUM_PLT_QTY
+              ,CASE WHEN E.VENDOR_NM IS NOT NULL THEN 
+                                                   CASE WHEN E.CNT = 1 THEN E.VENDOR_NM 
+                                                                       ELSE E.VENDOR_NM || ' 외 ' || E.CNT || '건' 
+                                                   END
+                                                 ELSE NULL END REMARK
+          FROM CAL A
+              LEFT OUTER JOIN
+               COM_CODE C
+              ON    C.CODE_GRP = 'SYS002'
+                AND C.CODE     = A.TODAY_STR
+              LEFT OUTER JOIN
+               STORAGE_SPACE B
+              ON    B.COMP_CD    = #{SB_COMP_CD}
+                AND B.PLANT_CD   = #{SB_PLANT_CD}
+                AND B.STORAGE_CD = #{SB_STORAGE_CD}
+                AND B.STRD_DATE  = A.TODAY_STR
+              LEFT OUTER JOIN
+               CONFIRM_USER_INFO C
+              ON    C.COMP_CD    =  #{SB_COMP_CD}
+                AND C.PLANT_CD   =  #{SB_PLANT_CD}
+                AND C.STORAGE_CD =  #{SB_STORAGE_CD}
+                AND C.CONFIRM_USER = #{USER_ID}
+              LEFT OUTER JOIN 
+              (
+		        SELECT SUM(CASE WHEN NVL(B.PLT_QTY, 0) = 0 THEN 0
+                                ELSE CEIL(B.ITEM_QTY/B.PLT_QTY)
+                            END
+		               ) AS SUM_PLT_QTY
+		              ,A.COMP_CD
+		              ,A.PLANT_CODE
+		              ,A.LOCATION
+		              ,A.GR_DELY_DATE
+		              ,MAX(A.VENDOR_NM) VENDOR_NM
+		              ,COUNT(0) OVER() CNT 
+		          FROM GR_DELIVERY_HEAD A
+		              LEFT OUTER JOIN
+		               GR_DELIVERY_ITEM B
+		              ON  B.DOC_NO = A.DOC_NO
+		         WHERE 1 = 1
+		           AND A.COMP_CD    = #{SB_COMP_CD}   
+		           AND A.PLANT_CODE = #{SB_PLANT_CD}  
+		           AND A.LOCATION   = #{SB_STORAGE_CD}
+		         GROUP BY A.COMP_CD
+		                 ,A.PLANT_CODE
+		                 ,A.LOCATION
+		                 ,A.GR_DELY_DATE
+		       ) E
+              ON    E.COMP_CD    =   #{SB_COMP_CD}   
+                AND E.PLANT_CODE =   #{SB_PLANT_CD}  
+                AND E.LOCATION   =   #{SB_STORAGE_CD}
+                AND E.GR_DELY_DATE =  A.TODAY_STR
+
+       ]]>
+	</select>
+	
+	<select id="selectwrhStorageSpacePopList" parameterType="Map" resultType="Map">
+		--com.wrh.StorageSpace.selectwrhStorageSpacePopList
+SELECT VENDOR_NM                                                         VENDOR_NM
+      ,COMP_CD                                                           COMP_CD
+      ,MAT_NUMBER                                                        MAT_NUMBER
+      ,MAT_DESC                                                          MAT_DESC
+      ,ADD_GR_QTY                                                        ADD_GR_QTY
+      ,ITEM_QTY                                                          ITEM_QTY
+      ,CASE WHEN NVL(PLT_QTY, 0)  = 0 THEN NULL
+            ELSE TRUNC((PO_ITEM_QTY - NVL(ADD_GR_QTY, 0)) / PLT_QTY, 1)
+       END                                                               PLT_CAL_QTY
+  FROM (
+        SELECT B.VENDOR_NM                                                                        VENDOR_NM
+              ,B.COMP_CD                                                                          COMP_CD
+              ,A.MAT_NUMBER                                                                       MAT_NUMBER
+              ,A.MAT_DESC                                                                         MAT_DESC
+              ,NVL((
+                SELECT SUM(CASE WHEN DC_INDICATOR = 'H' THEN ITEM_QTY * -1
+                                ELSE ITEM_QTY
+                           END)
+                  FROM GR_ITEM Z
+                 WHERE Z.PO_NUMBER = D.PO_NUMBER
+                   AND Z.PO_SEQ    = D.PO_SEQ
+               ), 0)                                                                              ADD_GR_QTY
+              ,D.ITEM_QTY                                                                         PO_ITEM_QTY
+              ,E.PLT_QTY                                                                          PLT_QTY
+              ,A.DOC_NO                                                                           DOC_NO
+              ,A.ITEM_QTY                                                                         ITEM_QTY
+          FROM GR_DELIVERY_ITEM A
+              LEFT OUTER JOIN
+               GR_DELIVERY_HEAD B
+              ON B.DOC_NO = A.DOC_NO
+              LEFT OUTER JOIN
+               PO_HEADER C
+              ON    C.COMP_CD   = B.COMP_CD
+                AND C.PO_NUMBER = A.PO_NUMBER
+              LEFT OUTER JOIN
+               PO_ITEM D
+              ON    D.COMP_CD   = C.COMP_CD
+                AND D.PO_NUMBER = C.PO_NUMBER
+                AND D.PO_SEQ    = A.PO_SEQ
+              LEFT OUTER JOIN
+               MAT_PLANT E
+              ON     E.MAT_NUMBER = D.MAT_NUMBER
+                 AND E.PLANT_CODE = D.PLANT_CODE
+        WHERE 1 = 1
+          AND B.DOC_STATUS = '5'
+          AND B.COMP_CD    = #{SB_COMP_CD}
+          AND B.PLANT_CODE = #{SB_PLANT_CD}
+          AND B.LOCATION   = #{SB_STORAGE_CD}
+          AND B.GR_DELY_DATE = REPLACE(#{YYYYMMDD},'-','')
+        ORDER BY A.DOC_NO DESC
+      )
+ORDER BY DOC_NO DESC
+	</select>
+		
+    <insert id="saveWhrStorageSpace" parameterType="Map">
+    <![CDATA[
+	    --com.wrh.StorageSpace.saveWhrStorageSpace
+	    MERGE INTO STORAGE_SPACE A 
+	    USING (
+	        SELECT #{COMP_CD}                      AS COMP_CD
+                  ,#{PLANT_CD}                     AS PLANT_CD
+                  ,#{STORAGE_CD}                   AS STORAGE_CD
+                  ,REPLACE(#{STRD_DATE}, '-', '')  AS STRD_DATE
+                  ,#{STORAGE_SPACE}                AS STORAGE_SPACE
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.COMP_CD    = B.COMP_CD
+	        AND A.PLANT_CD   = B.PLANT_CD
+	        AND A.STORAGE_CD = B.STORAGE_CD
+	        AND A.STRD_DATE  = B.STRD_DATE
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.STORAGE_SPACE = B.STORAGE_SPACE
+                  ,A.MOD_DATE      = TO_CHAR(SYSDATE,'YYYYMMDD') 
+                  ,A.MOD_USER      = #{MOD_USER}
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.COMP_CD
+                 ,A.PLANT_CD
+                 ,A.STORAGE_CD
+                 ,A.STRD_DATE
+                 ,A.STORAGE_SPACE
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( B.COMP_CD
+                          ,B.PLANT_CD
+                          ,B.STORAGE_CD   
+                          ,B.STRD_DATE   
+                          ,B.STORAGE_SPACE
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,#{CRE_USER}
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,#{MOD_USER}
+	                     )
+     ]]>
+    </insert> 	
+	
+</mapper>

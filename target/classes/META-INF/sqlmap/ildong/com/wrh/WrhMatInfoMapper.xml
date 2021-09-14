@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.MatInfo">
+
+	<select id="selectMatInfo" parameterType="Map" resultType="Map">
+		--com.wrh.MatInfo.selectMatInfo
+		SELECT A.*
+		  FROM (
+				SELECT ROW_NUMBER() OVER(ORDER BY A.MAT_NUMBER) AS RNUM
+					  ,COUNT(A.MAT_NUMBER) OVER() AS TOT_CNT
+				      ,A.MAT_NUMBER   -- 자재 번호
+				      ,A.MAT_TYPE     -- 자재유형
+				      ,A.MAT_TYPE_TXT -- 자재유형명
+				      ,A.UNIT_MEASURE -- 기본 단위
+				      ,A.MAT_GROUP    -- 자재 그룹
+				      ,A.MAT_DESC     -- 자재내역
+				      ,B.PLANT_CODE   -- 플랜트
+				      ,(SELECT AA.PLANT_NM FROM PLANT_INFO AA WHERE AA.PLANT_CD  = B.PLANT_CODE) PLANT_NAME
+				      ,B.DRAFT_FLAG   -- 화판번호관리대상
+				      ,B.BOX_QTY      -- 원박스입수
+				      ,B.PLT_QTY      -- PLT 입상수 수량
+				      ,C.COMP_CD      -- 회사코드
+				  FROM MAT_HEAD A
+				      LEFT OUTER JOIN
+				       MAT_PLANT B
+				      ON    B.MAT_NUMBER = A.MAT_NUMBER
+				      LEFT OUTER JOIN
+				       (
+				        SELECT COMP_CD
+                              ,PLANT_CD
+                          FROM STORAGE_INFO
+ 				         GROUP BY COMP_CD
+                                 ,PLANT_CD
+				       ) C 
+				      ON C.PLANT_CD = B.PLANT_CODE
+				 WHERE 1=1
+				  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+				    AND C.COMP_CD = #{SB_COMP_CD}
+				  </if>				   
+				  <if test="SB_PLANT_CD != null and SB_PLANT_CD != ''">
+				    AND B.PLANT_CODE = #{SB_PLANT_CD}
+				  </if>
+				  <if test="SB_MAT_TYPE != null and SB_MAT_TYPE != ''">
+				    AND A.MAT_TYPE = #{SB_MAT_TYPE}
+				  </if>
+				  <if test="TB_MAT_NUMBER != null and TB_MAT_NUMBER != ''">
+				    AND A.MAT_NUMBER LIKE '%' || #{TB_MAT_NUMBER} || '%'
+				  </if>
+				  <if test="TB_MAT_DESC != null and TB_MAT_DESC != ''">
+				    AND A.MAT_DESC LIKE '%' || #{TB_MAT_DESC} || '%'
+				  </if>
+				   AND NVL(A.DEL_FLAG,' ') NOT IN ('X') 
+				   AND NVL(B.DEL_FLAG,' ') NOT IN ('X')				  
+			 ) A
+		<![CDATA[WHERE A.RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 50)]]>			 
+	</select>
+
+
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.Dept">
+
+    <select id="selectDeptList" parameterType="Map" resultType="Map">
+	    --MenuMapper.selectDeptList
+        SELECT A.COMP_CD                               COMP_CD
+              ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD) COMP_NM
+              ,A.DEPT_CD                               DEPT_CD
+              ,A.DEPT_NM                               DEPT_NM
+              ,A.SDATE                                 SDATE
+              ,A.EDATE                                 EDATE
+              ,A.MANAGER_ID                            MANAGER_ID
+              ,A.MANAGER_NM                            MANAGER_NM
+              ,A.UP_ORG_CD                             UP_ORG_CD
+              ,A.UP_ORG_NM                             UP_ORG_NM
+              ,A.COST_CD                               COST_CD
+              ,A.COST_NM                               COST_NM
+              ,A.INS_DT                                INS_DT
+              ,A.INS_ID                                INS_ID
+              ,A.MOD_DT                                MOD_DT
+              ,A.MOD_ID                                MOD_ID
+              ,A.DEL_YN                                DEL_YN
+	      FROM DEPT A
+	     WHERE 1 = 1
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND A.COMP_CD = #{SB_COMP_CD}
+		</if>
+		<if test="SB_DEPT_NM != null and SB_DEPT_NM != ''">
+		   AND A.DEPT_NM LIKE UPPER(#{SB_DEPT_NM}) || '%'
+		</if>
+		   AND A.DEPT_CD NOT IN ('V0000001')
+		   AND A.DEL_YN = 'N'
+		   AND A.SDATE = (SELECT MAX(SDATE) FROM DEPT B WHERE B.COMP_CD = A.COMP_CD AND B.DEPT_CD = A.DEPT_CD)
+    </select>
+
+</mapper>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchLog">
+
+	<insert id="insertBatchLogOnStart" parameterType="Map">
+	   <selectKey keyProperty="BATCH_SEQ" resultType="int" order="BEFORE">
+           SELECT SEQ_BATCH_LOG.NEXTVAL FROM DUAL
+       </selectKey>
+	--BatLogMapper.insertBatchLogOnStart
+	INSERT INTO SYS_BATCH_LOG (
+		  BATCH_SEQ
+		, BATCH_ID
+		, BATCH_IP
+		, BATCH_START_TIME
+		, BATCH_SUCC_YN
+		, BATCH_ERR_MSG
+	) VALUES (
+		  #{BATCH_SEQ}
+		, #{BATCH_ID}
+		, #{RUN_IP}
+		, #{BATCH_START_TIME}
+		, 'N'
+		, 'BATCH END METHOD NOT CALLED'
+	)
+	</insert>
+
+	<update id="updateBatchLogOnEnd" parameterType="Map">
+	--BatLogMapper.updateBatchLogOnEnd
+	UPDATE SYS_BATCH_LOG
+	   SET BATCH_END_TIME	= #{BATCH_END_TIME}
+	     , BATCH_SUCC_YN	= #{BATCH_SUCC_YN}
+	     , BATCH_RUN_TIME	= #{BATCH_END_TIME} - BATCH_START_TIME
+	     , BATCH_ERR_MSG	= #{BATCH_ERR_MSG}
+	     , SUCC_CNT			= NVL(#{SUCC_CNT}	, 0)
+	     , FAIL_CNT			= NVL(#{FAIL_CNT}	, 0)
+	     , TOTAL_CNT		= NVL(#{TOTAL_CNT}	, 0)
+	     , PROC_ID			= NVL(#{PROC_ID}		, '')
+	 WHERE BATCH_SEQ		= #{BATCH_SEQ}  
+	</update>
+
+
+
+</mapper>

@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.BdgResult">
+
+	<select id="selectBasicResult" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.BdgResult.selectBasicResult
+SELECT A.COMP_CD                                                                      COMP_CD        -- 회사코드
+      ,A.CRTN_YY                                                                      CRTN_YY        -- 기준년도
+      ,A.CCTR_CD                                                                      CCTR_CD        -- 코스트코드
+      ,A.ACCOUNT_NO                                                                   ACCOUNT_NO     -- 계정코드
+      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                                            ACCOUNT_DESC   -- 계정명
+      ,A.PROCESS_TYPE                                                                 PROCESS_TYPE   -- 구분                                                       
+      ,CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '01' THEN A.WK_M01
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '02' THEN A.WK_M02
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '03' THEN A.WK_M03
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '04' THEN A.WK_M04
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '05' THEN A.WK_M05
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '06' THEN A.WK_M06
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '07' THEN A.WK_M07
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '08' THEN A.WK_M08
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '09' THEN A.WK_M09
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '10' THEN A.WK_M10
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '11' THEN A.WK_M11
+       ELSE                                                              A.WK_M12
+       END                                                                            WK_M          -- 예산
+      ,NVL(B.ACCOUNT_AMT,0) + NVL(C.ACCOUNT_AMT,0)                                    ACCOUNT_AMT   -- 실적
+      ,TO_CHAR(NVL(B.ACCOUNT_AMT,0),'FM9,999,999,999')                                ACCOUNT_AMT_Y -- 승인금액
+      ,TO_CHAR(NVL(C.ACCOUNT_AMT,0),'FM9,999,999,999')                                ACCOUNT_AMT_N -- 미승인금액
+      ,NVL(CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '01' THEN A.WK_M01
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '02' THEN A.WK_M02
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '03' THEN A.WK_M03
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '04' THEN A.WK_M04
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '05' THEN A.WK_M05
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '06' THEN A.WK_M06
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '07' THEN A.WK_M07
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '08' THEN A.WK_M08
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '09' THEN A.WK_M09
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '10' THEN A.WK_M10
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '11' THEN A.WK_M11
+            ELSE                                                             A.WK_M12
+            END,0)
+       - (NVL(B.ACCOUNT_AMT,0) + NVL(C.ACCOUNT_AMT,0))                                AVAILABLE_AMT -- 가용금액
+  FROM CO_BUGT_BASIC_HEAD A
+      LEFT OUTER JOIN
+      (
+       SELECT D.COMP_CD          COMP_CD
+             ,D.CRTN_YYMM        CRTN_YYMM
+             ,D.CCTR_CD          CCTR_CD
+             ,D.ACCOUNT_NO       ACCOUNT_NO
+             ,D.PROCESS_TYPE     PROCESS_TYPE
+             ,SUM(D.ACCOUNT_AMT) ACCOUNT_AMT
+         FROM CO_BUGT_RESULT D
+        WHERE 1 = 1
+          AND D.COMP_CD         = #{SB_COMP_CD}
+          AND D.CRTN_YYMM       = REPLACE(#{TB_CRTN_YYMM},'-','')
+          AND D.APPROVAL_STATUS = 'Y'
+        GROUP BY D.COMP_CD
+                ,D.CRTN_YYMM
+                ,D.CCTR_CD
+                ,D.ACCOUNT_NO
+                ,D.PROCESS_TYPE
+      ) B
+      ON    B.COMP_CD               = A.COMP_CD
+        AND SUBSTR(B.CRTN_YYMM,0,4) = A.CRTN_YY
+        AND B.CCTR_CD               = A.CCTR_CD
+        AND B.ACCOUNT_NO            = A.ACCOUNT_NO
+        AND B.PROCESS_TYPE          = A.PROCESS_TYPE
+      LEFT OUTER JOIN
+      (
+       SELECT D.COMP_CD          COMP_CD
+             ,D.CRTN_YYMM        CRTN_YYMM
+             ,D.CCTR_CD          CCTR_CD
+             ,D.ACCOUNT_NO       ACCOUNT_NO
+             ,D.PROCESS_TYPE     PROCESS_TYPE
+             ,SUM(D.ACCOUNT_AMT) ACCOUNT_AMT
+         FROM CO_BUGT_RESULT D
+        WHERE 1 = 1
+          AND D.COMP_CD         = #{SB_COMP_CD}
+          AND D.CRTN_YYMM       = REPLACE(#{TB_CRTN_YYMM},'-','')
+          AND D.APPROVAL_STATUS = 'N'
+        GROUP BY D.COMP_CD
+                ,D.CRTN_YYMM
+                ,D.CCTR_CD
+                ,D.ACCOUNT_NO
+                ,D.PROCESS_TYPE
+      ) C
+      ON    C.COMP_CD               = A.COMP_CD
+        AND SUBSTR(C.CRTN_YYMM,0,4) = A.CRTN_YY
+        AND C.CCTR_CD               = A.CCTR_CD
+        AND C.ACCOUNT_NO            = A.ACCOUNT_NO
+        AND C.PROCESS_TYPE          = A.PROCESS_TYPE
+ WHERE A.COMP_CD = #{SB_COMP_CD}
+   AND A.CRTN_YY = SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),0,4)
+   AND A.CCTR_CD = #{SB_CCTR_CD}
+   AND A.STATUS = '5'
+ ORDER BY A.COMP_CD
+         ,A.CRTN_YY
+         ,A.CCTR_CD
+         ,A.ACCOUNT_NO
+         ,A.PROCESS_TYPE
+ 
+	</select>
+
+	<select id="selectModifyResult" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.BdgResult.selectModifyResult
+SELECT A.COMP_CD                                                                      COMP_CD        -- 회사코드
+      ,A.CRTN_YY                                                                      CRTN_YY        -- 기준년도
+      ,A.CCTR_CD                                                                      CCTR_CD        -- 코스트코드
+      ,A.ACCOUNT_NO                                                                   ACCOUNT_NO     -- 계정코드
+      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                                            ACCOUNT_DESC   -- 계정명
+      ,A.PROCESS_TYPE                                                                 PROCESS_TYPE   -- 구분
+      ,CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '01' THEN A.WK_M01
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '02' THEN A.WK_M02
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '03' THEN A.WK_M03
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '04' THEN A.WK_M04
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '05' THEN A.WK_M05
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '06' THEN A.WK_M06
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '07' THEN A.WK_M07
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '08' THEN A.WK_M08
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '09' THEN A.WK_M09
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '10' THEN A.WK_M10
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '11' THEN A.WK_M11
+       ELSE                                                              A.WK_M12
+       END                                                                            WK_M          -- 예산
+      ,NVL(B.ACCOUNT_AMT,0) + NVL(C.ACCOUNT_AMT,0)                                    ACCOUNT_AMT   -- 실적
+      ,TO_CHAR(NVL(B.ACCOUNT_AMT,0),'FM9,999,999,999')                                ACCOUNT_AMT_Y -- 승인금액
+      ,TO_CHAR(NVL(C.ACCOUNT_AMT,0),'FM9,999,999,999')                                ACCOUNT_AMT_N -- 미승인금액
+      ,NVL(CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '01' THEN A.WK_M01
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '02' THEN A.WK_M02
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '03' THEN A.WK_M03
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '04' THEN A.WK_M04
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '05' THEN A.WK_M05
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '06' THEN A.WK_M06
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '07' THEN A.WK_M07
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '08' THEN A.WK_M08
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '09' THEN A.WK_M09
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '10' THEN A.WK_M10
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '11' THEN A.WK_M11
+            ELSE                                                             A.WK_M12
+            END,0)
+       - (NVL(B.ACCOUNT_AMT,0) + NVL(C.ACCOUNT_AMT,0))                                AVAILABLE_AMT -- 가용금액
+  FROM CO_BUGT_MODIFY_HEAD A
+      LEFT OUTER JOIN
+      (
+       SELECT COMP_CD          COMP_CD
+             ,CRTN_YYMM        CRTN_YYMM
+             ,CCTR_CD          CCTR_CD
+             ,ACCOUNT_NO       ACCOUNT_NO
+             ,PROCESS_TYPE     PROCESS_TYPE
+             ,SUM(ACCOUNT_AMT) ACCOUNT_AMT
+         FROM CO_BUGT_RESULT
+        WHERE 1 = 1
+          AND COMP_CD         = #{SB_COMP_CD}
+          AND CRTN_YYMM       = REPLACE(#{TB_CRTN_YYMM},'-','')
+          AND APPROVAL_STATUS = 'Y'          
+        GROUP BY COMP_CD
+                ,CRTN_YYMM
+                ,CCTR_CD
+                ,ACCOUNT_NO
+                ,PROCESS_TYPE
+      ) B
+      ON    B.COMP_CD               = A.COMP_CD
+        AND SUBSTR(B.CRTN_YYMM,0,4) = A.CRTN_YY
+        AND B.CCTR_CD               = A.CCTR_CD
+        AND B.ACCOUNT_NO            = A.ACCOUNT_NO
+        AND B.PROCESS_TYPE          = A.PROCESS_TYPE
+      LEFT OUTER JOIN
+      (
+       SELECT COMP_CD          COMP_CD
+             ,CRTN_YYMM        CRTN_YYMM
+             ,CCTR_CD          CCTR_CD
+             ,ACCOUNT_NO       ACCOUNT_NO
+             ,PROCESS_TYPE     PROCESS_TYPE
+             ,SUM(ACCOUNT_AMT) ACCOUNT_AMT
+         FROM CO_BUGT_RESULT
+        WHERE 1 = 1
+          AND COMP_CD         = #{SB_COMP_CD}
+          AND CRTN_YYMM       = REPLACE(#{TB_CRTN_YYMM},'-','')
+          AND APPROVAL_STATUS = 'N' 
+        GROUP BY COMP_CD
+                ,CRTN_YYMM
+                ,CCTR_CD
+                ,ACCOUNT_NO
+                ,PROCESS_TYPE
+      ) C
+      ON    C.COMP_CD               = A.COMP_CD
+        AND SUBSTR(C.CRTN_YYMM,0,4) = A.CRTN_YY
+        AND C.CCTR_CD               = A.CCTR_CD
+        AND C.ACCOUNT_NO            = A.ACCOUNT_NO
+        AND C.PROCESS_TYPE          = A.PROCESS_TYPE
+ WHERE A.COMP_CD = #{SB_COMP_CD}
+   AND A.CRTN_YY = SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),0,4)
+   AND A.CCTR_CD = #{SB_CCTR_CD}
+   AND A.STATUS = '5'
+ ORDER BY A.COMP_CD
+         ,A.CRTN_YY
+         ,A.PROCESS_TYPE 
+         ,A.ACCOUNT_NO
+         ,A.CCTR_CD
+ 
+	</select>
+
+	<select id="selectExecResult" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.BdgResult.selectExecResult
+SELECT A.COMP_CD                                                                      COMP_CD        -- 회사코드
+      ,A.CRTN_YYMM                                                                    CRTN_YY        -- 기준년도
+      ,A.CCTR_CD                                                                      CCTR_CD        -- 코스트코드
+      ,A.ACCOUNT_NO                                                                   ACCOUNT_NO     -- 계정코드
+      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                                            ACCOUNT_DESC   -- 계정명
+      ,A.PROCESS_TYPE                                                                 PROCESS_TYPE   -- 구분
+      ,CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '01' THEN A.WK_M01
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '02' THEN A.WK_M02
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '03' THEN A.WK_M03
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '04' THEN A.WK_M04
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '05' THEN A.WK_M05
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '06' THEN A.WK_M06
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '07' THEN A.WK_M07
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '08' THEN A.WK_M08
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '09' THEN A.WK_M09
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '10' THEN A.WK_M10
+            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '11' THEN A.WK_M11
+       ELSE                                                              A.WK_M12
+       END                                                                            WK_M          -- 예산
+      ,NVL(B.ACCOUNT_AMT,0) + NVL(C.ACCOUNT_AMT,0)                                    ACCOUNT_AMT   -- 실적
+      ,TO_CHAR(NVL(B.ACCOUNT_AMT,0),'FM9,999,999,999')                                ACCOUNT_AMT_Y -- 승인금액
+      ,TO_CHAR(NVL(C.ACCOUNT_AMT,0),'FM9,999,999,999')                                ACCOUNT_AMT_N -- 미승인금액
+      ,NVL(CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '01' THEN A.WK_M01
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '02' THEN A.WK_M02
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '03' THEN A.WK_M03
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '04' THEN A.WK_M04
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '05' THEN A.WK_M05
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '06' THEN A.WK_M06
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '07' THEN A.WK_M07
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '08' THEN A.WK_M08
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '09' THEN A.WK_M09
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '10' THEN A.WK_M10
+                WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '11' THEN A.WK_M11
+            ELSE                                                             A.WK_M12
+            END,0)
+       - (NVL(B.ACCOUNT_AMT,0) + NVL(C.ACCOUNT_AMT,0))                                AVAILABLE_AMT -- 가용금액
+  FROM CO_BUGT_EXEC_HEAD A
+      LEFT OUTER JOIN
+      (
+       SELECT COMP_CD          COMP_CD
+             ,CRTN_YYMM        CRTN_YYMM
+             ,CCTR_CD          CCTR_CD
+             ,ACCOUNT_NO       ACCOUNT_NO
+             ,PROCESS_TYPE     PROCESS_TYPE
+             ,SUM(ACCOUNT_AMT) ACCOUNT_AMT
+         FROM CO_BUGT_RESULT
+        WHERE 1 = 1
+          AND COMP_CD         = #{SB_COMP_CD}
+          AND CRTN_YYMM       = REPLACE(#{TB_CRTN_YYMM},'-','')
+          AND APPROVAL_STATUS = 'Y'   
+        GROUP BY COMP_CD
+                ,CRTN_YYMM
+                ,CCTR_CD
+                ,ACCOUNT_NO
+                ,PROCESS_TYPE
+      ) B
+      ON    B.COMP_CD      = A.COMP_CD
+        AND B.CRTN_YYMM    = SUBSTR(A.CRTN_YYMM,0,6)
+        AND B.CCTR_CD      = A.CCTR_CD
+        AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+      LEFT OUTER JOIN
+      (
+       SELECT COMP_CD          COMP_CD
+             ,CRTN_YYMM        CRTN_YYMM
+             ,CCTR_CD          CCTR_CD
+             ,ACCOUNT_NO       ACCOUNT_NO
+             ,PROCESS_TYPE     PROCESS_TYPE
+             ,SUM(ACCOUNT_AMT) ACCOUNT_AMT
+         FROM CO_BUGT_RESULT
+        WHERE 1 = 1
+          AND COMP_CD         = #{SB_COMP_CD}
+          AND CRTN_YYMM       = REPLACE(#{TB_CRTN_YYMM},'-','')
+          AND APPROVAL_STATUS = 'N'   
+        GROUP BY COMP_CD
+                ,CRTN_YYMM
+                ,CCTR_CD
+                ,ACCOUNT_NO
+                ,PROCESS_TYPE
+      ) C
+      ON    C.COMP_CD      = A.COMP_CD
+        AND C.CRTN_YYMM    = A.CRTN_YYMM
+        AND C.CCTR_CD      = A.CCTR_CD
+        AND C.ACCOUNT_NO   = A.ACCOUNT_NO
+        AND C.PROCESS_TYPE = A.PROCESS_TYPE
+ WHERE A.COMP_CD   = #{SB_COMP_CD}
+   AND A.CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+   AND A.CCTR_CD   = #{SB_CCTR_CD}
+   AND A.STATUS    = '5'
+ ORDER BY A.COMP_CD
+         ,A.CRTN_YYMM
+         ,A.ACCOUNT_NO
+         ,A.PROCESS_TYPE
+         ,A.CCTR_CD
+ 
+	</select>
+
+	<select id="selectSuppleResult" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.BdgResult.selectSuppleResult
+SELECT A.COMP_CD                                                      COMP_CD        -- 회사코드
+      ,A.CRTN_YYMM                                                    CRTN_YYMM       -- 기준년도
+      ,A.CCTR_CD                                                      CCTR_CD        -- 코스트코드
+      ,A.ACCOUNT_NO                                                   ACCOUNT_NO     -- 계정코드
+      ,A.PROCESS_TYPE                                                 PROCESS_TYPE   -- 구분
+      ,A.ACCOUNT_DESC                                                 ACCOUNT_DESC   -- 계정명
+      ,A.WK_M                                                         WK_M           -- 예산
+      ,NVL(B.ACCOUNT_AMT,0) + NVL(C.ACCOUNT_AMT,0)                    ACCOUNT_AMT    -- 실적
+      ,TO_CHAR(NVL(B.ACCOUNT_AMT,0) ,'FM9,999,999,999')               ACCOUNT_AMT_Y  -- 승인금액
+      ,TO_CHAR(NVL(C.ACCOUNT_AMT,0) ,'FM9,999,999,999')               ACCOUNT_AMT_N  -- 미승인금액
+      ,NVL(A.WK_M,0) - (NVL(B.ACCOUNT_AMT,0) + NVL(C.ACCOUNT_AMT,0))  AVAILABLE_AMT  -- 가용금액
+  FROM (
+        SELECT A.COMP_CD                                                      COMP_CD     
+              ,A.CRTN_YYMM                                                    CRTN_YYMM    
+              ,A.CCTR_CD                                                      CCTR_CD     
+              ,A.ACCOUNT_NO                                                   ACCOUNT_NO
+              ,A.PROCESS_TYPE                                                 PROCESS_TYPE  
+              ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                            ACCOUNT_DESC
+              ,NVL(B.WK_M, 0) + NVL(C.WK_M, 0)                                WK_M        
+          FROM (
+                SELECT COMP_CD
+                      ,REPLACE(#{TB_CRTN_YYMM},'-','') AS CRTN_YYMM
+                      ,CCTR_CD
+                      ,ACCOUNT_NO
+                      ,PROCESS_TYPE
+                  FROM CO_BUGT_SUPPLEMENT
+                 WHERE COMP_CD               = #{SB_COMP_CD}
+                   AND SUBSTR(CRTN_YMD,0,6)  = REPLACE(#{TB_CRTN_YYMM},'-','')
+                   AND CCTR_CD               = #{SB_CCTR_CD}
+                   AND STATUS = '5'
+                 GROUP BY COMP_CD
+                         ,SUBSTR(CRTN_YMD,0,6)
+                         ,CCTR_CD
+                         ,ACCOUNT_NO
+                         ,PROCESS_TYPE
+                UNION
+                SELECT COMP_CD
+                      ,CRTN_YYMM
+                      ,CCTR_CD
+                      ,ACCOUNT_NO
+                      ,PROCESS_TYPE
+                  FROM CO_BUGT_EXEC_HEAD
+                 WHERE COMP_CD   = #{SB_COMP_CD} 
+                   AND CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','')
+                   AND CCTR_CD   = #{SB_CCTR_CD}
+                   AND STATUS = '5'
+                 GROUP BY COMP_CD
+                         ,CRTN_YYMM
+                         ,CCTR_CD
+                         ,ACCOUNT_NO
+                         ,PROCESS_TYPE                 
+               ) A
+              LEFT OUTER JOIN
+               (
+                SELECT A.COMP_CD                                                    COMP_CD     
+                      ,SUBSTR(A.CRTN_YMD,0,6)                                       CRTN_YYMM    
+                      ,A.CCTR_CD                                                    CCTR_CD     
+                      ,A.ACCOUNT_NO                                                 ACCOUNT_NO
+                      ,A.PROCESS_TYPE                                               PROCESS_TYPE  
+                      ,SUM(A.REQUEST_AMT)                                           WK_M
+                  FROM CO_BUGT_SUPPLEMENT A
+                 WHERE 1 = 1
+                   AND A.COMP_CD               = #{SB_COMP_CD}
+                   AND SUBSTR(A.CRTN_YMD,0,6)  = REPLACE(#{TB_CRTN_YYMM},'-','') 
+                   AND A.CCTR_CD               = #{SB_CCTR_CD}
+                 GROUP BY A.COMP_CD
+                         ,SUBSTR(A.CRTN_YMD,0,6)
+                         ,A.CCTR_CD
+                         ,A.ACCOUNT_NO
+                         ,A.PROCESS_TYPE                    
+               ) B
+              ON    B.COMP_CD      = A.COMP_CD
+                AND B.CRTN_YYMM    = A.CRTN_YYMM
+                AND B.CCTR_CD      = A.CCTR_CD
+                AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+                AND B.PROCESS_TYPE = A.PROCESS_TYPE
+              LEFT OUTER JOIN
+               (
+                SELECT A.COMP_CD                                                    COMP_CD     
+                      ,A.CRTN_YYMM                                                  CRTN_YYMM    
+                      ,A.CCTR_CD                                                    CCTR_CD     
+                      ,A.ACCOUNT_NO                                                 ACCOUNT_NO
+                      ,A.PROCESS_TYPE                                               PROCESS_TYPE  
+                      ,CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '01' THEN A.WK_M01
+                            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '02' THEN A.WK_M02
+                            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '03' THEN A.WK_M03
+                            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '04' THEN A.WK_M04
+                            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '05' THEN A.WK_M05
+                            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '06' THEN A.WK_M06
+                            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '07' THEN A.WK_M07
+                            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '08' THEN A.WK_M08
+                            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '09' THEN A.WK_M09
+                            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '10' THEN A.WK_M10
+                            WHEN SUBSTR(REPLACE(#{TB_CRTN_YYMM},'-',''),5,2) = '11' THEN A.WK_M11
+                            ELSE                                                         A.WK_M12
+                       END                                                          WK_M          -- 예산
+                  FROM CO_BUGT_EXEC_HEAD A
+                 WHERE 1 = 1
+                   AND A.COMP_CD   = #{SB_COMP_CD}
+                   AND A.CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM},'-','') 
+                   AND A.CCTR_CD   = #{SB_CCTR_CD}
+                   AND A.STATUS    = '5'
+               ) C
+              ON    C.COMP_CD      = A.COMP_CD
+                AND C.CRTN_YYMM    = A.CRTN_YYMM
+                AND C.CCTR_CD      = A.CCTR_CD
+                AND C.ACCOUNT_NO   = A.ACCOUNT_NO
+                AND C.PROCESS_TYPE = A.PROCESS_TYPE                
+          
+       ) A
+      LEFT OUTER JOIN
+      (
+       SELECT COMP_CD          COMP_CD
+             ,CRTN_YYMM        CRTN_YYMM
+             ,CCTR_CD          CCTR_CD
+             ,ACCOUNT_NO       ACCOUNT_NO
+             ,PROCESS_TYPE     PROCESS_TYPE
+             ,SUM(ACCOUNT_AMT) ACCOUNT_AMT
+         FROM CO_BUGT_RESULT
+        WHERE 1 = 1
+          AND COMP_CD         = #{SB_COMP_CD}
+          AND CRTN_YYMM       = REPLACE(#{TB_CRTN_YYMM},'-','')
+          AND CCTR_CD         = #{SB_CCTR_CD}
+          AND APPROVAL_STATUS = 'Y'
+        GROUP BY COMP_CD
+                ,CRTN_YYMM
+                ,CCTR_CD
+                ,ACCOUNT_NO
+                ,PROCESS_TYPE
+      ) B
+      ON    B.COMP_CD      = A.COMP_CD
+        AND B.CRTN_YYMM    = A.CRTN_YYMM
+        AND B.CCTR_CD      = A.CCTR_CD
+        AND B.ACCOUNT_NO   = A.ACCOUNT_NO
+        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+      LEFT OUTER JOIN
+      (
+       SELECT COMP_CD          COMP_CD
+             ,CRTN_YYMM        CRTN_YYMM
+             ,CCTR_CD          CCTR_CD
+             ,ACCOUNT_NO       ACCOUNT_NO
+             ,PROCESS_TYPE     PROCESS_TYPE
+             ,SUM(ACCOUNT_AMT) ACCOUNT_AMT
+         FROM CO_BUGT_RESULT
+        WHERE 1 = 1
+          AND COMP_CD         = #{SB_COMP_CD}
+          AND CRTN_YYMM       = REPLACE(#{TB_CRTN_YYMM},'-','')
+          AND CCTR_CD         = #{SB_CCTR_CD}
+          AND APPROVAL_STATUS = 'N'
+        GROUP BY COMP_CD
+                ,CRTN_YYMM
+                ,CCTR_CD
+                ,ACCOUNT_NO
+                ,PROCESS_TYPE
+      ) C
+      ON    C.COMP_CD      = A.COMP_CD
+        AND C.CRTN_YYMM    = A.CRTN_YYMM
+        AND C.CCTR_CD      = A.CCTR_CD
+        AND C.ACCOUNT_NO   = A.ACCOUNT_NO
+        AND C.PROCESS_TYPE = A.PROCESS_TYPE
+ ORDER BY A.COMP_CD
+         ,A.CRTN_YYMM
+         ,A.ACCOUNT_NO
+         ,A.PROCESS_TYPE
+         ,A.CCTR_CD        
+
+	</select>
+
+	<select id="selectResultPop" parameterType="Map" resultType="Map">
+	--com.bdg.com.bdg.BdgResult.selectResultPop
+SELECT COMP_CD            -- 회사코드
+      ,CRTN_YYMM          -- 기준년월
+      ,CCTR_CD            -- 코스트코드
+      ,BELONG_CCTR_CD     -- 귀속코스트
+      ,SALE_NO            -- 전표번호
+      ,ACCOUNT_NO         -- 계정코드
+      ,APPROVAL_STATUS    -- 승인여부
+      ,ACCOUNT_DATE       -- 전기일
+      ,DISTR_TYPE         -- 유통판촉비 종류
+      ,PROJECT_CD         -- 프로젝트코드
+      ,ACCOUNT_AMT        -- 금액
+      ,SUM_DESC           -- 적요
+      ,CRE_DATE           -- 등록일자
+      ,CRE_USER           -- 등록자ID
+      ,MOD_DATE           -- 수정일자
+      ,MOD_USER           -- 수정자ID
+  FROM CO_BUGT_RESULT
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YYMM    = REPLACE(#{CRTN_YYMM},'-','')
+   AND CCTR_CD      = #{CCTR_CD}
+   AND ACCOUNT_NO   = #{ACCOUNT_NO}
+   AND PROCESS_TYPE = #{PROCESS_TYPE}
+	</select>
+
+
+</mapper>

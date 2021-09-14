@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<!-- 권한 체크가 필요없는 url 정보 등록 -->	
+	<sec:http pattern="/resources/**" security="none" />
+	
+	<!-- spring security db cofnig (db 기반일때의 설정)-->
+	<sec:http access-decision-manager-ref="accessDecisionManager"
+		      authentication-manager-ref="authenticationManager"
+		      entry-point-ref="loginUrlAuthenticationEntryPoint"  
+		      use-expressions="true">
+		<sec:csrf disabled="true" />
+    <sec:headers>
+      <sec:frame-options policy="SAMEORIGIN"/>
+    </sec:headers>
+    <sec:access-denied-handler ref="accessDeniedHandler"  />
+		<sec:custom-filter position="CONCURRENT_SESSION_FILTER" ref="concurrencyFilter" />		      
+		<sec:custom-filter position="LOGOUT_FILTER"             ref="logoutFilter"  />		      
+		<sec:custom-filter position="FORM_LOGIN_FILTER"         ref="defaultUsernamePasswordAuthenticationFilter"  />
+		<sec:custom-filter before="FILTER_SECURITY_INTERCEPTOR" ref="filterSecurityInterceptor"  />
+	</sec:http>
+	
+	<!-- spring security filter  -->
+	<beans:bean id="filterSecurityInterceptor" 
+	      class="org.springframework.security.web.access.intercept.FilterSecurityInterceptor">
+	  <beans:property name="authenticationManager"  ref="authenticationManager"/>
+	  <beans:property name="accessDecisionManager"  ref="accessDecisionManager"/>
+	  <beans:property name="securityMetadataSource" ref="defaultFilterInvocationSecurityMetadataSource"/>
+	</beans:bean>
+
+	<beans:bean id="defaultFilterInvocationSecurityMetadataSource" class="com.ecbank.framework.security.web.access.intercept.DefaultFilterInvocationSecurityMetadataSource">
+		<beans:property name="dataSource" ref="dataSource"/>
+	</beans:bean>
+	
+	<beans:bean id="defaultUserDetailsService" class="com.ecbank.framework.security.core.userdetails.DefaultJdbcDaoImpl">
+		<beans:property name="dataSource"        ref="dataSource"/>
+		<beans:property name="enableAuthorities" value="false"/>
+		<beans:property name="enableGroups"      value="true"/>
+		<beans:property name="rolePrefix"        value=""/>
+		<beans:property name="usersByUsernameQuery">
+			<beans:value>
+			SELECT     USER_ID, 
+		       USER_PASSWORD, 
+		       USE_FLAG AS ENABLED, 
+		       ACCOUNT_NON_EXPIRED, 
+		       ACCOUNT_NON_LOCKED, 
+		       (CASE 
+           	   WHEN EXTRACT(DAY from SYSTIMESTAMP - LAST_MOD_PASSWD_DT) > 90 THEN 'N'
+           	   ELSE 'Y' 
+           	   END) as CREDENTIALS_NON_EXPIRED 
+		  FROM NSF_USER
+		 WHERE USER_ID = ?
+			</beans:value>
+		</beans:property>
+		<beans:property name="groupAuthoritiesByUsernameQuery">
+			<beans:value>
+		    SELECT X.USER_ID ,
+		           X.GROUP_ID ,
+		           Y.ROLE_ID
+		      FROM NSF_USER_GROUP_MAPPING X
+		INNER JOIN NSF_GROUP_ROLE_MAPPING Y
+		        ON X.GROUP_ID   = Y.GROUP_ID
+		     WHERE X.USER_ID = ?
+			</beans:value>
+		</beans:property>
+	</beans:bean>	
+</beans:beans>

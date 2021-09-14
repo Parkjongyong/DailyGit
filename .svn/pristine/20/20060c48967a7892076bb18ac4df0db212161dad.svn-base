@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.DeptSampleMgt">
+	<select id="selectDeptSampleMgtList" parameterType="Map" resultType="Map">
+		--com.bdg.DeptSampleMgt.selectDeptSampleMgtList
+		SELECT A.COMP_CD                                    AS COMP_CD           -- 회사코드
+              ,A.CRTN_YMD                                   AS CRTN_YMD          -- 작성일자
+              ,A.ORG_CD                                     AS ORG_CD            -- 부서코드
+              ,A.MAT_NUMBER                                 AS MAT_NUMBER        -- 자재코드(품목코드)
+              ,B.MAT_DESC                                   AS MAT_DESC          -- 자재내역(품목명)
+              ,'1'                                          AS CODEMAPPING1      -- 품목코드  팝업
+              ,A.CCTR_CD                                    AS CCTR_CD           -- 코스테센터
+              ,FUNC_GET_COST_NAME('1100', A.CCTR_CD, '')    AS CCTR_NM           -- 코스트센터명
+              ,'1'                                          AS CODEMAPPING4      -- 품목코드  팝업
+              ,A.REQ_SABUN                                  AS REQ_SABUN         -- 신청사번
+              ,FUNC_GET_USER_NAME(A.REQ_SABUN)              AS REQ_SABUN_NM      -- 신청사원명
+              ,'1'                                          AS CODEMAPPING2      -- 신청사번  팝업
+              ,A.ORDER_TYPE                                 AS ORDER_TYPE        -- 주문유형
+              ,D.ATTR01                                     AS ACCOUNT_NO        -- 계정코드
+              ,A.RELEASE_REQ_YMD                            AS RELEASE_REQ_YMD   -- 출고요청일
+              ,A.DELIVERY_LOC                               AS DELIVERY_LOC      -- 납품처코드
+              ,C.CUST_NAME1                                 AS DELIVERY_LOC_TXT  -- 납품처
+              ,'1'                                          AS CODEMAPPING3      -- 신청사번  팝업
+              ,A.REQUEST_QTY                                AS REQUEST_QTY       -- 수량
+              ,A.SAMPLE_AMT                                 AS SAMPLE_AMT        -- 견본가
+              ,A.REQUEST_AMT                                AS REQUEST_AMT       -- 금액
+              ,A.JAEGO_QTY                                  AS JAEGO_QTY         -- 품목재고
+              ,A.BUGT_AMT                                   AS BUGT_AMT          -- 예산금액
+              ,A.RESULT_AMT                                 AS RESULT_AMT        -- 실적금액
+              ,NVL(A.BUGT_AMT, 0) - NVL(A.RESULT_AMT, 0)    AS TOTAL_AMT         -- 예산-실적 금액
+              ,A.STATUS                                     AS STATUS            -- 진행상태
+              ,A.SD_SEND_NO                                 AS SD_SEND_NO        -- SD주문번호
+              ,A.SAP_SEND_YN                                AS SAP_SEND_YN       -- SAP전송여부
+              ,A.EPS_DOC_NO                                 AS EPS_DOC_NO        -- 전자결재문서번호
+              ,A.REMARK                                     AS REMARK            -- 비고
+              ,A.CRE_DATE                                   AS CRE_DATE          -- 등록일자
+              ,A.CRE_USER                                   AS CRE_USER          -- 등록자ID
+              ,A.MOD_DATE                                   AS MOD_DATE          -- 수정일자
+              ,A.MOD_USER                                   AS MOD_USER          -- 수정자ID
+              ,A.PLANT_CD                                   AS PLANT_CD          -- 플랜트
+              ,'R'                                          AS CRUD              -- 행구분
+		  FROM SD_DEPT_SAMPLE A
+		      LEFT OUTER JOIN
+		       MAT_HEAD B
+		      ON B.MAT_NUMBER = A.MAT_NUMBER
+		      LEFT OUTER JOIN
+		       SD_CUSTOMER_INFO C
+		      ON    C.COMP_CD    = '1100'
+		        AND C.CUST_CD    = A.DELIVERY_LOC
+		        AND C.DISTRIB_CD = '99'
+		      LEFT OUTER JOIN
+		       COM_CODE D
+		      ON    D.CODE_GRP = 'YS025'
+		        AND D.CODE     = A.ORDER_TYPE
+		 WHERE 1 = 1
+		  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND A.COMP_CD = #{SB_COMP_CD}
+		  </if>
+		  <if test="TB_CRTN_YMD != null and TB_CRTN_YMD != ''">
+		   AND A.CRTN_YMD = REPLACE(#{TB_CRTN_YMD},'-','')
+		  </if>
+		  <if test="SB_ORG_CD != null and SB_ORG_CD != ''">
+		   AND A.ORG_CD = #{SB_ORG_CD}
+		  </if>		  
+		  
+
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YMD
+		        ,A.ORG_CD
+	</select>
+	
+	
+	<select id="selectDeptSampleMgtListPop" parameterType="Map" resultType="Map">
+		--com.bdg.DeptSampleMgt.selectDeptSampleMgtListPop
+		SELECT A.COMP_CD                                 AS COMP_CD           -- 회사코드
+              ,A.CRTN_YMD                                AS CRTN_YMD          -- 작성일자
+              ,A.ORG_CD                                  AS ORG_CD            -- 부서코드
+              ,A.CCTR_CD                                 AS CCTR_CD           -- 코스테센터
+              ,FUNC_GET_COST_NAME('1100', A.CCTR_CD, '') AS CCTR_NM           -- 코스트센터명              
+              ,A.MAT_NUMBER                              AS MAT_NUMBER        -- 자재코드(품목코드)
+              ,B.MAT_DESC                                AS MAT_DESC          -- 자재내역(품목명)
+              ,'1'                                       AS CODEMAPPING1      -- 품목코드  팝업
+              ,A.REQ_SABUN                               AS REQ_SABUN         -- 신청사번
+              ,FUNC_GET_USER_NAME(A.REQ_SABUN)           AS REQ_SABUN_NM      -- 신청사원명
+              ,'1'                                       AS CODEMAPPING2      -- 신청사번  팝업
+              ,A.ORDER_TYPE                              AS ORDER_TYPE        -- 주문유형
+              ,A.RELEASE_REQ_YMD                         AS RELEASE_REQ_YMD   -- 출고요청일
+              ,A.DELIVERY_LOC                            AS DELIVERY_LOC      -- 납품처코드
+              ,C.CUST_NAME1                              AS DELIVERY_LOC_TXT  -- 납품처
+              ,'1'                                       AS CODEMAPPING3      -- 신청사번  팝업
+              ,A.REQUEST_QTY                             AS REQUEST_QTY       -- 수량
+              ,A.SAMPLE_AMT                              AS SAMPLE_AMT        -- 견본가
+              ,A.REQUEST_AMT                             AS REQUEST_AMT       -- 금액
+              ,A.JAEGO_QTY                               AS JAEGO_QTY         -- 품목재고
+              ,A.BUGT_AMT                                AS BUGT_AMT          -- 예산금액
+              ,A.RESULT_AMT                              AS RESULT_AMT        -- 실적금액
+              ,NVL(A.BUGT_AMT, 0) - NVL(A.RESULT_AMT, 0) AS TOTAL_AMT         -- 예산+실적 금액
+              ,A.STATUS                                  AS STATUS            -- 진행상태
+              ,A.SD_SEND_NO                              AS SD_SEND_NO        -- SD주문번호
+              ,A.SAP_SEND_YN                             AS SAP_SEND_YN       -- SAP전송여부
+              ,A.EPS_DOC_NO                              AS EPS_DOC_NO        -- 전자결재문서번호
+              ,A.REMARK                                  AS REMARK            -- 비고
+              ,A.CRE_DATE                                AS CRE_DATE          -- 등록일자
+              ,A.CRE_USER                                AS CRE_USER          -- 등록자ID
+              ,A.MOD_DATE                                AS MOD_DATE          -- 수정일자
+              ,A.MOD_USER                                AS MOD_USER          -- 수정자ID
+              ,'R'                                       AS CRUD              -- 행구분  
+              ,A.PLANT_CD                                AS PLANT_CD          -- 플랜트              
+		  FROM SD_DEPT_SAMPLE A
+		      LEFT OUTER JOIN
+		       MAT_HEAD B
+		      ON B.MAT_NUMBER = A.MAT_NUMBER
+		      LEFT OUTER JOIN
+		       SD_CUSTOMER_INFO C
+		      ON    C.COMP_CD    = '1100'
+		        AND C.CUST_CD    = A.DELIVERY_LOC
+		        AND C.DISTRIB_CD = '99'		      
+		 WHERE 1 = 1
+		   AND A.EPS_DOC_NO = #{TB_EPS_DOC_NO}
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YMD
+		        ,A.ORG_CD
+	</select>
+	
+	<select id="selectSendDeptSampleMgtList" parameterType="Map" resultType="Map">
+		--com.bdg.DeptSampleMgt.selectSendDeptSampleMgtList
+		SELECT A.COMP_CD                                           AS VKORG             -- 회사코드
+		      ,A.COMP_CD                                           AS KUNNR             -- 거래처(확인필요)
+              ,A.MAT_NUMBER                                        AS MATNR             -- 자재코드(품목코드)
+              ,A.REQ_SABUN                                         AS KUNZP             -- 영업사원
+              ,A.ORDER_TYPE                                        AS AUART             -- 주문유형
+              ,A.RELEASE_REQ_YMD                                   AS KETDT             -- 납품요청일(확인필요)
+              ,A.DELIVERY_LOC                                      AS KUNWE             -- 납품처
+              ,A.REQUEST_QTY                                       AS KWMENG            -- 수량
+              ,A.SAMPLE_AMT                                        AS SAMPLE_AMT        -- 견본가
+              ,A.REQUEST_AMT                                       AS REQUEST_AMT       -- 금액
+              ,A.JAEGO_QTY                                         AS JAEGO_QTY         -- 품목재고
+              ,A.BUGT_AMT                                          AS BUGT_AMT          -- 예산금액
+              ,A.RESULT_AMT                                        AS RESULT_AMT        -- 실적금액
+              ,NVL(A.BUGT_AMT, 0) + NVL(A.RESULT_AMT, 0)           AS TOTAL_AMT         -- 예산+실적 금액
+              ,A.STATUS                                            AS STATUS            -- 진행상태
+              ,A.SD_SEND_NO                                        AS VBEXT             -- 외부판매문서
+              ,'10'                                                AS POEXT             -- 외부판매문서항목 
+              ,A.SAP_SEND_YN                                       AS SAP_SEND_YN       -- SAP전송여부
+              ,A.EPS_DOC_NO                                        AS EPS_DOC_NO        -- 전자결재문서번호
+              ,'99'                                                AS VTWEG             -- 유통경로
+              ,'00'                                                AS SPART             -- 제품군
+              ,'B'                                                 AS FROMS             -- 시스템코드
+              ,'C'                                                 AS APPST             -- 결재상태
+              ,A.COMP_CD                                           AS COMP_CD           -- 회사코드
+              ,A.CRTN_YMD                                          AS CRTN_YMD          -- 작성일자
+              ,A.ORG_CD                                            AS ORG_CD            -- 부서코드
+              ,A.MAT_NUMBER                                        AS MAT_NUMBER        -- 자재코드(품목코드)
+              ,A.REQ_SABUN                                         AS REQ_SABUN         -- 신청사번
+              ,A.ORDER_TYPE                                        AS ORDER_TYPE        -- 주문유형
+              ,A.REMARK                                            AS REMARK            -- 비고
+              ,A.CCTR_CD                                           AS KOSTL             -- 코스트센터
+              ,A.PLANT_CD                                          AS WERKS             -- 플랜트   
+		  FROM SD_DEPT_SAMPLE A
+		      LEFT OUTER JOIN
+		       MAT_HEAD B
+		      ON B.MAT_NUMBER = A.MAT_NUMBER
+		 WHERE 1 = 1
+		   AND A.EPS_DOC_NO = #{EPS_DOC_NO}
+		   AND NVL(A.SAP_SEND_YN, 'N') = 'N'
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YMD
+		        ,A.ORG_CD
+	</select>	
+	
+	<select id="selectFlagYn" parameterType="Map" resultType="Map">
+		--com.bdg.DeptSampleMgt.selectFlagYn
+		SELECT A.FLAG_YN
+		      ,A.SD_SEND_NO
+		  FROM (
+		        SELECT ROW_NUMBER() OVER(ORDER BY FLAG_YN) AS RNUM
+		              ,A.FLAG_YN
+		              ,A.SD_SEND_NO
+		          FROM (
+		                SELECT CASE WHEN #{GUBN} IN ('SA','DE') THEN CASE -- 저장/삭제는 작성중/반려 상태만 가능
+		                                                                    WHEN STATUS IN ('1', '4') THEN 'Y'
+		                                                                    ELSE 'N'
+		                                                                  END
+		                            WHEN #{GUBN} IN ('AR') THEN CASE -- 승인요청은 작성중/SAP전송오류 상태에만 가능
+		                                                          WHEN STATUS IN ('1', '6') THEN 'Y'
+		                                                          ELSE 'N'
+		                                                        END		                                                                  
+		                            ELSE 'N'
+		                       END AS FLAG_YN
+		                      ,SD_SEND_NO
+		                  FROM SD_DEPT_SAMPLE B
+		                 WHERE 1 = 1
+		                   AND B.COMP_CD     = #{COMP_CD}
+		                   AND B.CRTN_YMD    = #{CRTN_YMD}
+		                   AND B.ORG_CD      = #{ORG_CD}
+		                   AND B.MAT_NUMBER  = #{MAT_NUMBER}
+		                   AND B.REQ_SABUN   = #{REQ_SABUN}
+		                   AND B.ORDER_TYPE  = #{ORDER_TYPE}
+		               UNION ALL
+		                SELECT 'Y' AS FLAG_YN
+		                      ,'XXXXXXXXXX'  AS SD_SEND_NO
+		                  FROM DUAL
+		               ) A
+		        ) A
+		 WHERE 1 = 1
+		   AND RNUM = 1
+	</select>
+	
+	<select id="selectCctrCode" parameterType="Map" resultType="Map">
+		--com.bdg.DeptSampleMgt.selectCctrCode
+		SELECT LPAD(FUNC_GET_COST_CODE(#{SB_COMP_CD}, #{SB_ORG_CD}, ''), 10, 0) AS CCTR_CD
+		  FROM DUAL
+	</select>	
+	
+	
+	
+	<select id="selectSendNo" parameterType="Map" resultType="Map">
+		--com.bdg.DeptSampleMgt.selectSendNo
+        SELECT FUNC_GET_SEND_NO(SUBSTR(#{TB_TODAY},0,6)) AS SEND_NO                   
+          FROM DUAL
+	</select>
+	
+    <insert id="saveDeptSampleMgt" parameterType="Map">
+		--com.bdg.DeptSampleMgt.saveDeptSampleMgt
+		MERGE INTO SD_DEPT_SAMPLE A
+		
+		    USING (
+		           SELECT #{COMP_CD}                         AS COMP_CD
+                         ,#{CRTN_YMD}                        AS CRTN_YMD
+                         ,#{ORG_CD}                          AS ORG_CD
+                         ,#{MAT_NUMBER}                      AS MAT_NUMBER
+                         ,#{CCTR_CD}                         AS CCTR_CD
+                         ,#{REQ_SABUN}                       AS REQ_SABUN
+                         ,#{ORDER_TYPE}                      AS ORDER_TYPE
+                         ,REPLACE(#{RELEASE_REQ_YMD},'-','') AS RELEASE_REQ_YMD
+                         ,#{DELIVERY_LOC}                    AS DELIVERY_LOC
+                         ,#{REQUEST_QTY}                     AS REQUEST_QTY
+                         ,#{SAMPLE_AMT}                      AS SAMPLE_AMT
+                         ,#{REQUEST_AMT}                     AS REQUEST_AMT
+                         ,#{JAEGO_QTY}                       AS JAEGO_QTY
+                         ,#{BUGT_AMT}                        AS BUGT_AMT
+                         ,#{RESULT_AMT}                      AS RESULT_AMT
+                         ,#{STATUS}                          AS STATUS
+                         ,#{SD_SEND_NO}                      AS SD_SEND_NO
+                         ,#{SAP_SEND_YN}                     AS SAP_SEND_YN
+                         ,#{EPS_DOC_NO}                      AS EPS_DOC_NO
+                         ,#{REMARK}                          AS REMARK
+                         ,#{PLANT_CD}                        AS PLANT_CD
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')       AS CRE_DATE     
+		                 ,#{CRE_USER}                        AS CRE_USER     
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')       AS MOD_DATE     
+		                 ,#{MOD_USER}                        AS MOD_USER     
+		             FROM DUAL A
+		          ) B
+		       ON (    A.COMP_CD     = B.COMP_CD
+                   AND A.CRTN_YMD    = B.CRTN_YMD
+                   AND A.ORG_CD      = B.ORG_CD
+                   AND A.MAT_NUMBER  = B.MAT_NUMBER
+                   AND A.CCTR_CD     = B.CCTR_CD
+		          )
+		           
+		    WHEN MATCHED THEN
+		           
+		        UPDATE 
+		           SET A.REQ_SABUN       = B.REQ_SABUN
+		              ,A.ORDER_TYPE      = B.ORDER_TYPE
+		              ,A.RELEASE_REQ_YMD = B.RELEASE_REQ_YMD
+                      ,A.DELIVERY_LOC    = B.DELIVERY_LOC
+                      ,A.REQUEST_QTY     = B.REQUEST_QTY
+                      ,A.SAMPLE_AMT      = B.SAMPLE_AMT
+                      ,A.REQUEST_AMT     = B.REQUEST_AMT
+                      ,A.JAEGO_QTY       = B.JAEGO_QTY
+                      ,A.BUGT_AMT        = B.BUGT_AMT
+                      ,A.RESULT_AMT      = B.RESULT_AMT
+                      ,A.STATUS          = B.STATUS
+                      ,A.SD_SEND_NO      = B.SD_SEND_NO
+                      ,A.SAP_SEND_YN     = B.SAP_SEND_YN
+                      ,A.EPS_DOC_NO      = B.EPS_DOC_NO
+                      ,A.REMARK          = B.REMARK
+                      ,A.PLANT_CD        = B.PLANT_CD
+                      ,A.MOD_DATE        = B.MOD_DATE
+                      ,A.MOD_USER        = B.MOD_USER
+
+		    WHEN NOT MATCHED THEN
+		                     
+		        INSERT (
+		                A.COMP_CD
+                       ,A.CRTN_YMD
+                       ,A.ORG_CD
+                       ,A.MAT_NUMBER
+                       ,A.CCTR_CD
+                       ,A.REQ_SABUN
+                       ,A.ORDER_TYPE
+                       ,A.PLANT_CD
+                       ,A.RELEASE_REQ_YMD
+                       ,A.DELIVERY_LOC
+                       ,A.REQUEST_QTY
+                       ,A.SAMPLE_AMT
+                       ,A.REQUEST_AMT
+                       ,A.JAEGO_QTY
+                       ,A.BUGT_AMT
+                       ,A.RESULT_AMT
+                       ,A.STATUS
+                       ,A.SD_SEND_NO
+                       ,A.SAP_SEND_YN
+                       ,A.EPS_DOC_NO
+                       ,A.REMARK
+                       ,A.CRE_DATE
+                       ,A.CRE_USER
+                       ,A.MOD_DATE
+                       ,A.MOD_USER
+		               ) VALUES ( B.COMP_CD
+                                 ,B.CRTN_YMD
+                                 ,B.ORG_CD
+                                 ,B.MAT_NUMBER
+                                 ,B.CCTR_CD
+                                 ,B.REQ_SABUN
+                                 ,B.ORDER_TYPE
+                                 ,B.PLANT_CD
+                                 ,B.RELEASE_REQ_YMD
+                                 ,B.DELIVERY_LOC
+                                 ,B.REQUEST_QTY
+                                 ,B.SAMPLE_AMT
+                                 ,B.REQUEST_AMT
+                                 ,B.JAEGO_QTY
+                                 ,B.BUGT_AMT
+                                 ,B.RESULT_AMT
+                                 ,B.STATUS
+                                 ,B.SD_SEND_NO
+                                 ,B.SAP_SEND_YN
+                                 ,B.EPS_DOC_NO
+                                 ,B.REMARK
+                                 ,B.CRE_DATE
+                                 ,B.CRE_USER
+                                 ,B.MOD_DATE
+                                 ,B.MOD_USER
+		                         )             
+
+    </insert>
+    
+    <delete id="deleteDeptSampleMgt" parameterType="Map">
+		--com.bdg.DeptSampleMgt.deleteDeptSampleMgt(건별삭제)
+		DELETE FROM SD_DEPT_SAMPLE
+		 WHERE 1 = 1
+           AND COMP_CD     = #{COMP_CD}
+           AND CRTN_YMD    = #{CRTN_YMD}
+           AND ORG_CD      = #{ORG_CD}
+           AND MAT_NUMBER  = #{MAT_NUMBER}
+           AND REQ_SABUN   = #{REQ_SABUN}
+           AND ORDER_TYPE  = #{ORDER_TYPE}
+    </delete>
+    
+    <update id="updatDeptSampleMgtStatus" parameterType="Map">
+		--com.bdg.DeptSampleMgt.updatDeptSampleMgtStatus(승인요청)
+		UPDATE SD_DEPT_SAMPLE
+		   SET STATUS     = #{STATUS}
+		      ,MOD_USER   = #{MOD_USER}
+		      ,MOD_DATE   = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,EPS_DOC_NO = #{EPS_DOC_NO}
+		 WHERE 1 = 1
+           AND COMP_CD     = #{COMP_CD}
+           AND CRTN_YMD    = #{CRTN_YMD}
+           AND ORG_CD      = #{ORG_CD}
+           AND MAT_NUMBER  = #{MAT_NUMBER}
+           AND REQ_SABUN   = #{REQ_SABUN}
+           AND ORDER_TYPE  = #{ORDER_TYPE}   
+    </update>
+    
+    <update id="updatDeptSampleMgtEpsStatus" parameterType="Map">
+		--com.bdg.DeptSampleMgt.updatDeptSampleMgtEpsStatus(승인진행중/승인완료/반려)
+		UPDATE SD_DEPT_SAMPLE
+		   SET STATUS     = #{STATUS}
+		      ,EPS_DOC_NO = CASE WHEN #{STATUS} = '1' THEN ''
+		                         ELSE EPS_DOC_NO
+		                    END		   
+		      ,MOD_USER   = #{APPROVAL_ID}
+		      ,MOD_DATE   = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,REMARK     = #{APPROVAL_DESC}
+		 WHERE 1 = 1
+           AND EPS_DOC_NO  = #{EPS_DOC_NO}
+    </update> 
+    
+    <update id="updatDeptSampleMgtStatus6" parameterType="Map">
+		--com.bdg.DeptSampleMgt.updatDeptSampleMgtStatus6(SAP전송오류)
+		UPDATE SD_DEPT_SAMPLE
+		   SET STATUS = '6'
+		      ,REMARK = #{REMARK}
+		 WHERE 1 = 1
+           AND COMP_CD     = #{COMP_CD}
+           AND CRTN_YMD    = #{CRTN_YMD}
+           AND ORG_CD      = #{ORG_CD}
+           AND MAT_NUMBER  = #{MAT_NUMBER}
+           AND REQ_SABUN   = #{REQ_SABUN}
+           AND ORDER_TYPE  = #{ORDER_TYPE}  
+    </update>
+    
+    <update id="updatDeptSampleMgtStatus6All" parameterType="Map">
+		--com.bdg.DeptSampleMgt.updatDeptSampleMgtStatus6(선행SAP전송오류처리)
+		UPDATE SD_DEPT_SAMPLE
+		   SET STATUS = '6'
+		 WHERE 1 = 1
+           AND EPS_DOC_NO  = #{EPS_DOC_NO} 
+    </update>    
+    
+    <update id="updatSendFlag" parameterType="Map">
+		--com.bdg.DeptSampleMgt.updatSendFlag(전송)
+		UPDATE SD_DEPT_SAMPLE
+		   SET SAP_SEND_YN = 'Y'
+		 WHERE 1 = 1
+           AND COMP_CD     = #{COMP_CD}
+           AND CRTN_YMD    = #{CRTN_YMD}
+           AND ORG_CD      = #{ORG_CD}
+           AND MAT_NUMBER  = #{MAT_NUMBER}
+           AND REQ_SABUN   = #{REQ_SABUN}
+           AND ORDER_TYPE  = #{ORDER_TYPE} 
+    </update>    
+    
+	<select id="selectDeptSampleStatus" parameterType="Map" resultType="Map">
+	--com.bdg.DeptSampleMgt.selectDeptSampleStatus
+		SELECT STATUS
+		  FROM SD_DEPT_SAMPLE
+		 WHERE 1 = 1
+		   AND COMP_CD    = #{COMP_CD}
+           AND CRTN_YMD   = #{CRTN_YMD}
+           AND ORG_CD     = #{ORG_CD}
+           AND MAT_NUMBER = #{MAT_NUMBER}
+           AND REQ_SABUN  = #{REQ_SABUN}
+           AND ORDER_TYPE = #{ORDER_TYPE}
+	</select> 
+	
+	<select id="selectMatList" parameterType="Map" resultType="Map">
+	--com.bdg.DeptSampleMgt.selectMatList
+	    SELECT A.*
+	      FROM (
+		        SELECT A.MAT_NUMBER
+		              ,A.MAT_DESC
+		              ,B.PLANT_CODE
+		              ,C.PLANT_NM
+                      ,ROW_NUMBER() OVER(ORDER BY A.MAT_NUMBER) AS RNUM
+                      ,COUNT(0) OVER() TOT_CNT -- 건수		      
+		          FROM MAT_HEAD A
+		              LEFT OUTER JOIN
+		               MAT_PLANT B
+		              ON B.MAT_NUMBER = A.MAT_NUMBER
+		              LEFT OUTER JOIN
+		               PLANT_INFO C
+		              ON C.PLANT_CD = B.PLANT_CODE
+		         WHERE 1 = 1
+		           AND A.MAT_TYPE IN ('FERT', 'HAWA')
+		           AND A.PLANT_MAT_STATUS IN ('N1', 'Y1')
+		           <if test="TB_GUBN != null and TB_GUBN != ''">
+						<choose>
+							<when test='TB_GUBN=="ZFS2" or TB_GUBN=="ZFS3"'>
+				   AND A.MAT_PRDT IN ('99', '30', '70')
+				   AND UPPER(A.MAT_DESC) NOT LIKE '%' ||  'GSK' || '%'
+							</when>
+							<when test='TB_ACCOUNT_GUBN=="S" or TB_ACCOUNT_GUBN=="B" or TB_ACCOUNT_GUBN=="M"'>
+
+						   	</when>			   	
+						</choose>  
+				   </if>		           
+		           
+		          <if test="SB_PLANT_CD != null and SB_PLANT_CD != ''">
+		           AND B.PLANT_CODE = #{SB_PLANT_CD}
+		          </if>
+		          <if test="TB_MAT_NUMBER != null and TB_MAT_NUMBER != ''">
+		           AND A.MAT_NUMBER LIKE '%' ||  #{TB_MAT_NUMBER} || '%'
+		          </if>	
+		          <if test="TB_MAT_DESC != null and TB_MAT_DESC != ''">
+		           AND A.MAT_DESC LIKE '%' ||  #{TB_MAT_DESC} || '%'
+		          </if>
+		          <![CDATA[AND NVL(A.DEL_FLAG, ' ') <> 'X']]>		  
+		       ) A
+     <![CDATA[
+   WHERE RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 50)
+   ]]>
+         ORDER BY A.MAT_NUMBER
+	</select>
+    
+	           
+</mapper>

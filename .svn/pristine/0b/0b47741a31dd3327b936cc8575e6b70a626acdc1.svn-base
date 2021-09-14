@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.UsersDeptMgt">
+
+	<select id="selectUsersMgtList" parameterType="Map" resultType="Map">
+		--com.bdg.UsersDeptMgt.selectUsersMgtList
+		SELECT COMP_CD                                                      AS COMP_CD       -- 회사코드
+              ,SABUN                                                        AS SABUN         -- 업무담당자사번
+              ,FUNC_GET_USER_NAME(SABUN)                                    AS SABUN_NM      -- 사원명
+		      ,'1'                                                          AS CODEMAPPING1  -- 계정팝업용
+		      ,'R'                                                          AS CRUD          -- 행구분
+		  FROM FI_USERS_DEPT
+		 WHERE 1 = 1
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND COMP_CD   = #{SB_COMP_CD}
+		</if>
+		 GROUP BY COMP_CD
+		         ,SABUN
+		 ORDER BY COMP_CD
+		         ,SABUN
+	</select>
+	
+	<select id="selectDeptMgtList" parameterType="Map" resultType="Map">
+		--com.bdg.UsersDeptMgt.selectDeptMgtList
+		SELECT COMP_CD                                                      AS COMP_CD       -- 회사코드
+              ,SABUN                                                        AS SABUN         -- 업무담당자사번
+              ,ORG_CD                                                       AS ORG_CD        -- 부서코드
+              ,FUNC_GET_DEPT_NAME(COMP_CD, ORG_CD, CRE_DATE)                AS ORG_NM        -- 부서명
+              ,CRE_DATE                                                     AS CRE_DATE      -- 등록일자
+              ,CRE_USER                                                     AS CRE_USER      -- 등록자ID
+              ,MOD_DATE                                                     AS MOD_DATE      -- 수정일자
+              ,MOD_USER                                                     AS MOD_USER      -- 수정자ID
+		      ,'1'                                                          AS CODEMAPPING1  -- 계정팝업용
+		      ,'R'                                                          AS CRUD          -- 행구분
+		  FROM FI_USERS_DEPT
+		 WHERE 1 = 1
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND COMP_CD = #{SB_COMP_CD}
+		</if>
+		   AND SABUN   = #{TB_SABUN}
+		 ORDER BY COMP_CD
+		         ,SABUN
+		         ,ORG_CD
+	</select>
+	
+    <insert id="insertUsersMgt" parameterType="Map">
+		--com.bdg.UsersDeptMgt.insertUsersMgt
+		INSERT INTO FI_USERS_DEPT
+		(
+		 COMP_CD
+        ,SABUN
+        ,ORG_CD
+        ,CRE_DATE
+        ,CRE_USER
+        ,MOD_DATE
+        ,MOD_USER
+		) VALUES (
+		           #{COMP_CD}
+		          ,#{SABUN}
+		          ,#{ORG_CD}
+		          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		          ,#{CRE_USER}
+		          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		          ,#{MOD_USER}
+		         )
+    </insert>
+    
+    <delete id="deleteUsersMgt" parameterType="Map">
+		--com.bdg.UsersDeptMgt.deleteUsersMgt
+		DELETE FROM FI_USERS_DEPT
+		 WHERE 1 = 1                                    
+		   AND COMP_CD = #{COMP_CD}     
+		   AND SABUN   = #{SABUN}  
+    </delete>
+    
+    <delete id="deleteDeptMgt" parameterType="Map">
+		--com.bdg.UsersDeptMgt.deleteUsersMgt
+		DELETE FROM FI_USERS_DEPT
+		 WHERE 1 = 1                                    
+		   AND COMP_CD = #{COMP_CD}     
+		   AND SABUN   = #{SABUN}  
+		   AND ORG_CD  = #{ORG_CD}
+    </delete>
+    
+</mapper>

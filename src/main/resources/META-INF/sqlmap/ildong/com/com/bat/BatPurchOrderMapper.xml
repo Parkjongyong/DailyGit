@@ -1,0 +1,1008 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchPurchOrder">
+
+	<select id="selectCountPOHederInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchPurchOrder.selectCountPOHederInfo
+	    SELECT COUNT(*) CNT
+	      FROM PO_HEAD_IF A
+	     WHERE 1 = 1
+	       AND TRANSACTION_NO = #{TRANSACTION_NO}
+	       AND EBELN          = #{EBELN}
+        ]]>
+	</select>
+	
+    <insert id="mergePOHederIfData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchPurchOrder.mergePOHederIfData
+	    MERGE INTO PO_HEAD_IF A 
+	    USING (
+	        SELECT #{TRANSACTION_NO} AS TRANSACTION_NO
+	              ,#{EBELN}          AS EBELN         
+                  ,#{AEDAT}          AS AEDAT         
+                  ,#{ERNAM}          AS ERNAM         
+                  ,#{EMP_NAME}       AS EMP_NAME      
+                  ,#{BUKRS}          AS BUKRS         
+                  ,#{BEDAT}          AS BEDAT         
+                  ,#{LIFNR}          AS LIFNR         
+                  ,#{NAME1}          AS NAME1         
+                  ,#{ZTERM}          AS ZTERM         
+                  ,#{TEXT1}          AS TEXT1         
+                  ,#{WAERS}          AS WAERS         
+                  ,#{EKGRP}          AS EKGRP         
+                  ,#{EKNAM}          AS EKNAM         
+                  ,#{UDATE}          AS UDATE         
+                  ,#{UTIME}          AS UTIME         
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.TRANSACTION_NO = B.TRANSACTION_NO
+	        AND A.EBELN          = B.EBELN
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.AEDAT    = B.AEDAT   
+                  ,A.ERNAM    = B.ERNAM   
+                  ,A.EMP_NAME = B.EMP_NAME
+                  ,A.BUKRS    = B.BUKRS   
+                  ,A.BEDAT    = B.BEDAT   
+                  ,A.LIFNR    = B.LIFNR   
+                  ,A.NAME1    = B.NAME1   
+                  ,A.ZTERM    = B.ZTERM   
+                  ,A.TEXT1    = B.TEXT1   
+                  ,A.WAERS    = B.WAERS   
+                  ,A.EKGRP    = B.EKGRP   
+                  ,A.EKNAM    = B.EKNAM   
+                  ,A.UDATE    = B.UDATE   
+                  ,A.UTIME    = B.UTIME
+                  ,A.IF_FLAG  = 'R'
+                  ,A.IF_MSG   = ''
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.TRANSACTION_NO
+	             ,A.EBELN         
+	             ,A.AEDAT         
+	             ,A.ERNAM         
+	             ,A.EMP_NAME      
+                 ,A.BUKRS         
+                 ,A.BEDAT         
+                 ,A.LIFNR         
+                 ,A.NAME1         
+                 ,A.ZTERM         
+                 ,A.TEXT1         
+                 ,A.WAERS         
+                 ,A.EKGRP         
+                 ,A.EKNAM         
+                 ,A.UDATE         
+                 ,A.UTIME
+                 ,A.IF_FLAG
+                 ,A.IF_MSG         
+	            ) VALUES ( B.TRANSACTION_NO
+	                      ,B.EBELN         
+	                      ,B.AEDAT         
+	                      ,B.ERNAM         
+	                      ,B.EMP_NAME      
+                          ,B.BUKRS         
+                          ,B.BEDAT         
+                          ,B.LIFNR         
+                          ,B.NAME1         
+                          ,B.ZTERM         
+                          ,B.TEXT1         
+                          ,B.WAERS         
+                          ,B.EKGRP         
+                          ,B.EKNAM         
+                          ,B.UDATE         
+                          ,B.UTIME         
+                          ,'R'
+                          ,''   
+	                     )
+     ]]>
+    </insert>
+    
+
+	
+	<insert id="insertPOHederIfData" parameterType="map">
+		<![CDATA[
+		--com.bat.BatchPurchOrder.insertPOHederIfData
+		INSERT INTO PO_HEAD_IF
+		(
+		   TRANSACTION_NO
+          ,EBELN
+          ,AEDAT
+          ,ERNAM
+          ,EMP_NAME
+          ,BUKRS
+          ,BEDAT
+          ,LIFNR
+          ,NAME1
+          ,ZTERM
+          ,TEXT1
+          ,WAERS
+          ,EKGRP
+          ,EKNAM
+          ,UDATE
+          ,UTIME
+		) VALUES (
+		           #{TRANSACTION_NO}
+                  ,#{EBELN}
+                  ,#{AEDAT}
+                  ,#{ERNAM}
+                  ,#{EMP_NAME}
+                  ,#{BUKRS}
+                  ,#{BEDAT}
+                  ,#{LIFNR}
+                  ,#{NAME1}
+                  ,#{ZTERM}
+                  ,#{TEXT1}
+                  ,#{WAERS}
+                  ,#{EKGRP}
+                  ,#{EKNAM}
+                  ,#{UDATE}
+                  ,#{UTIME}
+		          )
+		]]>
+	</insert>
+	
+    <update id="updatePOHederIfData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchPurchOrder.updatePOHederIfData
+	        UPDATE PO_HEAD_IF
+	           SET AEDAT    = #{AEDAT}
+                  ,ERNAM    = #{ERNAM}
+                  ,EMP_NAME = #{EMP_NAME}
+                  ,BUKRS    = #{BUKRS}
+                  ,BEDAT    = #{BEDAT}
+                  ,LIFNR    = #{LIFNR}
+                  ,NAME1    = #{NAME1}
+                  ,ZTERM    = #{ZTERM}
+                  ,TEXT1    = #{TEXT1}
+                  ,WAERS    = #{WAERS}
+                  ,EKGRP    = #{EKGRP}
+                  ,EKNAM    = #{EKNAM}
+                  ,UDATE    = #{UDATE}
+                  ,UTIME    = #{UTIME}
+	         WHERE 1 = 1
+	           AND TRANSACTION_NO = #{TRANSACTION_NO}
+	           AND EBELN          = #{EBELN}
+		   ]]>
+    </update>
+    
+    <insert id="makePOHederData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchPurchOrder.makePOHederData
+	    MERGE INTO PO_HEADER A 
+	    USING (
+	        SELECT TRANSACTION_NO
+                  ,EBELN
+                  ,AEDAT
+                  ,ERNAM
+                  ,EMP_NAME
+                  ,BUKRS
+                  ,BEDAT
+                  ,LIFNR
+                  ,NAME1
+                  ,ZTERM
+                  ,TEXT1
+                  ,WAERS
+                  ,EKGRP
+                  ,EKNAM
+                  ,UDATE
+                  ,UTIME
+	          FROM PO_HEAD_IF
+	         WHERE 1 = 1
+	           AND IF_FLAG = 'R'
+	           AND TRANSACTION_NO = (
+	                                 SELECT MAX(TRANSACTION_NO)
+	                                   FROM PO_HEAD_IF
+	                                  WHERE IF_FLAG = 'R'
+	                                )		           
+	          ) B
+	    ON (
+	            A.COMP_CD   = B.BUKRS
+	        AND A.PO_NUMBER = B.EBELN
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.PO_ORG            = B.EKGRP
+                  ,A.PO_ORG_NM         = B.EKNAM
+                  ,A.ERP_ADD_USER_ID   = B.ERNAM
+                  ,A.ERP_ADD_USER_NAME = B.EMP_NAME
+                  ,A.VENDOR_CD         = B.LIFNR
+                  ,A.VENDOR_NM         = B.NAME1
+                  ,A.PO_CREATE_DATE    = B.AEDAT
+                  ,A.PO_DATE           = B.BEDAT
+                  ,A.PAY_COND          = B.ZTERM 
+                  ,A.PAY_COND_NM       = B.TEXT1
+                  ,A.CURR_CD           = B.WAERS
+                  ,A.PO_CHANGE_FLAG    = CASE WHEN B.UDATE IS NOT NULL THEN '2' ELSE A.PO_CHANGE_FLAG END 
+                  ,A.PO_CHANGE_DATE    = B.UDATE
+                  ,A.PO_CHANGE_TIME    = B.UTIME
+                  ,A.MOD_DATE          = TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,A.MOD_USER          = 'BATCHSYS'
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.COMP_CD
+                 ,A.PO_NUMBER
+                 ,A.PO_ORG
+                 ,A.PO_ORG_NM
+                 ,A.ERP_ADD_USER_ID
+                 ,A.ERP_ADD_USER_NAME
+                 ,A.VENDOR_CD
+                 ,A.VENDOR_NM
+                 ,A.PO_CREATE_DATE
+                 ,A.PO_DATE
+                 ,A.PAY_COND
+                 ,A.PAY_COND_NM
+                 ,A.CURR_CD
+                 ,A.PO_CHANGE_DATE
+                 ,A.PO_CHANGE_TIME
+                 ,A.PO_CHANGE_FLAG
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( B.BUKRS
+                          ,B.EBELN
+                          ,B.EKGRP   
+                          ,B.EKNAM   
+                          ,B.ERNAM   
+                          ,B.EMP_NAME
+                          ,B.LIFNR   
+                          ,B.NAME1   
+                          ,B.AEDAT   
+                          ,B.BEDAT   
+                          ,B.ZTERM   
+                          ,B.TEXT1   
+                          ,B.WAERS   
+                          ,B.UDATE   
+                          ,B.UTIME
+                          ,'1'   
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,'BATCHSYS'
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,'BATCHSYS'
+	                     )
+     ]]>
+    </insert>
+    
+	<select id="selectCountPOHederRemkInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchPurchOrder.selectCountPOHederRemkInfo
+	    SELECT COUNT(*) CNT
+	      FROM PO_HEAD_REMARK_IF A
+	     WHERE 1 = 1
+	       AND TRANSACTION_NO = #{TRANSACTION_NO}
+	       AND EBELN          = #{EBELN}
+        ]]>
+	</select>
+	
+    <insert id="mergePOHederRemkIfData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchPurchOrder.mergePOHederRemkIfData
+	    MERGE INTO PO_HEAD_REMARK_IF A 
+	    USING (
+	        SELECT #{TRANSACTION_NO} AS TRANSACTION_NO
+	              ,#{EBELN}          AS EBELN         
+                  ,#{TDID}           AS TDID          
+                  ,TRIM(#{TDTEXT})   AS TDTEXT        
+                  ,#{TDLINE}         AS TDLINE        
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.TRANSACTION_NO = B.TRANSACTION_NO
+	        AND A.EBELN          = B.EBELN
+	        AND A.TDID           = B.TDID
+	        AND A.TDTEXT         = B.TDTEXT
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.TDLINE   = B.TDLINE   
+                  ,A.IF_FLAG  = 'R'
+                  ,A.IF_MSG   = ''
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.TRANSACTION_NO
+	             ,A.EBELN         
+	             ,A.TDID          
+	             ,A.TDTEXT        
+	             ,A.TDLINE        
+                 ,A.IF_FLAG
+                 ,A.IF_MSG         
+	            ) VALUES ( B.TRANSACTION_NO
+	                      ,B.EBELN         
+	                      ,B.TDID          
+	                      ,B.TDTEXT        
+	                      ,B.TDLINE        
+                          ,'R'
+                          ,''   
+	                     )
+     ]]>
+    </insert>	
+	
+	<insert id="insertPOHederRemkIfData" parameterType="map">
+		<![CDATA[
+		--com.bat.BatchPurchOrder.insertPOHederRemkIfData
+		INSERT INTO PO_HEAD_REMARK_IF
+		(
+		   TRANSACTION_NO
+          ,EBELN
+          ,TDID
+          ,TDTEXT
+          ,TDLINE
+		) VALUES (
+		           #{TRANSACTION_NO}
+                  ,#{EBELN}
+                  ,#{TDID}
+                  ,#{TDTEXT}
+                  ,#{TDLINE}
+		          )
+		]]>
+	</insert>
+	
+    <update id="updatePOHederRemkIfData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchPurchOrder.updatePOHederRemkIfData
+	        UPDATE PO_HEAD_REMARK_IF
+	           SET TDTEXT = #{TDTEXT}
+                  ,TDLINE = #{TDLINE}
+			 WHERE TRANSACTION_NO = #{TRANSACTION_NO}
+			   AND EBELN          = #{EBELN}
+			   AND TDID           = #{TDID}
+		   ]]>
+    </update>
+    
+    <insert id="makePOHederRemkData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchPurchOrder.makePOHederRemkData
+	    MERGE INTO PO_HEADER_REMARK A 
+	    USING (
+	        SELECT TRANSACTION_NO
+                  ,EBELN
+                  ,TDID
+                  ,TDTEXT
+                  ,TDLINE
+	          FROM PO_HEAD_REMARK_IF
+	         WHERE 1 = 1
+	           AND IF_FLAG = 'R'
+	           AND TRANSACTION_NO = (
+	                                 SELECT MAX(TRANSACTION_NO)
+	                                   FROM PO_HEAD_REMARK_IF
+	                                  WHERE IF_FLAG = 'R'
+	                                )	           
+	          ) B
+	    ON (
+	            A.PO_NUMBER = B.EBELN
+	        AND A.SEQ       = B.TDID
+	        AND A.SEQ_DESC  = B.TDTEXT
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.CONTENTS = B.TDLINE   
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	               A.PO_NUMBER
+                  ,A.SEQ
+                  ,A.SEQ_DESC
+                  ,A.CONTENTS
+	            ) VALUES ( B.EBELN  
+	                      ,B.TDID
+	                      ,B.TDTEXT    
+                          ,B.TDLINE   
+	                     )
+     ]]>
+    </insert>
+    
+	<select id="selectCountPOItemInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchPurchOrder.selectCountPOHederRemkInfo
+	    SELECT COUNT(*) CNT
+	      FROM PO_ITEM_IF A
+	     WHERE 1 = 1
+	       AND TRANSACTION_NO = #{TRANSACTION_NO}
+	       AND EBELN          = #{EBELN}
+	       AND EBELP          = #{EBELP}
+        ]]>
+	</select>
+	
+    <insert id="mergePOItemIfData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchPurchOrder.mergePOItemIfData
+	    MERGE INTO PO_ITEM_IF A 
+	    USING (
+	        SELECT #{TRANSACTION_NO} AS TRANSACTION_NO
+	              ,#{EBELN}          AS EBELN         
+                  ,#{EBELP}          AS EBELP         
+                  ,#{UDATE}          AS UDATE         
+                  ,#{BUKRS}          AS BUKRS         
+                  ,#{WERKS}          AS WERKS         
+                  ,#{MATNR}          AS MATNR         
+                  ,#{TXZ01}          AS TXZ01         
+                  ,#{MTART}          AS MTART         
+                  ,#{ZZVER}          AS ZZVER         
+                  ,#{MFRNR}          AS MFRNR         
+                  ,#{NAME1}          AS NAME1         
+                  ,#{MEINS}          AS MEINS         
+                  ,#{MENGE}          AS MENGE         
+                  ,#{NETPR}          AS NETPR         
+                  ,#{PEINH}          AS PEINH         
+                  ,#{BRTWR}          AS BRTWR         
+                  ,#{EINDT}          AS EINDT         
+                  ,#{UZEIT}          AS UZEIT         
+                  ,#{LOEKZ}          AS LOEKZ         
+                  ,#{LGORT}          AS LGORT         
+                  ,#{LGOBE}          AS LGOBE         
+                  ,#{ZZULOADT}       AS ZZULOADT      
+                  ,#{RETPO}          AS RETPO         
+                  ,#{REPOS}          AS REPOS         
+                  ,#{MATKL}          AS MATKL         
+                  ,#{WGBEZ}          AS WGBEZ         
+                  ,#{ELIKZ}          AS ELIKZ         
+                  ,#{XCHPF}          AS XCHPF         
+                  ,#{UEBTO}          AS UEBTO         
+                  ,#{MHDRZ}          AS MHDRZ         
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.TRANSACTION_NO = B.TRANSACTION_NO
+	        AND A.EBELN          = B.EBELN
+	        AND A.EBELP          = B.EBELP
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.UDATE      = B.UDATE      
+	              ,A.BUKRS      = B.BUKRS      
+	              ,A.WERKS      = B.WERKS      
+	              ,A.MATNR      = B.MATNR      
+	              ,A.TXZ01      = B.TXZ01      
+	              ,A.MTART      = B.MTART      
+	              ,A.ZZVER      = B.ZZVER      
+	              ,A.MFRNR      = B.MFRNR      
+	              ,A.NAME1      = B.NAME1      
+	              ,A.MEINS      = B.MEINS      
+	              ,A.MENGE      = B.MENGE      
+	              ,A.NETPR      = B.NETPR      
+	              ,A.PEINH      = B.PEINH      
+	              ,A.BRTWR      = B.BRTWR      
+	              ,A.EINDT      = B.EINDT      
+	              ,A.UZEIT      = B.UZEIT      
+	              ,A.LOEKZ      = B.LOEKZ      
+	              ,A.LGORT      = B.LGORT      
+	              ,A.LGOBE      = B.LGOBE      
+	              ,A.ZZULOADT   = B.ZZULOADT   
+	              ,A.RETPO      = B.RETPO      
+	              ,A.REPOS      = B.REPOS      
+	              ,A.MATKL      = B.MATKL      
+	              ,A.WGBEZ      = B.WGBEZ      
+	              ,A.ELIKZ      = B.ELIKZ      
+	              ,A.XCHPF      = B.XCHPF      
+	              ,A.UEBTO      = B.UEBTO      
+	              ,A.MHDRZ      = B.MHDRZ        
+                  ,A.IF_FLAG  = 'R'
+                  ,A.IF_MSG   = ''
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.TRANSACTION_NO
+	             ,A.EBELN         
+	             ,A.EBELP         
+	             ,A.UDATE         
+	             ,A.BUKRS         
+	             ,A.WERKS         
+	             ,A.MATNR         
+	             ,A.TXZ01         
+	             ,A.MTART         
+	             ,A.ZZVER         
+	             ,A.MFRNR         
+	             ,A.NAME1         
+	             ,A.MEINS         
+	             ,A.MENGE         
+	             ,A.NETPR         
+	             ,A.PEINH         
+	             ,A.BRTWR         
+	             ,A.EINDT         
+	             ,A.UZEIT         
+	             ,A.LOEKZ         
+	             ,A.LGORT         
+	             ,A.LGOBE         
+	             ,A.ZZULOADT      
+	             ,A.RETPO         
+	             ,A.REPOS         
+	             ,A.MATKL         
+	             ,A.WGBEZ         
+	             ,A.ELIKZ         
+	             ,A.XCHPF         
+	             ,A.UEBTO         
+	             ,A.MHDRZ              
+                 ,A.IF_FLAG
+                 ,A.IF_MSG         
+	            ) VALUES ( B.TRANSACTION_NO
+	                      ,B.EBELN         
+	                      ,B.EBELP         
+	                      ,B.UDATE         
+	                      ,B.BUKRS         
+	                      ,B.WERKS         
+	                      ,B.MATNR         
+	                      ,B.TXZ01         
+	                      ,B.MTART         
+	                      ,B.ZZVER         
+	                      ,B.MFRNR         
+	                      ,B.NAME1         
+	                      ,B.MEINS         
+	                      ,B.MENGE         
+	                      ,B.NETPR         
+	                      ,B.PEINH         
+	                      ,B.BRTWR         
+	                      ,B.EINDT         
+	                      ,B.UZEIT         
+	                      ,B.LOEKZ         
+	                      ,B.LGORT         
+	                      ,B.LGOBE         
+	                      ,B.ZZULOADT      
+	                      ,B.RETPO         
+	                      ,B.REPOS         
+	                      ,B.MATKL         
+	                      ,B.WGBEZ         
+	                      ,B.ELIKZ         
+	                      ,B.XCHPF         
+	                      ,B.UEBTO         
+	                      ,B.MHDRZ               
+                          ,'R'
+                          ,''   
+	                     )
+     ]]>
+    </insert>	 
+	
+	<insert id="insertPOItemIfData" parameterType="map">
+		<![CDATA[
+		--com.bat.BatchPurchOrder.insertPOItemIfData
+		INSERT INTO PO_ITEM_IF
+		(
+		   TRANSACTION_NO
+          ,EBELN
+          ,EBELP
+          ,UDATE
+          ,BUKRS
+          ,WERKS
+          ,MATNR
+          ,TXZ01
+          ,MTART
+          ,ZZVER
+          ,MFRNR
+          ,NAME1
+          ,MEINS
+          ,MENGE
+          ,NETPR
+          ,PEINH
+          ,BRTWR
+          ,EINDT
+          ,UZEIT
+          ,LOEKZ
+          ,LGORT
+          ,LGOBE
+          ,ZZULOADT
+          ,RETPO
+          ,REPOS
+          ,MATKL
+          ,WGBEZ
+          ,ELIKZ
+          ,XCHPF
+          ,UEBTO
+          ,MHDRZ
+		) VALUES (
+		            #{TRANSACTION_NO}
+                   ,#{EBELN}
+                   ,#{EBELP}
+                   ,#{UDATE}
+                   ,#{BUKRS}
+                   ,#{WERKS}
+                   ,#{MATNR}
+                   ,#{TXZ01}
+                   ,#{MTART}
+                   ,#{ZZVER}
+                   ,#{MFRNR}
+                   ,#{NAME1}
+                   ,#{MEINS}
+                   ,#{MENGE}
+                   ,#{NETPR}
+                   ,#{PEINH}
+                   ,#{BRTWR}
+                   ,#{EINDT}
+                   ,#{UZEIT}
+                   ,#{LOEKZ}
+                   ,#{LGORT}
+                   ,#{LGOBE}
+                   ,#{ZZULOADT}
+                   ,#{RETPO}
+                   ,#{REPOS}
+                   ,#{MATKL}
+                   ,#{WGBEZ}
+                   ,#{ELIKZ}
+                   ,#{XCHPF}
+                   ,#{UEBTO}
+                   ,#{MHDRZ}
+		          )
+		]]>
+	</insert>
+	
+    <update id="updatePOItemIfData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchPurchOrder.updatePOItemIfData
+	        UPDATE PO_ITEM_IF
+	           SET UDATE      = #{UDATE}
+                  ,BUKRS      = #{BUKRS}
+                  ,WERKS      = #{WERKS}
+                  ,MATNR      = #{MATNR}
+                  ,TXZ01      = #{TXZ01}
+                  ,MTART      = #{MTART}
+                  ,ZZVER      = #{ZZVER}
+                  ,MFRNR      = #{MFRNR}
+                  ,NAME1      = #{NAME1}
+                  ,MEINS      = #{MEINS}
+                  ,MENGE      = #{MENGE}
+                  ,NETPR      = #{NETPR}
+                  ,PEINH      = #{PEINH}
+                  ,BRTWR      = #{BRTWR}
+                  ,EINDT      = #{EINDT}
+                  ,UZEIT      = #{UZEIT}
+                  ,LOEKZ      = #{LOEKZ}
+                  ,LGORT      = #{LGORT}
+                  ,LGOBE      = #{LGOBE}
+                  ,ZZULOADT   = #{ZZULOADT}
+                  ,RETPO      = #{RETPO}
+                  ,REPOS      = #{REPOS}
+                  ,MATKL      = #{MATKL}
+                  ,WGBEZ      = #{WGBEZ}
+                  ,ELIKZ      = #{ELIKZ}
+                  ,XCHPF      = #{XCHPF}
+                  ,UEBTO      = #{UEBTO}
+                  ,MHDRZ      = #{MHDRZ}
+			 WHERE TRANSACTION_NO = #{TRANSACTION_NO}
+			   AND EBELN          = #{EBELN}
+			   AND EBELP          = #{EBELP}
+		   ]]>
+    </update>
+    
+    <insert id="makePOItemData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchPurchOrder.makePOItemData
+	    MERGE INTO PO_ITEM A 
+	    USING (
+	        SELECT TRANSACTION_NO
+                  ,EBELN
+                  ,EBELP
+                  ,UDATE
+                  ,BUKRS
+                  ,WERKS
+                  ,MATNR
+                  ,TXZ01
+                  ,MTART
+                  ,ZZVER
+                  ,MFRNR
+                  ,NAME1
+                  ,MEINS
+                  ,MENGE
+                  ,NETPR
+                  ,PEINH
+                  ,BRTWR
+                  ,EINDT
+                  ,UZEIT
+                  ,LOEKZ
+                  ,LGORT
+                  ,LGOBE
+                  ,ZZULOADT
+                  ,RETPO
+                  ,REPOS
+                  ,MATKL
+                  ,WGBEZ
+                  ,ELIKZ
+                  ,XCHPF
+                  ,UEBTO
+                  ,MHDRZ
+	          FROM PO_ITEM_IF
+	         WHERE 1 = 1
+	           AND IF_FLAG = 'R'
+	           AND TRANSACTION_NO = (
+	                                 SELECT MAX(TRANSACTION_NO)
+	                                   FROM PO_ITEM_IF
+	                                  WHERE IF_FLAG = 'R'
+	                                )	           
+	          ) B
+	    ON (
+	            A.COMP_CD   = B.BUKRS
+	        AND A.PO_NUMBER = B.EBELN
+	        AND A.PO_SEQ    = B.EBELP
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.PLANT_CODE        = B.WERKS
+                  ,A.COMPLETE_YN       = B.ELIKZ
+                  ,A.RETURN_ORDER_FLAG = B.RETPO
+                  ,A.NO_CHARGE_FLAG    = B.REPOS
+                  ,A.BATCH_FLAG        = B.XCHPF
+                  ,A.INV_PERCENT       = B.UEBTO
+                  ,A.REVLV             = B.ZZVER
+                  ,A.MAT_GROUP         = B.MATKL
+                  ,A.MAT_GROUP_DESC    = B.WGBEZ
+                  ,A.MAT_NUMBER        = B.MATNR
+                  ,A.MAT_DESC          = B.TXZ01
+                  ,A.MAT_TYPE          = B.MTART
+                  ,A.UNIT_MEASURE      = B.MEINS
+                  ,A.UNIT_PER_MEASURE  = B.PEINH
+                  ,A.ITEM_QTY          = B.MENGE
+                  ,A.UNIT_PRICE        = B.NETPR
+                  ,A.ITEM_AMT          = B.BRTWR
+                  ,A.RD_DATE           = B.EINDT
+                  ,A.RD_TIME           = B.UZEIT
+                  ,A.LOCATION          = B.LGORT
+                  ,A.LOCATION_TXT      = B.LGOBE
+                  ,A.RD_LOCATION_TXT   = B.ZZULOADT
+                  ,A.MAKER_CODE        = B.MFRNR
+                  ,A.MAKER_NAME        = B.NAME1
+                  ,A.MINI_EXP_PER      = B.MHDRZ
+                  ,A.PO_CHG_DATE       = B.UDATE
+                  ,A.DEL_FLAG          = B.LOEKZ
+                  ,A.CRE_DATE          = TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,A.CRE_USER          = 'BATCHSYS'
+                  ,A.MOD_DATE          = TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,A.MOD_USER          = 'BATCHSYS'
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	               A.COMP_CD
+                  ,A.PO_NUMBER
+                  ,A.PO_SEQ
+                  ,A.PLANT_CODE
+                  ,A.COMPLETE_YN
+                  ,A.RETURN_ORDER_FLAG
+                  ,A.NO_CHARGE_FLAG
+                  ,A.BATCH_FLAG
+                  ,A.INV_PERCENT
+                  ,A.REVLV
+                  ,A.MAT_GROUP
+                  ,A.MAT_GROUP_DESC
+                  ,A.MAT_NUMBER
+                  ,A.MAT_DESC
+                  ,A.MAT_TYPE
+                  ,A.UNIT_MEASURE
+                  ,A.UNIT_PER_MEASURE
+                  ,A.ITEM_QTY
+                  ,A.UNIT_PRICE
+                  ,A.ITEM_AMT
+                  ,A.RD_DATE
+                  ,A.RD_TIME
+                  ,A.LOCATION
+                  ,A.LOCATION_TXT
+                  ,A.RD_LOCATION_TXT
+                  ,A.MAKER_CODE
+                  ,A.MAKER_NAME
+                  ,A.MINI_EXP_PER
+                  ,A.PO_CHG_DATE
+                  ,A.DEL_FLAG
+                  ,A.CRE_DATE
+                  ,A.CRE_USER
+                  ,A.MOD_DATE
+                  ,A.MOD_USER
+	            ) VALUES ( B.BUKRS
+                          ,B.EBELN
+                          ,B.EBELP
+                          ,B.WERKS
+                          ,B.ELIKZ
+                          ,B.RETPO
+                          ,B.REPOS
+                          ,B.XCHPF
+                          ,B.UEBTO
+                          ,B.ZZVER
+                          ,B.MATKL
+                          ,B.WGBEZ
+                          ,B.MATNR
+                          ,B.TXZ01
+                          ,B.MTART
+                          ,B.MEINS
+                          ,B.PEINH
+                          ,B.MENGE
+                          ,B.NETPR
+                          ,B.BRTWR
+                          ,B.EINDT
+                          ,B.UZEIT
+                          ,B.LGORT
+                          ,B.LGOBE
+                          ,B.ZZULOADT
+                          ,B.MFRNR
+                          ,B.NAME1
+                          ,B.MHDRZ
+                          ,B.UDATE
+                          ,B.LOEKZ
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,'BATCHSYS'
+                          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                          ,'BATCHSYS'                          
+	                     )
+     ]]>
+    </insert> 
+      
+	<select id="selectCountPOItemRemkInfo" parameterType="Map" resultType="Map">
+		<![CDATA[
+	    --com.bat.BatchPurchOrder.selectCountPOItemRemkInfo
+	    SELECT COUNT(*) CNT
+	      FROM PO_ITEM_REMARK_IF A
+	     WHERE 1 = 1
+	       AND TRANSACTION_NO = #{TRANSACTION_NO}
+	       AND EBELN          = #{EBELN}
+	       AND TDID           = #{TDID}
+	       AND TDTEXT         = #{TDTEXT}
+        ]]>
+	</select>
+	
+    <insert id="mergePOItemRemkIfData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchPurchOrder.mergePOItemRemkIfData
+	    MERGE INTO PO_ITEM_REMARK_IF A 
+	    USING (
+	        SELECT #{TRANSACTION_NO} AS TRANSACTION_NO
+                  ,#{EBELN}          AS EBELN         
+                  ,#{EBELP}          AS EBELP         
+                  ,#{TDID}           AS TDID          
+                  ,#{TDTEXT}         AS TDTEXT        
+                  ,#{TDLINE}         AS TDLINE        
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.TRANSACTION_NO = B.TRANSACTION_NO
+	        AND A.EBELN          = B.EBELN
+	        AND A.EBELP          = B.EBELP
+	        AND A.TDID           = B.TDID
+	        AND A.TDTEXT         = B.TDTEXT
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.TDLINE  = B.TDLINE    
+                  ,A.IF_FLAG = 'R'
+                  ,A.IF_MSG  = ''  
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	               A.TRANSACTION_NO
+                  ,A.EBELN         
+                  ,A.EBELP         
+                  ,A.TDID          
+                  ,A.TDTEXT        
+                  ,A.TDLINE        
+                  ,A.IF_FLAG
+                  ,A.IF_MSG
+	            ) VALUES ( B.TRANSACTION_NO 
+	                      ,B.EBELN          
+	                      ,B.EBELP             
+                          ,B.TDID           
+                          ,B.TDTEXT         
+                          ,B.TDLINE         
+                          ,'R'
+                          ,''
+	                     )
+     ]]>
+    </insert>	
+	
+	<insert id="insertPOItemRemkIfData" parameterType="map">
+		<![CDATA[
+		--com.bat.BatchPurchOrder.insertPOItemRemkIfData
+		INSERT INTO PO_ITEM_REMARK_IF
+		(
+		   TRANSACTION_NO
+          ,EBELN
+          ,EBELP
+          ,TDID
+          ,TDTEXT
+          ,TDLINE
+		) VALUES (
+		           #{TRANSACTION_NO}
+                  ,#{EBELN}
+                  ,#{EBELP}
+                  ,#{TDID}
+                  ,#{TDTEXT}
+                  ,#{TDLINE}
+		          )
+		]]>
+	</insert>
+	
+    <update id="updatePOItemRemkIfData" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchPurchOrder.updatePOItemRemkIfData
+	        UPDATE PO_ITEM_REMARK_IF
+	           SET TDTEXT = #{TDTEXT}
+                  ,TDLINE = #{TDLINE}
+			 WHERE TRANSACTION_NO = #{TRANSACTION_NO}
+			   AND EBELN          = #{EBELN}
+			   AND EBELP          = #{EBELP}
+			   AND TDID           = #{TDID}
+			   AND TDTEXT         = #{TDTEXT}
+		   ]]>
+    </update>
+    
+    <insert id="makePOItemRemkData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchPurchOrder.makePOItemRemkData
+	    MERGE INTO PO_ITEM_REMARK A 
+	    USING (
+	        SELECT TRANSACTION_NO
+                  ,EBELN
+                  ,EBELP
+                  ,TDID
+                  ,TDTEXT
+                  ,TDLINE
+	          FROM PO_ITEM_REMARK_IF
+	         WHERE 1 = 1
+	           AND IF_FLAG = 'R'
+	           AND TRANSACTION_NO = (
+	                                 SELECT MAX(TRANSACTION_NO)
+	                                   FROM PO_ITEM_REMARK_IF
+	                                  WHERE IF_FLAG = 'R'
+	                                )
+	          ) B
+	    ON (
+	            A.PO_NUMBER = B.EBELN
+	        AND A.PO_SEQ    = B.EBELP
+	        AND A.SEQ       = B.TDID
+	        AND A.SEQ_DESC  = B.TDTEXT
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.CONTENTS = B.TDLINE   
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	               A.PO_NUMBER
+	              ,A.PO_SEQ
+                  ,A.SEQ
+                  ,A.SEQ_DESC
+                  ,A.CONTENTS
+	            ) VALUES ( B.EBELN
+	                      ,B.EBELP  
+	                      ,B.TDID
+	                      ,B.TDTEXT    
+                          ,B.TDLINE   
+	                     )
+     ]]>
+    </insert>      
+
+    <update id="updatePOHederFlag" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchPurchOrder.updatePOHederFlag
+	        UPDATE PO_HEAD_IF
+	           SET IF_FLAG = 'Z'
+			 WHERE IF_FLAG = 'R'
+		   ]]>
+    </update> 
+    
+    <update id="updatePOItemFlag" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchPurchOrder.updatePOItemFlag
+	        UPDATE PO_ITEM_IF
+	           SET IF_FLAG = 'Z'
+			 WHERE IF_FLAG = 'R'
+		   ]]>
+    </update> 
+    
+    <update id="updatePOHederRemkFlag" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchPurchOrder.updatePOHederRemkFlag
+	        UPDATE PO_HEAD_REMARK_IF
+	           SET IF_FLAG = 'Z'
+			 WHERE IF_FLAG = 'R'
+		   ]]>
+    </update> 
+    
+    <update id="updatePOItemRemkFlag" parameterType="Map">
+    	<![CDATA[
+	    --com.bat.BatchPurchOrder.updatePOItemRemkFlag
+	        UPDATE PO_ITEM_REMARK_IF
+	           SET IF_FLAG = 'Z'
+			 WHERE IF_FLAG = 'R'
+		   ]]>
+    </update> 
+    
+    
+</mapper>

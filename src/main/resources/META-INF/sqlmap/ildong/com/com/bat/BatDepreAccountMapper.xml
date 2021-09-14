@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchDepreAccount">
+
+    <insert id="insertOrderMastData" parameterType="Map">
+    <![CDATA[
+	    --com.bat.BatchDepreAccount.insertOrderMastData
+	    INSERT INTO CO_DEPRE_ACCOUNT
+	    ( 
+	      TRANSACTION_NO
+         ,COMP_CD       
+         ,CRTN_YY       
+         ,VERSION       
+         ,CCTR_CD       
+         ,ACCOUNT_NO    
+         ,WK_M01        
+         ,WK_M02        
+         ,WK_M03        
+         ,WK_M04        
+         ,WK_M05        
+         ,WK_M06        
+         ,WK_M07        
+         ,WK_M08        
+         ,WK_M09        
+         ,WK_M10        
+         ,WK_M11        
+         ,WK_M12        
+	    ) VALUES ( 
+	               #{TRANSACTION_NO}
+	              ,#{BUKRS}        
+                  ,#{GJAHR}        
+                  ,#{VERSN}        
+                  ,TRIM(#{KOSTL})        
+                  ,'00' || TRIM(#{KSTAR})        
+                  ,#{WKG001}       
+                  ,#{WKG002}       
+                  ,#{WKG003}       
+                  ,#{WKG004}       
+                  ,#{WKG005}       
+                  ,#{WKG006}       
+                  ,#{WKG007}       
+                  ,#{WKG008}       
+                  ,#{WKG009}       
+                  ,#{WKG010}       
+                  ,#{WKG011}       
+                  ,#{WKG012}       
+	             )
+     ]]>
+    </insert>
+    
+	<insert id="mergeBasicHeadData" parameterType="Map">
+		--com.bat.BatchDepreAccount.mergeBasicHeadData
+		--
+		MERGE INTO CO_BUGT_BASIC_HEAD A
+		USING (
+		       SELECT A.COMP_CD                    COMP_CD
+		             ,A.CRTN_YY                    CRTN_YY
+		             ,A.CCTR_CD                    CCTR_CD                   
+		             ,ACCOUNT_NO                   ACCOUNT_NO
+		             ,'1'                          PROCESS_TYPE
+		             ,'1'                          STATUS
+		             ,''                           DISTR_TYPE
+		             ,A.WK_M01                     WK_M01
+		             ,A.WK_M02                     WK_M02
+		             ,A.WK_M03                     WK_M03
+		             ,A.WK_M04                     WK_M04
+		             ,A.WK_M05                     WK_M05
+		             ,A.WK_M06                     WK_M06
+		             ,A.WK_M07                     WK_M07
+		             ,A.WK_M08                     WK_M08
+		             ,A.WK_M09                     WK_M09
+		             ,A.WK_M10                     WK_M10
+		             ,A.WK_M11                     WK_M11
+		             ,A.WK_M12                     WK_M12
+		             ,''                           REMARK
+		             ,''                           EPS_DOC_NO
+		             ,TO_CHAR(SYSDATE,'YYYYMMDD')  CRE_DATE
+		             ,'BATCHSYS'                   CRE_USER
+		             ,TO_CHAR(SYSDATE,'YYYYMMDD')  MOD_DATE
+		             ,'BATCHSYS'                   MOD_USER
+		         FROM CO_DEPRE_ACCOUNT A
+		        WHERE TRANSACTION_NO = #{TRANSACTION_NO}
+		          AND VERSION        = #{VERSION}
+		      ) B
+		ON (
+		        A.COMP_CD      = B.COMP_CD
+		    AND A.CRTN_YY      = B.CRTN_YY
+		    AND A.CCTR_CD      = B.CCTR_CD
+		    AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+		    AND A.PROCESS_TYPE = B.PROCESS_TYPE
+		   )
+		WHEN MATCHED THEN
+		    UPDATE
+		       SET A.DISTR_TYPE = B.DISTR_TYPE
+		          ,A.WK_M01     = B.WK_M01
+		          ,A.WK_M02     = B.WK_M02
+		          ,A.WK_M03     = B.WK_M03
+		          ,A.WK_M04     = B.WK_M04
+		          ,A.WK_M05     = B.WK_M05
+		          ,A.WK_M06     = B.WK_M06
+		          ,A.WK_M07     = B.WK_M07
+		          ,A.WK_M08     = B.WK_M08
+		          ,A.WK_M09     = B.WK_M09
+		          ,A.WK_M10     = B.WK_M10
+		          ,A.WK_M11     = B.WK_M11
+		          ,A.WK_M12     = B.WK_M12
+		          ,A.REMARK     = B.REMARK
+		          ,A.EPS_DOC_NO = B.EPS_DOC_NO
+		          ,A.MOD_DATE   = B.MOD_DATE
+		          ,A.MOD_USER   = B.MOD_USER
+		WHEN NOT MATCHED THEN
+		        INSERT
+		        (
+		          A.COMP_CD
+		         ,A.CRTN_YY
+		         ,A.CCTR_CD
+		         ,A.ACCOUNT_NO
+		         ,A.PROCESS_TYPE
+		         ,A.STATUS
+		         ,A.DISTR_TYPE
+		         ,A.WK_M01
+		         ,A.WK_M02
+		         ,A.WK_M03
+		         ,A.WK_M04
+		         ,A.WK_M05
+		         ,A.WK_M06
+		         ,A.WK_M07
+		         ,A.WK_M08
+		         ,A.WK_M09
+		         ,A.WK_M10
+		         ,A.WK_M11
+		         ,A.WK_M12
+		         ,A.REMARK
+		         ,A.EPS_DOC_NO
+		         ,A.CRE_DATE
+		         ,A.CRE_USER
+		         ,A.MOD_DATE
+		         ,A.MOD_USER
+		        ) VALUES (
+		                   B.COMP_CD
+		                  ,B.CRTN_YY
+		                  ,B.CCTR_CD
+		                  ,B.ACCOUNT_NO
+		                  ,B.PROCESS_TYPE
+		                  ,B.STATUS
+		                  ,B.DISTR_TYPE
+		                  ,B.WK_M01
+		                  ,B.WK_M02
+		                  ,B.WK_M03
+		                  ,B.WK_M04
+		                  ,B.WK_M05
+		                  ,B.WK_M06
+		                  ,B.WK_M07
+		                  ,B.WK_M08
+		                  ,B.WK_M09
+		                  ,B.WK_M10
+		                  ,B.WK_M11
+		                  ,B.WK_M12
+		                  ,B.REMARK
+		                  ,B.EPS_DOC_NO
+		                  ,B.CRE_DATE
+		                  ,B.CRE_USER
+		                  ,B.MOD_DATE
+		                  ,B.MOD_USER
+		                 )
+	</insert>
+	
+	<insert id="mergeModifyHeadData" parameterType="Map">
+		--com.bat.BatchDepreAccount.mergeModifyHeadData
+		MERGE INTO CO_BUGT_MODIFY_HEAD A
+		USING (
+		       SELECT A.COMP_CD                    COMP_CD
+		             ,A.CRTN_YY                    CRTN_YY
+		             ,A.CCTR_CD                    CCTR_CD
+		             ,ACCOUNT_NO                   ACCOUNT_NO
+		             ,'1'                          PROCESS_TYPE 
+		             ,'1'                          STATUS
+		             ,''                           DISTR_TYPE
+		             ,A.WK_M01                     WK_M01
+		             ,A.WK_M02                     WK_M02
+		             ,A.WK_M03                     WK_M03
+		             ,A.WK_M04                     WK_M04
+		             ,A.WK_M05                     WK_M05
+		             ,A.WK_M06                     WK_M06
+		             ,A.WK_M07                     WK_M07
+		             ,A.WK_M08                     WK_M08
+		             ,A.WK_M09                     WK_M09
+		             ,A.WK_M10                     WK_M10
+		             ,A.WK_M11                     WK_M11
+		             ,A.WK_M12                     WK_M12
+		             ,''                           REMARK
+		             ,''                           EPS_DOC_NO
+		             ,TO_CHAR(SYSDATE,'YYYYMMDD')  CRE_DATE
+		             ,'BATCHSYS'                   CRE_USER
+		             ,TO_CHAR(SYSDATE,'YYYYMMDD')  MOD_DATE
+		             ,'BATCHSYS'                   MOD_USER
+		         FROM CO_DEPRE_ACCOUNT A
+		        WHERE TRANSACTION_NO = #{TRANSACTION_NO}
+		          AND VERSION        = #{VERSION}
+		      ) B
+		ON (
+		        A.COMP_CD      = B.COMP_CD
+		    AND A.CRTN_YY      = B.CRTN_YY
+		    AND A.CCTR_CD      = B.CCTR_CD
+		    AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+		    AND A.PROCESS_TYPE = B.PROCESS_TYPE
+		   )
+		WHEN MATCHED THEN
+		    UPDATE
+		       SET A.DISTR_TYPE = B.DISTR_TYPE
+		          ,A.WK_M01     = B.WK_M01
+		          ,A.WK_M02     = B.WK_M02
+		          ,A.WK_M03     = B.WK_M03
+		          ,A.WK_M04     = B.WK_M04
+		          ,A.WK_M05     = B.WK_M05
+		          ,A.WK_M06     = B.WK_M06
+		          ,A.WK_M07     = B.WK_M07
+		          ,A.WK_M08     = B.WK_M08
+		          ,A.WK_M09     = B.WK_M09
+		          ,A.WK_M10     = B.WK_M10
+		          ,A.WK_M11     = B.WK_M11
+		          ,A.WK_M12     = B.WK_M12
+		          ,A.REMARK     = B.REMARK
+		          ,A.EPS_DOC_NO = B.EPS_DOC_NO
+		          ,A.MOD_DATE   = B.MOD_DATE
+		          ,A.MOD_USER   = B.MOD_USER
+		WHEN NOT MATCHED THEN
+		        INSERT
+		        (
+		          A.COMP_CD
+		         ,A.CRTN_YY
+		         ,A.CCTR_CD
+		         ,A.ACCOUNT_NO
+		         ,A.PROCESS_TYPE
+		         ,A.STATUS
+		         ,A.DISTR_TYPE
+		         ,A.WK_M01
+		         ,A.WK_M02
+		         ,A.WK_M03
+		         ,A.WK_M04
+		         ,A.WK_M05
+		         ,A.WK_M06
+		         ,A.WK_M07
+		         ,A.WK_M08
+		         ,A.WK_M09
+		         ,A.WK_M10
+		         ,A.WK_M11
+		         ,A.WK_M12
+		         ,A.REMARK
+		         ,A.EPS_DOC_NO
+		         ,A.CRE_DATE
+		         ,A.CRE_USER
+		         ,A.MOD_DATE
+		         ,A.MOD_USER
+		        ) VALUES (
+		                   B.COMP_CD
+		                  ,B.CRTN_YY
+		                  ,B.CCTR_CD
+		                  ,B.ACCOUNT_NO
+		                  ,B.PROCESS_TYPE
+		                  ,B.STATUS
+		                  ,B.DISTR_TYPE
+		                  ,B.WK_M01
+		                  ,B.WK_M02
+		                  ,B.WK_M03
+		                  ,B.WK_M04
+		                  ,B.WK_M05
+		                  ,B.WK_M06
+		                  ,B.WK_M07
+		                  ,B.WK_M08
+		                  ,B.WK_M09
+		                  ,B.WK_M10
+		                  ,B.WK_M11
+		                  ,B.WK_M12
+		                  ,B.REMARK
+		                  ,B.EPS_DOC_NO
+		                  ,B.CRE_DATE
+		                  ,B.CRE_USER
+		                  ,B.MOD_DATE
+		                  ,B.MOD_USER
+		                 )		
+	</insert>	
+	
+	<insert id="mergeBasicDetailData" parameterType="Map">
+		--com.bat.BatchDepreAccount.mergeBasicDetailData
+		MERGE INTO CO_BUGT_BASIC_DETAIL A
+		USING (
+		       SELECT A.COMP_CD                    COMP_CD
+		             ,A.CRTN_YY                    CRTN_YY
+		             ,A.CCTR_CD                    CCTR_CD
+		             ,ACCOUNT_NO                   ACCOUNT_NO
+		             ,'1'                          PROCESS_TYPE
+		             ,1                            SEQ_NO
+		             ,''                           DETAIL_DESC
+		             ,A.CCTR_CD                    BELONG_CCTR_CD
+		             ,''                           PROJECT_CD
+		             ,NULL                         UNIT_PRICE
+		             ,NULL                         UNIT_QTY
+		             ,A.WK_M01                     WK_M01
+		             ,A.WK_M02                     WK_M02
+		             ,A.WK_M03                     WK_M03
+		             ,A.WK_M04                     WK_M04
+		             ,A.WK_M05                     WK_M05
+		             ,A.WK_M06                     WK_M06
+		             ,A.WK_M07                     WK_M07
+		             ,A.WK_M08                     WK_M08
+		             ,A.WK_M09                     WK_M09
+		             ,A.WK_M10                     WK_M10
+		             ,A.WK_M11                     WK_M11
+		             ,A.WK_M12                     WK_M12
+		             ,''                           REMARK
+		             ,''                           EPS_DOC_NO
+		             ,TO_CHAR(SYSDATE,'YYYYMMDD')  CRE_DATE
+		             ,'BATCHSYS'                   CRE_USER
+		             ,TO_CHAR(SYSDATE,'YYYYMMDD')  MOD_DATE
+		             ,'BATCHSYS'                   MOD_USER
+		         FROM CO_DEPRE_ACCOUNT A
+		        WHERE TRANSACTION_NO = #{TRANSACTION_NO}
+		          AND VERSION        = #{VERSION}
+		      ) B
+		ON (
+		        A.COMP_CD      = B.COMP_CD
+		    AND A.CRTN_YY      = B.CRTN_YY
+		    AND A.CCTR_CD      = B.CCTR_CD
+		    AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+		    AND A.PROCESS_TYPE = B.PROCESS_TYPE
+		    AND A.SEQ_NO       = B.SEQ_NO
+		   )
+		WHEN MATCHED THEN
+		    UPDATE
+		       SET A.DETAIL_DESC    = B.DETAIL_DESC
+		          ,A.BELONG_CCTR_CD = B.BELONG_CCTR_CD
+		          ,A.PROJECT_CD     = B.PROJECT_CD
+		          ,A.UNIT_PRICE     = B.UNIT_PRICE
+		          ,A.UNIT_QTY       = B.UNIT_QTY
+		          ,A.WK_M01         = B.WK_M01
+		          ,A.WK_M02         = B.WK_M02
+		          ,A.WK_M03         = B.WK_M03
+		          ,A.WK_M04         = B.WK_M04
+		          ,A.WK_M05         = B.WK_M05
+		          ,A.WK_M06         = B.WK_M06
+		          ,A.WK_M07         = B.WK_M07
+		          ,A.WK_M08         = B.WK_M08
+		          ,A.WK_M09         = B.WK_M09
+		          ,A.WK_M10         = B.WK_M10
+		          ,A.WK_M11         = B.WK_M11
+		          ,A.WK_M12         = B.WK_M12
+		          ,A.MOD_DATE       = B.MOD_DATE
+		          ,A.MOD_USER       = B.MOD_USER
+		WHEN NOT MATCHED THEN
+		        INSERT
+		        (
+		          A.COMP_CD
+		         ,A.CRTN_YY
+		         ,A.CCTR_CD
+		         ,A.ACCOUNT_NO
+		         ,A.PROCESS_TYPE
+		         ,A.SEQ_NO
+		         ,A.DETAIL_DESC
+		         ,A.BELONG_CCTR_CD
+		         ,A.PROJECT_CD
+		         ,A.UNIT_PRICE
+		         ,A.UNIT_QTY
+		         ,A.WK_M01
+		         ,A.WK_M02
+		         ,A.WK_M03
+		         ,A.WK_M04
+		         ,A.WK_M05
+		         ,A.WK_M06
+		         ,A.WK_M07
+		         ,A.WK_M08
+		         ,A.WK_M09
+		         ,A.WK_M10
+		         ,A.WK_M11
+		         ,A.WK_M12
+		         ,A.CRE_DATE
+		         ,A.CRE_USER
+		         ,A.MOD_DATE
+		         ,A.MOD_USER
+		        ) VALUES (
+		                   B.COMP_CD
+		                  ,B.CRTN_YY
+		                  ,B.CCTR_CD
+		                  ,B.ACCOUNT_NO
+		                  ,B.PROCESS_TYPE
+		                  ,B.SEQ_NO
+		                  ,B.DETAIL_DESC
+		                  ,B.BELONG_CCTR_CD
+		                  ,B.PROJECT_CD
+		                  ,B.UNIT_PRICE
+		                  ,B.UNIT_QTY
+		                  ,B.WK_M01
+		                  ,B.WK_M02
+		                  ,B.WK_M03
+		                  ,B.WK_M04
+		                  ,B.WK_M05
+		                  ,B.WK_M06
+		                  ,B.WK_M07
+		                  ,B.WK_M08
+		                  ,B.WK_M09
+		                  ,B.WK_M10
+		                  ,B.WK_M11
+		                  ,B.WK_M12
+		                  ,B.CRE_DATE
+		                  ,B.CRE_USER
+		                  ,B.MOD_DATE
+		                  ,B.MOD_USER
+		                 )
+	</insert>
+	
+	<insert id="mergeModifyDetailData" parameterType="Map">
+		--com.bat.BatchDepreAccount.mergeModifyDetailData
+		MERGE INTO CO_BUGT_MODIFY_DETAIL A
+		USING (
+		       SELECT A.COMP_CD                    COMP_CD
+		             ,A.CRTN_YY                    CRTN_YY
+		             ,A.CCTR_CD                    CCTR_CD
+		             ,ACCOUNT_NO                   ACCOUNT_NO
+		             ,'1'                          PROCESS_TYPE
+		             ,1                            SEQ_NO
+		             ,''                           DETAIL_DESC
+		             ,A.CCTR_CD                    BELONG_CCTR_CD
+		             ,''                           PROJECT_CD
+		             ,NULL                         UNIT_PRICE
+		             ,NULL                         UNIT_QTY
+		             ,A.WK_M01                     WK_M01
+		             ,A.WK_M02                     WK_M02
+		             ,A.WK_M03                     WK_M03
+		             ,A.WK_M04                     WK_M04
+		             ,A.WK_M05                     WK_M05
+		             ,A.WK_M06                     WK_M06
+		             ,A.WK_M07                     WK_M07
+		             ,A.WK_M08                     WK_M08
+		             ,A.WK_M09                     WK_M09
+		             ,A.WK_M10                     WK_M10
+		             ,A.WK_M11                     WK_M11
+		             ,A.WK_M12                     WK_M12
+		             ,''                           REMARK
+		             ,''                           EPS_DOC_NO
+		             ,TO_CHAR(SYSDATE,'YYYYMMDD')  CRE_DATE
+		             ,'BATCHSYS'                   CRE_USER
+		             ,TO_CHAR(SYSDATE,'YYYYMMDD')  MOD_DATE
+		             ,'BATCHSYS'                   MOD_USER
+		         FROM CO_DEPRE_ACCOUNT A
+		        WHERE TRANSACTION_NO = #{TRANSACTION_NO}
+		          AND VERSION        = #{VERSION}
+		      ) B
+		ON (
+		        A.COMP_CD      = B.COMP_CD
+		    AND A.CRTN_YY      = B.CRTN_YY
+		    AND A.CCTR_CD      = B.CCTR_CD
+		    AND A.ACCOUNT_NO   = B.ACCOUNT_NO
+		    AMD A.PROCESS_TYPE = B.PROCESS_TYPE
+		    AND A.SEQ_NO       = B.SEQ_NO
+		   )
+		WHEN MATCHED THEN
+		    UPDATE
+		       SET A.DETAIL_DESC    = B.DETAIL_DESC
+		          ,A.BELONG_CCTR_CD = B.BELONG_CCTR_CD
+		          ,A.PROJECT_CD     = B.PROJECT_CD
+		          ,A.UNIT_PRICE     = B.UNIT_PRICE
+		          ,A.UNIT_QTY       = B.UNIT_QTY
+		          ,A.WK_M01         = B.WK_M01
+		          ,A.WK_M02         = B.WK_M02
+		          ,A.WK_M03         = B.WK_M03
+		          ,A.WK_M04         = B.WK_M04
+		          ,A.WK_M05         = B.WK_M05
+		          ,A.WK_M06         = B.WK_M06
+		          ,A.WK_M07         = B.WK_M07
+		          ,A.WK_M08         = B.WK_M08
+		          ,A.WK_M09         = B.WK_M09
+		          ,A.WK_M10         = B.WK_M10
+		          ,A.WK_M11         = B.WK_M11
+		          ,A.WK_M12         = B.WK_M12
+		          ,A.MOD_DATE       = B.MOD_DATE
+		          ,A.MOD_USER       = B.MOD_USER
+		WHEN NOT MATCHED THEN
+		        INSERT
+		        (
+		          A.COMP_CD
+		         ,A.CRTN_YY
+		         ,A.CCTR_CD
+		         ,A.ACCOUNT_NO
+		         ,A.PROCESS_TYPE
+		         ,A.SEQ_NO
+		         ,A.DETAIL_DESC
+		         ,A.BELONG_CCTR_CD
+		         ,A.PROJECT_CD
+		         ,A.UNIT_PRICE
+		         ,A.UNIT_QTY
+		         ,A.WK_M01
+		         ,A.WK_M02
+		         ,A.WK_M03
+		         ,A.WK_M04
+		         ,A.WK_M05
+		         ,A.WK_M06
+		         ,A.WK_M07
+		         ,A.WK_M08
+		         ,A.WK_M09
+		         ,A.WK_M10
+		         ,A.WK_M11
+		         ,A.WK_M12
+		         ,A.CRE_DATE
+		         ,A.CRE_USER
+		         ,A.MOD_DATE
+		         ,A.MOD_USER
+		        ) VALUES (
+		                   B.COMP_CD
+		                  ,B.CRTN_YY
+		                  ,B.CCTR_CD
+		                  ,B.ACCOUNT_NO
+		                  ,B.PROCESS_TYPE
+		                  ,B.SEQ_NO
+		                  ,B.DETAIL_DESC
+		                  ,B.BELONG_CCTR_CD
+		                  ,B.PROJECT_CD
+		                  ,B.UNIT_PRICE
+		                  ,B.UNIT_QTY
+		                  ,B.WK_M01
+		                  ,B.WK_M02
+		                  ,B.WK_M03
+		                  ,B.WK_M04
+		                  ,B.WK_M05
+		                  ,B.WK_M06
+		                  ,B.WK_M07
+		                  ,B.WK_M08
+		                  ,B.WK_M09
+		                  ,B.WK_M10
+		                  ,B.WK_M11
+		                  ,B.WK_M12
+		                  ,B.CRE_DATE
+		                  ,B.CRE_USER
+		                  ,B.MOD_DATE
+		                  ,B.MOD_USER
+		                 )
+	</insert>	
+	    
+</mapper>

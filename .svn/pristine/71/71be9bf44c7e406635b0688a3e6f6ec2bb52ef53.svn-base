@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.VendBankMgt">
+	<select id="selectVendBankMgtHeadList" parameterType="Map" resultType="Map">
+		--com.bdg.VendBankMgt.selectVendBankMgtHeadList
+		SELECT A.COMP_CD                       AS COMP_CD      -- 회사코드
+              ,A.CRTN_YMD                      AS CRTN_YMD     -- 신청일자
+              ,A.ORG_CD                        AS ORG_CD       -- 부서코드
+              ,A.POBUSI_NO                     AS POBUSI_NO    -- 사업자 번호
+              ,A.VENDOR_CD                     AS VENDOR_CD    -- 공급업체코드
+              ,A.VENDOR_NM                     AS VENDOR_NM    -- 업체명
+              ,A.PRESIDENT_NM                  AS PRESIDENT_NM -- 대표자명
+              ,A.TEL_NO                        AS TEL_NO       -- 전화번호
+              ,A.EMAIL                         AS EMAIL        -- Email
+              ,A.BUSS_TYPE                     AS BUSS_TYPE    -- 업종
+              ,A.BUSIN                         AS BUSIN        -- 업태
+              ,A.CRE_DATE                      AS CRE_DATE     -- 등록일자
+              ,A.CRE_USER                      AS CRE_USER     -- 등록자ID
+              ,A.MOD_DATE                      AS MOD_DATE     -- 수정일자
+              ,A.MOD_USER                      AS MOD_USER     -- 수정자ID
+		      ,'R'                             AS CRUD         -- 행구분
+		      ,'1'                             AS CODEMAPPING1 -- 사업자번호 팝업
+		      ,(
+		        SELECT MAX(STATUS)
+		          FROM FI_VENDOR_BANK_DETAIL B
+		         WHERE B.COMP_CD   = A.COMP_CD    
+                   AND B.CRTN_YMD  = A.CRTN_YMD 
+                   AND B.ORG_CD    = A.ORG_CD   
+                   AND B.POBUSI_NO = A.POBUSI_NO
+		       ) STATUS		       
+		      ,(
+		        SELECT COUNT(*)
+		          FROM FI_VENDOR_BANK_DETAIL B
+		         WHERE B.COMP_CD   = A.COMP_CD    
+                   AND B.CRTN_YMD  = A.CRTN_YMD 
+                   AND B.ORG_CD    = A.ORG_CD   
+                   AND B.POBUSI_NO = A.POBUSI_NO
+                   AND B.STATUS IN ('2', '3', '5')
+		       ) CNT 
+		  FROM FI_VENDOR_BANK_HEAD A
+		 WHERE 1 = 1
+		  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND A.COMP_CD = #{SB_COMP_CD}
+		  </if>
+			<if test="TB_START_DT != null and TB_START_DT != ''"> 
+				<![CDATA[AND CRTN_YMD  >= REPLACE(#{TB_START_DT},'-','')]]>	
+			</if>
+			<if test="TB_END_DT != null and TB_END_DT != ''"> 
+				<![CDATA[AND CRTN_YMD  <= REPLACE(#{TB_END_DT},'-','')]]>
+			</if>
+		  <if test="TB_ORG_CD != null and TB_ORG_CD != ''">
+		   AND A.ORG_CD = #{TB_ORG_CD}
+		  </if>
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YMD
+		        ,A.ORG_CD
+		        ,A.POBUSI_NO
+	</select>
+	
+	<select id="selectCheckVendBankMgt" parameterType="Map" resultType="Map">
+		--com.bdg.VendBankMgt.selectCheckVendBankMgt
+		SELECT COUNT(*) CNT
+		  FROM FI_VENDOR_BANK_HEAD A
+		 WHERE 1=1
+		   AND COMP_CD   = #{SB_COMP_CD}
+		   AND CRTN_YMD  = REPLACE(#{TB_CRTN_YMD},'-','')
+		   AND ORG_CD    = #{TB_ORG_CD}
+		   AND POBUSI_NO = REPLACE(#{POBUSI_NO},'-','')
+ 	</select>
+ 	
+	<select id="selectApprVendBankList" parameterType="Map" resultType="Map">
+		--com.bdg.VendBankMgt.selectApprVendBankList
+		SELECT A.COMP_CD                                        AS COMP_CD         -- 회사코드
+              ,A.CRTN_YMD                                       AS CRTN_YMD        -- 신청일자
+              ,A.ORG_CD                                         AS ORG_CD          -- 부서코드
+              ,A.POBUSI_NO                                      AS POBUSI_NO       -- 사업자 번호
+              ,A.BANK_ACCOUNT_NO                                AS BANK_ACCOUNT_NO -- 계좌번호
+              ,FUNC_GET_CODE_NAME('YS033', A.BANK_ACCOUNT_ID)   AS BANK_ACCOUNT_ID         -- 은행ID
+              ,A.BANK_NATION                                    AS BANK_NATION     -- 은행국가키이
+              ,FUNC_GET_CODE_NAME('YS027', A.BANK_CD)           AS BANK_CD         -- 은행
+              ,A.BANK_USER                                      AS BANK_USER       -- 예금주
+              ,A.BANK_DESC                                      AS BANK_DESC       -- 참조세부사항
+              ,FUNC_GET_CODE_NAME('YS019', A.PAY_COND)          AS PAY_COND     -- 지급조건명 
+              ,A.EPS_DOC_NO                                     AS EPS_DOC_NO      -- 전자결재문서번호
+              ,B.VENDOR_CD                                      AS VENDOR_CD       -- 업체코드
+              ,B.VENDOR_NM                                      AS VENDOR_NM       -- 업체명
+		  FROM FI_VENDOR_BANK_DETAIL A
+		      LEFT OUTER JOIN
+		       FI_VENDOR_BANK_HEAD B
+		      ON    B.COMP_CD   = A.COMP_CD
+		        AND B.CRTN_YMD  = A.CRTN_YMD
+		        AND B.ORG_CD    = A.ORG_CD
+		        AND B.POBUSI_NO = A.POBUSI_NO
+		 WHERE 1 = 1
+		   AND A.EPS_DOC_NO = #{EPS_DOC_NO}
+		   AND NVL(A.SAP_RECV_YN, 'N') = 'N'
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YMD
+		        ,A.ORG_CD
+		        ,A.POBUSI_NO
+		        ,A.BANK_ACCOUNT_NO
+ 	</select> 	
+ 	
+ 	
+ 		
+	
+	<select id="selectVendBankMgtHeadListPop" parameterType="Map" resultType="Map">
+		--com.bdg.VendBankMgt.selectVendBankMgtHeadListPop
+		SELECT A.COMP_CD                                              AS COMP_CD      -- 회사코드
+              ,A.CRTN_YMD                                             AS CRTN_YMD     -- 신청일자
+              ,A.ORG_CD                                               AS ORG_CD       -- 부서코드
+              ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.ORG_CD, A.CRE_DATE)    AS ORG_NM       -- 부서명
+              ,A.POBUSI_NO                                            AS POBUSI_NO    -- 사업자 번호
+              ,A.VENDOR_CD                                            AS VENDOR_CD    -- 공급업체코드
+              ,A.VENDOR_NM                                            AS VENDOR_NM    -- 업체명
+              ,A.PRESIDENT_NM                                         AS PRESIDENT_NM -- 대표자명
+              ,A.TEL_NO                                               AS TEL_NO       -- 전화번호
+              ,A.EMAIL                                                AS EMAIL        -- Email
+              ,A.BUSS_TYPE                                            AS BUSS_TYPE    -- 업종
+              ,A.BUSIN                                                AS BUSIN        -- 업태
+              ,A.CRE_DATE                                             AS CRE_DATE     -- 등록일자
+              ,A.CRE_USER                                             AS CRE_USER     -- 등록자ID
+              ,A.MOD_DATE                                             AS MOD_DATE     -- 수정일자
+              ,A.MOD_USER                                             AS MOD_USER     -- 수정자ID
+		      ,'R'                                                    AS CRUD         -- 행구분
+		      ,TO_CHAR(TO_DATE(A.CRTN_YMD, 'YYYYMMDD'), 'YYYY-MM-DD') AS TB_CRTN_YMD
+		  FROM FI_VENDOR_BANK_HEAD A
+		 WHERE 1 = 1
+		   AND (A.COMP_CD
+               ,A.CRTN_YMD
+               ,A.ORG_CD
+               ,A.POBUSI_NO ) IN (
+               					  SELECT COMP_CD
+               					        ,CRTN_YMD
+               					        ,ORG_CD
+               					        ,POBUSI_NO
+               					    FROM FI_VENDOR_BANK_DETAIL
+               					   WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+                                 )
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YMD
+		        ,A.ORG_CD
+		        ,A.POBUSI_NO
+	</select>	
+	
+	<select id="selectVendBankMgtDetailList" parameterType="Map" resultType="Map">
+		--com.bdg.VendBankMgt.selectVendBankMgtDetailList
+		SELECT A.COMP_CD                                AS COMP_CD         -- 회사코드
+              ,A.CRTN_YMD                               AS CRTN_YMD        -- 신청일자
+              ,A.ORG_CD                                 AS ORG_CD          -- 부서코드
+              ,A.POBUSI_NO                              AS POBUSI_NO       -- 사업자 번호
+              ,A.BANK_ACCOUNT_NO                        AS BANK_ACCOUNT_NO -- 계좌번호
+              ,A.BANK_ACCOUNT_ID                        AS BANK_ACCOUNT_ID -- 은행 계좌 정보 ID
+              ,A.BANK_NATION                            AS BANK_NATION     -- 은행국가키이
+              ,A.BANK_CD                                AS BANK_CD         -- 은행키
+              ,A.BANK_USER                              AS BANK_USER       -- 예금주
+              ,A.BANK_DESC                              AS BANK_DESC       -- 참조세부사항
+              ,A.PAY_COND                               AS PAY_COND        -- 지급조건
+              ,A.SAP_RECV_YN                            AS SAP_RECV_YN     -- SAP수신여부
+              ,A.SAP_SEND_YN                            AS SAP_SEND_YN     -- SAP전송여부
+              ,A.RETURN_DESC                            AS RETURN_DESC     -- 반려사유
+              ,A.STATUS                                 AS STATUS          -- 진행상태
+              ,A.EPS_DOC_NO                             AS EPS_DOC_NO      -- 전자결재문서번호
+              ,A.CRE_DATE                               AS CRE_DATE        -- 등록일자
+              ,A.CRE_USER                               AS CRE_USER        -- 등록자ID
+              ,A.MOD_DATE                               AS MOD_DATE        -- 수정일자
+              ,A.MOD_USER                               AS MOD_USER        -- 수정자ID
+              ,'R'                                      AS CRUD            -- 행구분
+		  FROM FI_VENDOR_BANK_DETAIL A
+		 WHERE 1 = 1
+		   AND A.COMP_CD   = #{COMP_CD}
+		   AND A.CRTN_YMD  = #{CRTN_YMD}
+		   AND A.ORG_CD    = #{ORG_CD}
+		   AND A.POBUSI_NO = #{POBUSI_NO}
+		ORDER BY A.COMP_CD
+		        ,A.CRTN_YMD
+		        ,A.ORG_CD
+		        ,A.POBUSI_NO
+	</select>
+	
+	<select id="selectSendVendBankData" parameterType="Map" resultType="Map">
+		--com.bdg.VendBankMgt.selectSendVendBankData
+		SELECT B.VENDOR_CD                              AS PARTNER         -- 업체코드
+              ,A.BANK_ACCOUNT_NO                        AS BANKN           -- 계좌번호
+              ,A.BANK_ACCOUNT_ID                        AS BKVID           -- 은행 계좌 정보 ID
+              ,A.BANK_NATION                            AS BANKS           -- 은행국가키이
+              ,A.BANK_CD                                AS BANKL           -- 은행키
+              ,A.BANK_USER                              AS KOINH           -- 예금주
+              ,A.BANK_DESC                              AS BKREF           -- 참조세부사항
+		  FROM FI_VENDOR_BANK_DETAIL A
+		      LEFT OUTER JOIN
+		       FI_VENDOR_BANK_HEAD B
+		      ON    B.COMP_CD   = A.COMP_CD
+                AND B.CRTN_YMD  = A.CRTN_YMD
+                AND B.ORG_CD    = A.ORG_CD
+                AND B.POBUSI_NO = A.POBUSI_NO
+		 WHERE 1 = 1
+		   AND A.EPS_DOC_NO   = #{EPS_DOC_NO}
+		   AND NVL(A.SAP_RECV_YN, 'N') = 'N'
+	</select>
+	
+	<select id="selectHeadFlagYn" parameterType="Map" resultType="Map">
+		--com.bdg.VendBankMgt.selectHeadFlagYn
+        SELECT CASE WHEN CNT > 0 THEN 'N'
+                    ELSE 'Y'
+               END FLAG_YN
+          FROM (
+                SELECT COUNT(*) CNT
+                  FROM FI_VENDOR_BANK_DETAIL B
+                 WHERE 1 = 1
+                   AND B.COMP_CD     = #{COMP_CD}
+                   AND B.CRTN_YMD    = #{CRTN_YMD}
+                   AND B.ORG_CD      = #{ORG_CD}
+                   AND B.POBUSI_NO   = REPLACE(#{POBUSI_NO}, '-', '')
+                   AND B.STATUS IN ('2', '3', '5')
+               ) A
+	</select>	
+	
+	<select id="selectDetailFlagYn" parameterType="Map" resultType="Map">
+		--com.bdg.VendBankMgt.selectDetailFlagYn
+		SELECT A.FLAG_YN AS FLAG_YN
+		  FROM (
+		        SELECT ROW_NUMBER() OVER(ORDER BY FLAG_YN) AS RNUM
+		              ,A.FLAG_YN
+		          FROM (
+		                SELECT CASE WHEN #{GUBN} = 'SA' THEN CASE -- 저장,삭제는 작성중상태만 가능
+		                                                       WHEN STATUS IN ('1', '4') THEN 'Y'
+		                                                       ELSE 'N'
+		                                                     END
+		                            WHEN #{GUBN} = 'DE' THEN CASE -- 저장,삭제는 작성중상태만 가능
+		                                                       WHEN STATUS IN ('1', '4') THEN 'Y'
+		                                                       ELSE 'N'
+		                                                     END
+		                            WHEN #{GUBN} = 'AR' THEN CASE -- 승인요청
+		                                                       WHEN STATUS IN( '1') THEN 'Y'
+		                                                       ELSE 'N'
+		                                                     END
+		                            ELSE 'N'
+		                       END AS FLAG_YN
+		                  FROM FI_VENDOR_BANK_DETAIL B
+		                 WHERE 1 = 1
+		                   AND B.COMP_CD         = #{COMP_CD}
+		                   AND B.CRTN_YMD        = #{CRTN_YMD}
+		                   AND B.ORG_CD          = #{ORG_CD}
+		                   AND B.POBUSI_NO       = REPLACE(#{POBUSI_NO}, '-', '')
+		                   AND B.BANK_ACCOUNT_NO = REPLACE(#{BANK_ACCOUNT_NO}, '-', '')
+		               UNION ALL
+		                SELECT 'Y' AS FLAG_YN
+		                  FROM DUAL
+		               ) A
+		        ) A
+		 WHERE 1 = 1
+		   AND RNUM = 1
+	</select>
+	
+    <insert id="saveVendBankHeadMgt" parameterType="Map">
+		--com.bdg.VendBankMgt.saveVendBankHeadMgt
+		MERGE INTO FI_VENDOR_BANK_HEAD A
+		
+		    USING (
+		           SELECT #{COMP_CD}                     AS COMP_CD
+                         ,#{CRTN_YMD}                    AS CRTN_YMD
+                         ,#{ORG_CD}                      AS ORG_CD
+                         ,REPLACE(#{POBUSI_NO}, '-', '') AS POBUSI_NO
+                         ,#{VENDOR_CD}                   AS VENDOR_CD
+                         ,#{VENDOR_NM}                   AS VENDOR_NM
+                         ,#{PRESIDENT_NM}                AS PRESIDENT_NM
+                         ,#{TEL_NO}                      AS TEL_NO
+                         ,#{EMAIL}                       AS EMAIL
+                         ,#{BUSS_TYPE}                   AS BUSS_TYPE
+                         ,#{BUSIN}                       AS BUSIN
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')   AS CRE_DATE     
+		                 ,#{CRE_USER}                    AS CRE_USER     
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')   AS MOD_DATE     
+		                 ,#{MOD_USER}                    AS MOD_USER 
+		                 
+		             FROM DUAL A
+		          ) B
+		       ON (    A.COMP_CD     = B.COMP_CD    
+		           AND A.CRTN_YMD    = B.CRTN_YMD  
+		           AND A.ORG_CD      = B.ORG_CD     
+		           AND A.POBUSI_NO   = B.POBUSI_NO
+		          )
+		           
+		    WHEN MATCHED THEN
+		           
+		        UPDATE 
+		           SET A.VENDOR_CD    = B.VENDOR_CD
+                      ,A.VENDOR_NM    = B.VENDOR_NM
+                      ,A.PRESIDENT_NM = B.PRESIDENT_NM
+                      ,A.TEL_NO       = B.TEL_NO
+                      ,A.EMAIL        = B.EMAIL
+                      ,A.BUSS_TYPE    = B.BUSS_TYPE
+                      ,A.BUSIN        = B.BUSIN
+                      ,A.MOD_DATE     = B.MOD_DATE
+                      ,A.MOD_USER     = B.MOD_USER
+
+		    WHEN NOT MATCHED THEN
+		                     
+		        INSERT (
+		                A.COMP_CD
+                       ,A.CRTN_YMD
+                       ,A.ORG_CD
+                       ,A.POBUSI_NO
+                       ,A.VENDOR_CD
+                       ,A.VENDOR_NM
+                       ,A.PRESIDENT_NM
+                       ,A.TEL_NO
+                       ,A.EMAIL
+                       ,A.BUSS_TYPE
+                       ,A.BUSIN
+                       ,A.CRE_DATE
+                       ,A.CRE_USER
+                       ,A.MOD_DATE
+                       ,A.MOD_USER
+		               ) VALUES ( B.COMP_CD
+                                 ,B.CRTN_YMD
+                                 ,B.ORG_CD
+                                 ,B.POBUSI_NO
+                                 ,B.VENDOR_CD
+                                 ,B.VENDOR_NM
+                                 ,B.PRESIDENT_NM
+                                 ,B.TEL_NO
+                                 ,B.EMAIL
+                                 ,B.BUSS_TYPE
+                                 ,B.BUSIN
+                                 ,B.CRE_DATE
+                                 ,B.CRE_USER
+                                 ,B.MOD_DATE
+                                 ,B.MOD_USER
+		                         )             
+
+    </insert>
+    
+    <delete id="deleteVendBankHeadMgt" parameterType="Map">
+		--com.bdg.VendBankMgt.deleteVendBankHeadMgt(건별삭제)
+		DELETE FROM FI_VENDOR_BANK_HEAD
+		 WHERE 1 = 1
+		   AND COMP_CD     = #{COMP_CD}
+		   AND CRTN_YMD    = #{CRTN_YMD}
+		   AND ORG_CD      = #{ORG_CD}
+		   AND POBUSI_NO   = REPLACE(#{POBUSI_NO}, '-', '')
+    </delete>
+    
+    <update id="updatVendBankMgtStatus" parameterType="Map">
+		--com.bdg.VendBankMgt.updatVendBankMgtStatus(승인요청시 detail 일괄처리)
+		UPDATE FI_VENDOR_BANK_DETAIL
+		   SET STATUS     = #{STATUS}
+		      ,EPS_DOC_NO = #{EPS_DOC_NO}
+		      ,MOD_DATE   = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,MOD_USER   = #{MOD_USER}
+		 WHERE 1 = 1
+		   AND COMP_CD     = #{COMP_CD}
+		   AND CRTN_YMD    = #{CRTN_YMD}
+		   AND ORG_CD      = #{ORG_CD}
+		   AND POBUSI_NO   = REPLACE(#{POBUSI_NO}, '-', '')
+    </update>
+    
+    <update id="updatVendBankMgtEpsStatus" parameterType="Map">
+		--com.bdg.VendBankMgt.updatVendBankMgtEpsStatus(승인진행중/반려/승인완료)
+		UPDATE FI_VENDOR_BANK_DETAIL
+		   SET STATUS        = #{STATUS}
+		      ,EPS_DOC_NO    = CASE WHEN #{STATUS} = '1' THEN ''
+		                            ELSE EPS_DOC_NO
+		                       END			      
+		      ,RETURN_DESC   = #{APPROVAL_DESC}
+		      ,MOD_DATE      = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,MOD_USER      = #{APPROVAL_ID}
+		 WHERE 1 = 1
+		   AND EPS_DOC_NO  = #{EPS_DOC_NO}
+    </update>
+    
+    <update id="updatSendFlag" parameterType="Map">
+		--com.bdg.VendBankMgt.updatSendFlag(전송)
+		UPDATE FI_VENDOR_BANK_DETAIL
+		   SET SAP_SEND_YN = 'Y'
+		 WHERE 1 = 1
+		   AND EPS_DOC_NO  = #{EPS_DOC_NO}
+    </update>
+    
+    <update id="updatVendBankMgtStatus6" parameterType="Map">
+		--com.bdg.VendBankMgt.updatVendBankMgtStatus6(전송실패)
+		UPDATE FI_VENDOR_BANK_DETAIL
+		   SET STATUS      = '6'
+		      ,SAP_SEND_YN = 'N'
+		 WHERE 1 = 1
+		   AND EPS_DOC_NO  = #{EPS_DOC_NO}
+    </update>
+    
+    <delete id="deleteVendBankDetailMgt" parameterType="Map">
+		--com.bdg.VendBankMgt.deleteVendBankDetailMgt(건별삭제처리)
+		DELETE FROM FI_VENDOR_BANK_DETAIL
+		 WHERE 1 = 1
+		   AND COMP_CD         = #{COMP_CD}
+		   AND CRTN_YMD        = #{CRTN_YMD}
+		   AND ORG_CD          = #{ORG_CD}
+		   AND POBUSI_NO       = REPLACE(#{POBUSI_NO}, '-', '')
+		   AND BANK_ACCOUNT_NO = REPLACE(#{BANK_ACCOUNT_NO}, '-', '')          
+    </delete>
+    
+    <delete id="deleteVendBankDetailMgt2" parameterType="Map">
+		--com.bdg.VendBankMgt.deleteVendBankDetailMgt2(전체삭제처리)
+		DELETE FROM FI_VENDOR_BANK_DETAIL
+		 WHERE 1 = 1
+		   AND COMP_CD   = #{COMP_CD}
+		   AND CRTN_YMD  = #{CRTN_YMD}
+		   AND ORG_CD    = #{ORG_CD}
+		   AND POBUSI_NO = REPLACE(#{POBUSI_NO}, '-', '')
+    </delete>    
+    
+    <insert id="saveVendBankDetailMgt" parameterType="Map">
+		--com.bdg.VendBankMgt.saveVendBankDetailMgt
+		MERGE INTO FI_VENDOR_BANK_DETAIL A
+		
+		    USING (
+		           SELECT #{COMP_CD}                           AS COMP_CD
+                         ,#{CRTN_YMD}                          AS CRTN_YMD
+                         ,#{ORG_CD}                            AS ORG_CD
+                         ,REPLACE(#{POBUSI_NO}, '-', '')       AS POBUSI_NO
+                         ,REPLACE(#{BANK_ACCOUNT_NO}, '-', '') AS BANK_ACCOUNT_NO
+                         ,#{BANK_ACCOUNT_ID}                   AS BANK_ACCOUNT_ID
+                         ,#{BANK_NATION}                       AS BANK_NATION
+                         ,#{BANK_CD}                           AS BANK_CD
+                         ,#{BANK_USER}                         AS BANK_USER
+                         ,#{BANK_DESC}                         AS BANK_DESC
+                         ,#{PAY_COND}                          AS PAY_COND
+                         ,#{SAP_RECV_YN}                       AS SAP_RECV_YN
+                         ,#{SAP_SEND_YN}                       AS SAP_SEND_YN
+                         ,#{RETURN_DESC}                       AS RETURN_DESC
+                         ,#{STATUS}                            AS STATUS
+                         ,#{EPS_DOC_NO}                        AS EPS_DOC_NO
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')         AS CRE_DATE     
+		                 ,#{CRE_USER}                          AS CRE_USER     
+		                 ,TO_CHAR(SYSDATE, 'YYYYMMDD')         AS MOD_DATE     
+		                 ,#{MOD_USER}                          AS MOD_USER     
+		             FROM DUAL A
+		          ) B
+		       ON (    A.COMP_CD         = B.COMP_CD    
+		           AND A.CRTN_YMD        = B.CRTN_YMD  
+		           AND A.ORG_CD          = B.ORG_CD     
+		           AND A.POBUSI_NO       = B.POBUSI_NO
+		           AND A.BANK_ACCOUNT_NO = B.BANK_ACCOUNT_NO 
+		          )
+		           
+		    WHEN MATCHED THEN
+		           
+		        UPDATE 
+		           SET A.BANK_ACCOUNT_ID = B.BANK_ACCOUNT_ID
+                      ,A.BANK_NATION     = B.BANK_NATION
+                      ,A.BANK_CD         = B.BANK_CD
+                      ,A.BANK_USER       = B.BANK_USER
+                      ,A.BANK_DESC       = B.BANK_DESC
+                      ,A.PAY_COND        = B.PAY_COND
+                      ,A.SAP_RECV_YN     = B.SAP_RECV_YN
+                      ,A.SAP_SEND_YN     = B.SAP_SEND_YN
+                      ,A.RETURN_DESC     = B.RETURN_DESC
+                      ,A.STATUS          = B.STATUS
+                      ,A.EPS_DOC_NO      = B.EPS_DOC_NO
+                      ,A.MOD_DATE        = B.MOD_DATE
+                      ,A.MOD_USER        = B.MOD_USER
+
+		    WHEN NOT MATCHED THEN
+		                     
+		        INSERT (
+		                A.COMP_CD
+                       ,A.CRTN_YMD
+                       ,A.ORG_CD
+                       ,A.POBUSI_NO
+                       ,A.BANK_ACCOUNT_NO
+                       ,A.BANK_ACCOUNT_ID
+                       ,A.BANK_NATION
+                       ,A.BANK_CD
+                       ,A.BANK_USER
+                       ,A.BANK_DESC
+                       ,A.PAY_COND
+                       ,A.SAP_RECV_YN
+                       ,A.SAP_SEND_YN
+                       ,A.RETURN_DESC
+                       ,A.STATUS
+                       ,A.EPS_DOC_NO
+                       ,A.CRE_DATE
+                       ,A.CRE_USER
+                       ,A.MOD_DATE
+                       ,A.MOD_USER
+		               ) VALUES ( B.COMP_CD
+                                 ,B.CRTN_YMD
+                                 ,B.ORG_CD
+                                 ,B.POBUSI_NO
+                                 ,B.BANK_ACCOUNT_NO
+                                 ,B.BANK_ACCOUNT_ID
+                                 ,B.BANK_NATION
+                                 ,B.BANK_CD
+                                 ,B.BANK_USER
+                                 ,B.BANK_DESC
+                                 ,B.PAY_COND
+                                 ,B.SAP_RECV_YN
+                                 ,B.SAP_SEND_YN
+                                 ,B.RETURN_DESC
+                                 ,B.STATUS
+                                 ,B.EPS_DOC_NO
+                                 ,B.CRE_DATE
+                                 ,B.CRE_USER
+                                 ,B.MOD_DATE
+                                 ,B.MOD_USER
+		                         )  
+	</insert>
+	           
+</mapper>

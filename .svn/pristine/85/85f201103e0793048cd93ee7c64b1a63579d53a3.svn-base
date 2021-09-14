@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.FamilyEvent">
+	<select id="selectFamilyEvent" parameterType="Map" resultType="Map">
+--com.bdg.FamilyEvent.selectFamilyEvent
+SELECT A.COMP_CD                                     COMP_CD         -- 회사코드
+      ,A.ORG_CD                                      ORG_CD          -- 작성부서코드
+      ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.ORG_CD, NULL) ORG_NM          -- 부서명
+      ,A.REQ_SABUN                                   REQ_SABUN       -- 신청사번
+      ,FUNC_GET_USER_NAME(A.REQ_SABUN)               REQ_SABUN_NM    -- 신청자명
+      ,A.REQ_DATE                                    REQ_DATE        -- 신청일자
+      ,A.REQ_SEQ                                     REQ_SEQ         -- 요청 SEQ
+      ,A.STATUS                                      STATUS          -- 진행상태
+      ,A.EVNT_DATE                                   EVNT_DATE       -- 경조일자
+      ,A.EVNT_CODE                                   EVNT_CODE       -- 경조구분코드
+      ,A.EVNT_YR_NM                                  EVNT_YR_NM      -- 경조당사자
+      ,A.EVNT_RLTNL_CODE                             EVNT_RLTNL_CODE -- 경조대상관계
+      ,A.EVNT_TRGT_NM                                EVNT_TRGT_NM    -- 경조대상자성명
+      ,A.VENDOR_CD                                   VENDOR_CD       -- 거래처코드
+      ,A.VENDOR_NM                                   VENDOR_NM       -- 거래처명
+      ,A.EVNT_WAY_CODE                               EVNT_WAY_CODE   -- 경조방법
+      ,A.EVNT_AMT                                    EVNT_AMT        -- 경조금액
+      ,A.EVNT_LOCATION                               EVNT_LOCATION   -- 경조장소
+      ,A.EVNT_KYR_YN                                 EVNT_KYR_YN     -- 김영란법 유무
+      ,A.CRE_DATE                                    CRE_DATE        -- 등록일자
+      ,A.CRE_USER                                    CRE_USER        -- 등록자ID
+      ,A.MOD_DATE                                    MOD_DATE        -- 수정일자
+      ,A.MOD_USER                                    MOD_USER        -- 수정자ID
+      ,'1'                                           CODEMAPPING1
+      ,'1'                                           CODEMAPPING2
+      ,'R'                                           CRUD
+  FROM FI_FAMILY_EVNT A
+ WHERE 1=1
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''"> 
+   AND COMP_CD   = #{SB_COMP_CD}
+</if>
+<if test="TB_DEPT_CD != null and TB_DEPT_CD != ''"> 
+   AND ORG_CD    = #{TB_DEPT_CD}
+</if>
+<if test="SB_STATUS != null and SB_STATUS != ''"> 
+   AND STATUS = #{SB_STATUS}
+</if>
+<if test="TB_START_DT != null and TB_START_DT != ''">
+<![CDATA[AND REQ_DATE >= REPLACE(#{TB_START_DT},'-','')]]>
+</if>
+<if test="TB_END_DT != null and TB_END_DT != ''">
+<![CDATA[AND REQ_DATE <= REPLACE(#{TB_END_DT},'-','')]]>
+</if>
+  ORDER BY COMP_CD
+          ,ORG_CD
+          ,REQ_SABUN
+          ,REQ_DATE
+          ,REQ_SEQ
+  </select>
+  
+  	
+<insert id="insertFamilyEvent" parameterType="Map">
+--com.bdg.FamilyEvent.insertFamilyEvent
+INSERT INTO FI_FAMILY_EVNT
+ (
+   COMP_CD         -- 회사코드    
+  ,ORG_CD          -- 작성부서코드  
+  ,REQ_SABUN       -- 신청사번     
+  ,REQ_DATE        -- 신청일자    
+  ,REQ_SEQ         -- 요청 SEQ  
+  ,STATUS          -- 진행상태     
+  ,EVNT_DATE       -- 경조일자    
+  ,EVNT_CODE       -- 경조구분코드  
+  ,EVNT_YR_NM      -- 경조당사자   
+  ,EVNT_RLTNL_CODE -- 경조대상관계  
+  ,EVNT_TRGT_NM    -- 경조대상자성명   
+  ,VENDOR_CD       -- 거래처코드     
+  ,VENDOR_NM       -- 거래처명    
+  ,EVNT_WAY_CODE   -- 경조방법    
+  ,EVNT_AMT        -- 경조금액    
+  ,EVNT_LOCATION   -- 경조장소    
+  ,EVNT_KYR_YN     -- 김영란법 유무 
+  ,CRE_DATE        -- 등록일자    
+  ,CRE_USER        -- 등록자ID   
+  ,MOD_DATE        -- 수정일자    
+  ,MOD_USER        -- 수정자ID   
+ ) VALUES (
+            #{COMP_CD}
+           ,#{ORG_CD}
+           ,#{REQ_SABUN}
+           ,#{REQ_DATE}
+           ,(
+             SELECT NVL(MAX(REQ_SEQ),0) + 1
+               FROM FI_FAMILY_EVNT
+              WHERE COMP_CD   = #{COMP_CD}
+                AND ORG_CD    = #{ORG_CD}
+                AND REQ_SABUN = #{REQ_SABUN}
+                AND REQ_DATE  = #{REQ_DATE}
+            )
+           ,#{STATUS}
+           ,#{EVNT_DATE}
+           ,#{EVNT_CODE}
+           ,#{EVNT_YR_NM}
+           ,#{EVNT_RLTNL_CODE}
+           ,#{EVNT_TRGT_NM}
+           ,#{VENDOR_CD}
+           ,#{VENDOR_NM}
+           ,#{EVNT_WAY_CODE}
+           ,#{EVNT_AMT}
+           ,#{EVNT_LOCATION}
+           ,#{EVNT_KYR_YN}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{MOD_USER}
+           )
+	</insert>
+
+	<update id="applyFamilyEvent" parameterType="map">
+--com.bdg.FamilyEvent.applyFamilyEvent
+UPDATE FI_FAMILY_EVNT
+   SET STATUS   = '2'
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD   = #{COMP_CD}
+   AND ORG_CD    = #{ORG_CD}
+   AND REQ_SABUN = #{REQ_SABUN}
+   AND REQ_DATE  = #{REQ_DATE}
+   AND REQ_SEQ   = #{REQ_SEQ}
+	</update>
+  
+  
+  	<update id="confirmFamilyEvent" parameterType="map">
+--com.bdg.FamilyEvent.confirmFamilyEvent
+UPDATE FI_FAMILY_EVNT
+   SET STATUS   = '3'
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD   = #{COMP_CD}
+   AND ORG_CD    = #{ORG_CD}
+   AND REQ_SABUN = #{REQ_SABUN}
+   AND REQ_DATE  = #{REQ_DATE}
+   AND REQ_SEQ   = #{REQ_SEQ}
+	</update>
+  
+  	<delete id="delFamilyEvent" parameterType="map">
+--com.bdg.FamilyEvent.delFamilyEvent
+DELETE FROM FI_FAMILY_EVNT
+ WHERE COMP_CD   = #{COMP_CD}
+   AND ORG_CD    = #{ORG_CD}
+   AND REQ_SABUN = #{REQ_SABUN}
+   AND REQ_DATE  = #{REQ_DATE}
+   AND REQ_SEQ   = #{REQ_SEQ}
+	</delete>
+
+	<update id="updateFamilyEvent" parameterType="Map">
+--com.bdg.FamilyEvent.updateFamilyEvent
+UPDATE FI_FAMILY_EVNT
+   SET EVNT_DATE       = #{EVNT_DATE}
+      ,EVNT_CODE       = #{EVNT_CODE}
+      ,EVNT_YR_NM      = #{EVNT_YR_NM}
+      ,EVNT_RLTNL_CODE = #{EVNT_RLTNL_CODE}
+      ,EVNT_TRGT_NM    = #{EVNT_TRGT_NM}
+      ,VENDOR_CD       = #{VENDOR_CD}
+      ,VENDOR_NM       = #{VENDOR_NM}
+      ,EVNT_WAY_CODE   = #{EVNT_WAY_CODE}
+      ,EVNT_AMT        = #{EVNT_AMT}
+      ,EVNT_LOCATION   = #{EVNT_LOCATION}
+      ,EVNT_KYR_YN     = #{EVNT_KYR_YN}
+      ,MOD_DATE        = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER        = #{MOD_USER}
+ WHERE COMP_CD         = #{COMP_CD}
+   AND ORG_CD          = #{ORG_CD}
+   AND REQ_SABUN       = #{REQ_SABUN}
+   AND REQ_DATE        = #{REQ_DATE}
+   AND REQ_SEQ         = #{REQ_SEQ}
+	</update>
+
+	<select id="selectCheckData" parameterType="Map" resultType="Map">
+	    --com.bdg.FamilyEvent.selectCheckData
+	    <![CDATA[
+		SELECT COUNT(*) CNT
+		  FROM FI_FAMILY_EVNT 
+         WHERE 1 = 1
+           AND EVNT_DATE  = #{EVNT_DATE}
+           AND EVNT_CODE  = #{EVNT_CODE}
+           AND EVNT_YR_NM = #{EVNT_YR_NM}
+           AND NOT EXISTS (
+                           SELECT 1
+                             FROM FI_FAMILY_EVNT
+                            WHERE 1 = 1
+                              AND COMP_CD   = #{COMP_CD}
+                              AND ORG_CD    = #{ORG_CD}
+                              AND REQ_SABUN = #{REQ_SABUN}
+                              AND REQ_SEQ   = CASE WHEN #{CRUD} = 'R' THEN #{REQ_SEQ}
+                                                   ELSE TO_CHAR((SELECT NVL(MAX(REQ_SEQ),0) + 1
+                                                                   FROM FI_FAMILY_EVNT
+                                                                  WHERE COMP_CD   = #{COMP_CD}
+                                                                    AND ORG_CD    = #{ORG_CD}
+                                                                    AND REQ_SABUN = #{REQ_SABUN}
+                                                                    AND REQ_DATE  = #{REQ_DATE}))
+                                              END
+                          )                                                                   
+
+        ]]>
+	</select>
+</mapper>

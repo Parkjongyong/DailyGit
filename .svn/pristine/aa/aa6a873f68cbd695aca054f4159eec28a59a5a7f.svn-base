@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="common.LoginAuth">
+
+	<select id="selectUserLoginInfo" parameterType="Map" resultType="Map">
+	<![CDATA[
+    --LoginAuthMapper.selectUserLoginInfo
+	SELECT USR.USER_ID
+	     , USR.COMP_CD
+	     , USR.USER_NM
+	     , USR.DEPT_CD
+         , FUNC_GET_DEPT_NAME(USR.COMP_CD, USR.DEPT_CD, '')         AS DEPT_NM
+         , FUNC_GET_COST_CODE(USR.COMP_CD, USR.DEPT_CD, '')         AS COST_CD
+         , FUNC_GET_ETC_CHC_GUBN(USR.COMP_CD, FUNC_GET_COST_CODE(USR.COMP_CD, USR.DEPT_CD, '') , '')      AS ETC_CHC_GUBN
+		 , USR.PWD                                     AS PASSWORD
+	 	 , NVL(USR.PWD_MOD_DT,'')                      AS PWD_MOD_DATE
+		 , NVL(USR.LAST_LOGIN_DT,'')                   AS LAST_LOGIN_DATE
+		 , NVL(USR.TEL_NO,'')                          AS PHONE_NO
+		 , NVL(USR.EMAIL_ID,'')                        AS EMAIL
+		 , NVL(USR.MOBILE_NO,'')                       AS CELL_PHONE_NO
+		 , FUNC_HAS_ROLE_USER(#{USER_ID}, #{ROLE_PUR}) AS ROLE_PUR
+		 , FUNC_HAS_ROLE_USER(#{USER_ID}, #{ROLE_PUR}) AS CNTRT_DEPT
+		 , USR.EMP_NO
+		 , USR.MAIN_WORK_TYPE
+		 , USR.MANAGER_ID		
+		 , USR.LOGIN_CNT
+		 , USR.USER_CLS                                AS USER_CLS
+		 , USR.USER_CLS                                AS MODULE_TYPE
+		 , USR.VENDOR_CD                               AS VENDOR_CD
+		 , USR.VENDOR_NM                               AS VENDOR_NM
+         , CASE WHEN USR.USER_CLS = 'B' THEN 0
+                ELSE TO_DATE(TO_CHAR(SYSDATE,'YY/MM/DD'),'YY/MM/DD') - TO_DATE(USR.PWD_MOD_DT, 'YY/MM/DD')
+           END              AS DATEGAP
+	  FROM SYS_USER USR
+	 WHERE USR.USER_ID = #{USER_ID}
+	   AND USR.USG_YN = 'Y'
+	]]>
+	</select>
+	
+	<select id="selectSsoUserLoginInfo" parameterType="Map" resultType="Map">
+    --LoginAuthMapper.selectSsoUserLoginInfo
+    SELECT USR.USER_ID
+         , USR.COMP_CD
+         , USR.USER_NM
+         , USR.DEPT_CD
+         , FUNC_GET_DEPT_NAME(USR.COMP_CD, USR.DEPT_CD, '')          AS DEPT_NM
+         , USR.PWD                                      AS PASSWORD
+         , NVL(USR.PWD_MOD_DT,'')                       AS PWD_MOD_DATE
+         , NVL(USR.LAST_LOGIN_DT,'')                    AS LAST_LOGIN_DATE
+         , NVL(USR.TEL_NO,'')                           AS PHONE_NO
+         , NVL(USR.EMAIL_ID,'')                         AS EMAIL
+         , NVL(USR.MOBILE_NO,'')                        AS CELL_PHONE_NO
+         , FUNC_HAS_ROLE_USER(USR.USER_ID, #{ROLE_PUR}) AS ROLE_PUR
+         , FUNC_HAS_ROLE_USER(USR.USER_ID, #{ROLE_PUR}) AS CNTRT_DEPT   
+         , USR.EMP_NO     
+         , USR.MAIN_WORK_TYPE       
+      FROM SYS_USER USR
+      LEFT OUTER JOIN DEPT ON USR.DEPT_CD = DEPT.DEPT_CD
+     WHERE USR.EMP_NO = #{SSO_EMP_NO}
+       AND USR.USG_YN = 'Y'
+    </select>
+	
+	<update id="updateUserLoginDt" parameterType="Map">
+    --LoginAuthMapper.updateUserLoginDt
+
+	UPDATE SYS_USER
+	SET 
+		  LOGIN_CNT   		= NVL(LOGIN_CNT,0) + 1
+		, LAST_LOGIN_DT	= SYSDATE
+	WHERE 
+		USER_ID = #{USER_ID}
+	</update>
+	
+	<select id="selectUserRoleListForLogin" parameterType="Map" resultType="string">
+    --LoginAuthMapper.selectUserRoleListForLogin
+	<![CDATA[
+	SELECT RUSR.ROLE_CD
+		  FROM SYS_USER_ROLE RUSR
+	  LEFT JOIN SYS_ROLE ROLE ON ROLE.ROLE_CD = RUSR.ROLE_CD
+	  WHERE 1=1
+	   AND RUSR.USER_ID = #{USER_ID}
+	   AND ROLE.USG_YN = 'Y'
+	
+	UNION 
+	
+	SELECT RDPT.ROLE_CD 
+	  FROM SYS_DEPT_ROLE RDPT
+	  LEFT JOIN SYS_ROLE ROLE ON ROLE.ROLE_CD = RDPT.ROLE_CD
+	 WHERE  
+	   RDPT.DEPT_CD = (SELECT DEPT_CD AS DEPT_CD FROM SYS_USER WHERE USER_ID = #{USER_ID})
+	   AND ROLE.USG_YN = 'Y'
+	]]>		
+	</select>
+	
+	<select id="selectDeptRoleListForLogin" parameterType="Map" resultType="string">
+    --LoginAuthMapper.selectDeptRoleListForLogin
+	<![CDATA[
+	SELECT RDPT.ROLE_CD 
+	  FROM SYS_DEPT_ROLE RDPT
+	  LEFT JOIN SYS_ROLE ROLE ON ROLE.ROLE_CD = RDPT.ROLE_CD
+	 WHERE RDPT.DEPT_CD = (SELECT DEPT_CD AS DEPT_CD FROM SYS_USER WHERE USER_ID = #{USER_ID})
+	   AND ROLE.USG_YN = 'Y'
+	]]>		
+	</select>		
+	
+	<select id="selectUserMenuList" parameterType="Map" resultType="Map">
+    --LoginAuthMapper.selectUserMenuList
+	SELECT SRC.MENU_CD
+	     , SRC.UP_MENU_CD
+	     , SRC.MENU_NM
+	     , SRC.ORD_NO
+	     , SRC.TOP_MENU_NO
+	     , (SELECT MENU_NM FROM SYS_MENU TOP WHERE TOP.MENU_CD = SRC.MENU_CD) TOP_MENU_NM
+	     , SRC.LINK_URL
+	     , SRC.MODULE_YN
+	     , SRC.MODULE_TYPE
+	     , SRC.DISPLAY_YN
+	     , SRC.MENU_DEPTH
+	     , CASE WHEN SRC.CHILD_CNT > 0 THEN 'Y'
+	            ELSE 'N'
+	       END CHILD_YN
+	  FROM (  
+		SELECT CASE 
+		         WHEN C.MENU_USE_YN = 'Y'    THEN C.MENU_CD
+		         WHEN C.MENU_USE_YN = 'N'    THEN NULL 
+		         ELSE                             RMNU.MENU_CD
+		       END MENU_CD
+		     , MENU.UP_MENU_CD
+		     , MENU.MENU_NM
+		     , CASE WHEN MENU.UP_MENU_CD = 'ROOT' THEN MENU.ORD_NO * 1000000
+		            WHEN     MENU.UP_MENU_CD != 'ROOT' 
+		                 AND (SELECT UP_MENU_CD FROM SYS_MENU WHERE MENU_CD = MENU.UP_MENU_CD) = 'ROOT' THEN (SELECT ORD_NO FROM SYS_MENU WHERE MENU_CD = MENU.UP_MENU_CD) * 1000000 + 1000 * ORD_NO
+		            ELSE (SELECT ORD_NO FROM SYS_MENU WHERE MENU_CD = (SELECT UP_MENU_CD FROM SYS_MENU WHERE MENU_CD = MENU.UP_MENU_CD)) * 1000000
+		                 + (SELECT ORD_NO FROM SYS_MENU WHERE MENU_CD = MENU.UP_MENU_CD) * 1000
+		                 + ORD_NO 
+		       END AS ORD_NO
+		     , CASE WHEN MENU.UP_MENU_CD = 'ROOT' THEN MENU.MENU_CD
+		            WHEN     MENU.UP_MENU_CD != 'ROOT' 
+		                 AND (SELECT UP_MENU_CD FROM SYS_MENU WHERE MENU_CD = MENU.UP_MENU_CD) = 'ROOT' THEN (SELECT MENU_CD FROM SYS_MENU WHERE MENU_CD = MENU.UP_MENU_CD)
+		            ELSE (SELECT MENU_CD FROM SYS_MENU WHERE MENU_CD = (SELECT UP_MENU_CD FROM SYS_MENU WHERE MENU_CD = MENU.UP_MENU_CD))
+		       END AS TOP_MENU_NO
+		     , MENU.LINK_URL
+		     , MENU.MODULE_YN
+		     , MENU.DISPLAY_YN
+		     , MENU.MODULE_TYPE
+		     , DECODE(MENU.UP_MENU_CD,'ROOT',1,DECODE((SELECT UP_MENU_CD FROM SYS_MENU WHERE MENU_CD = MENU.UP_MENU_CD), 'ROOT', 2, 3)) MENU_DEPTH
+		     , (SELECT COUNT(*) FROM SYS_MENU WHERE UP_MENU_CD = MENU.MENU_CD) CHILD_CNT
+		  FROM SYS_MENU MENU
+		  LEFT JOIN (
+			  	SELECT RMNU.MENU_CD
+				  FROM SYS_ROLE_MENU RMNU
+				 WHERE RMNU.ROLE_CD IN 
+				<foreach item="item" index="index" collection="ROLE_LIST" open="(" close=")" separator=",">
+					#{item}
+	   			</foreach>
+				 GROUP BY RMNU.MENU_CD
+		  ) RMNU ON RMNU.MENU_CD = MENU.MENU_CD
+	      LEFT OUTER JOIN 
+           SYS_USER_MENU C
+		  ON    C.MENU_CD     = MENU.MENU_CD
+		    AND C.USER_ID     = #{USER_ID}
+		 WHERE MENU.MODULE_TYPE 		= #{MODULE_TYPE}
+		   AND MENU.USG_YN 				= 'Y'
+		   AND MENU.DISPLAY_YN 			= 'Y'
+	) SRC 
+	WHERE SRC.MENU_CD IS NOT NULL
+	ORDER BY SRC.ORD_NO ASC
+	</select>	
+	
+	<insert id="insertAccessHist" parameterType="Map">
+    --LoginAuthMapper.insertAccessHist
+
+	   INSERT
+		INTO	SYS_ACCESS_LOG (
+		        ACCESS_SEQ
+			,	SERVER_IP
+			,	SYS_ID
+			,	ACCESS_TYPE
+			,	USER_ID
+			,	USER_IP
+			,	SUCC_YN
+			,	ERR_MSG
+			,	INS_DT
+			,	URL
+			,	MENU_CD
+			,	SESSION_ID
+			,	PROC_START_TIME
+			,	PROC_END_TIME
+			,	PROC_DELAY_TIME
+		) VALUES (
+		      SEQ_ACCESS_LOG.NEXTVAL
+			,	#{SERVER_IP}
+			,	#{SYS_ID}
+			,	#{TYPE_ID}
+			,	#{USER_ID}
+			,	#{USER_IP}
+			,	#{SUCC_YN}
+			,	#{ERR_MSG}
+			,	SYSDATE
+			,	#{URL}
+			,	#{MENU_CD}
+			,	#{SESSION_ID}
+			,	TO_DATE( #{PROC_START_TIME}, 'YYYY-MM-DD HH24-MI-SS')
+			,	TO_DATE( #{PROC_END_TIME}, 'YYYY-MM-DD HH24-MI-SS')
+			,	#{PROC_DELAY_TIME}
+		)
+	</insert>
+	
+	<select id="selectUserFavoriteMenuList" parameterType="Map" resultType="Map">
+    --LoginAuthMapper.selectUserFavoriteMenuList
+        SELECT A.USER_ID
+              ,CASE WHEN C.MENU_CD LIKE '%100' THEN C.MENU_CD
+                    WHEN D.MENU_CD LIKE '%100' THEN D.MENU_CD
+                    ELSE ''
+               END TOP_MENU_CD
+              ,CASE WHEN C.MENU_CD LIKE '%100' THEN C.MENU_NM
+                    WHEN D.MENU_CD LIKE '%100' THEN D.MENU_NM
+                    ELSE ''
+               END TOP_MENU_NM
+              ,B.UP_MENU_CD  AS UP_MENU_CD
+              ,C.MENU_NM     AS UP_MENU_NM
+              ,A.MENU_CD
+              ,B.MENU_NM
+              ,B.LINK_URL
+              ,A.INS_DT
+        FROM USER_FAVORITE_MENU A
+            LEFT OUTER JOIN 
+             SYS_MENU B
+            ON B.MENU_CD = A.MENU_CD 
+            LEFT OUTER JOIN 
+             SYS_MENU C
+            ON C.MENU_CD = B.UP_MENU_CD
+            LEFT OUTER JOIN 
+             SYS_MENU D
+            ON D.MENU_CD = C.UP_MENU_CD            
+       WHERE A.USER_ID = #{USER_ID}
+       ORDER BY A.INS_DT
+    </select>
+    
+    <insert id="insertUserFavoriteMenu" parameterType="Map">
+    --LoginAuthMapper.insertUserFavoriteMenu
+    MERGE INTO USER_FAVORITE_MENU A 
+    USING DUAL
+    ON (A.USER_ID = #{USER_ID} 
+        AND A.MENU_CD = #{MENU_CD})
+    WHEN NOT MATCHED THEN
+            INSERT ( USER_ID, MENU_CD, INS_DT) 
+            VALUES ( #{USER_ID}, #{MENU_CD}, SYSDATE)
+    </insert>
+    
+    <delete id="deleteUserFavoriteMenu" parameterType="Map">
+    --LoginAuthMapper.deleteUserFavoriteMenu
+    DELETE FROM USER_FAVORITE_MENU 
+    WHERE USER_ID = #{USER_ID}
+    AND MENU_CD = #{MENU_CD}
+    </delete>
+    
+    <delete id="allDeleteUserFavoriteMenu" parameterType="Map">
+    --LoginAuthMapper.allDeleteUserFavoriteMenu
+    DELETE FROM USER_FAVORITE_MENU 
+    WHERE USER_ID = #{USER_ID}
+    </delete>    
+
+	<select id="selectNoticeList" parameterType="Map" resultType="Map">
+    --LoginAuthMapper.selectNoticeList
+	<![CDATA[
+SELECT SUBJECT                                                              SUBJECT
+      ,SUBSTR(INS_DT,0,4)||'.'||SUBSTR(INS_DT,5,2)||'.'||SUBSTR(INS_DT,7,2) INS_DT
+      ,POST_SEQ                                                             POST_SEQ
+  FROM (
+       SELECT A.*
+             ,ROW_NUMBER() OVER(ORDER BY A.POST_SEQ DESC) RN
+         FROM BBS_BOARD A
+        WHERE BOARD_ID =  '001' /**P*/
+          AND (A.DEL_YN = 'N' OR A.DEL_YN IS NULL)
+          AND A.STATUS != '0'
+      )
+WHERE RN < 10
+	]]>		
+    </select>
+	
+	<select id="selectTodoInfoList" parameterType="Map" resultType="Map">
+    --LoginAuthMapper.selectTodoInfoList
+SELECT (
+        SELECT COUNT(0) CNT
+          FROM GR_DELIVERY_HEAD
+         WHERE 1=1
+           AND VENDOR_CD     = (SELECT VENDOR_CD
+                                  FROM SYS_USER
+                                 WHERE COMP_CD = #{COMP_CD}
+                                   AND USER_ID = #{USER_ID}
+                               )
+	    <![CDATA[
+           AND GR_DELY_DATE >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+           AND GR_DELY_DATE <= TO_CHAR(ADD_MONTHS(SYSDATE,+2),'YYYYMMDD')
+	    ]]>
+           AND DOC_STATUS    = '2'
+       ) OFER_CNT
+      ,(
+        SELECT COUNT(0) CNT
+          FROM GR_DELIVERY_HEAD
+         WHERE 1=1
+           AND VENDOR_CD     = (SELECT VENDOR_CD
+                                  FROM SYS_USER
+                                 WHERE COMP_CD = #{COMP_CD}
+                                   AND USER_ID = #{USER_ID}
+                               )
+	    <![CDATA[
+           AND GR_DELY_DATE >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+           AND GR_DELY_DATE <= TO_CHAR(ADD_MONTHS(SYSDATE,+2),'YYYYMMDD')
+	    ]]>
+           AND DOC_STATUS    = '5'
+       ) OFER_COMP_CNT
+      ,(
+        SELECT COUNT(0) CNT
+          FROM GR_DELIVERY_HEAD
+         WHERE 1=1
+           AND VENDOR_CD     = (SELECT VENDOR_CD
+                                  FROM SYS_USER
+                                 WHERE COMP_CD = #{COMP_CD}
+                                   AND USER_ID = #{USER_ID}
+                               )
+	    <![CDATA[
+           AND GR_DELY_DATE >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+           AND GR_DELY_DATE <= TO_CHAR(ADD_MONTHS(SYSDATE,+2),'YYYYMMDD')
+	    ]]>
+           AND DOC_STATUS   IN('3','4')
+       ) CMPN_CNT
+       ,'VWRH100' G_TOP_MENU_CD
+       ,'입고관리'   G_TOP_MENU_NM
+       ,'VWRH150' G_UP_MENU_CD
+       ,'VWRH152' G_MENU_CD
+  FROM DUAL
+    </select>
+	
+	
+</mapper>

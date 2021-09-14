@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="common.FileManage">
+
+
+	<select id="selectFileUploadList" parameterType="Map" resultType="Map">
+	--FileManageMapper.selectFileUploadList
+	SELECT 
+		  ROWNUM  FILE_RNUMN
+		 ,ATTACH_SEQ AS ATTACHMENT_SEQ
+		 ,APP_SEQ
+		 ,FILE_NM  AS FILE_NAME
+		 ,REAL_FILE_NM AS REAL_FILE_NAME
+		 ,FILE_SIZE
+		 ,USG_YN
+		 ,TO_CHAR(REG_DT, 'YYYYMMDD') AS REG_DATE
+         ,REG_ID
+         ,TO_CHAR(MOD_DT, 'YYYYMMDD') AS MOD_DATE
+		 ,MOD_ID
+		 ,FILE_PATH
+		 ,EXT_TYPE
+		 ,DEL_YN
+		 ,APP_TYPE
+		/*, FILE_BYTES*/
+	  FROM COM_ATTACH
+	 WHERE APP_SEQ = #{APP_SEQ} 
+	   AND DEL_YN = 'N' 
+	<if test="ATTACHMENT_SEQ != null and ATTACHMENT_SEQ != ''">
+	   AND ATTACH_SEQ 	= #{ATTACHMENT_SEQ}
+	</if>
+	</select>
+
+ 
+	<insert id="insertFileInfo" parameterType="Map">
+	--FileManageMapper.insertFileInfo
+	INSERT INTO COM_ATTACH ( 
+	      ATTACH_ID
+		, ATTACH_SEQ
+		, APP_SEQ
+		, FILE_NM
+		, REAL_FILE_NM
+		, FILE_SIZE
+		, USG_YN
+		, REG_DT
+		, REG_ID
+		, MOD_DT
+		, MOD_ID
+		, FILE_PATH
+		, EXT_TYPE
+		, DEL_YN
+		, FILE_BYTES
+		, APP_TYPE
+		, FILE_HASH
+	) VALUES (
+	    SEQ_ATTACH_ID.NEXTVAL
+		,#{ATTACHMENT_SEQ}
+		,#{APP_SEQ}
+		,<![CDATA[REPLACE(REPLACE(#{FILE_NAME},'''','`'),'&#39','`')]]>
+		,#{REAL_FILE_NAME}
+		,#{FILE_SIZE}
+		,'Y'
+		,SYSDATE
+		,#{USER_ID}
+		,SYSDATE
+		,#{USER_ID}
+		,#{FILE_PATH}
+		,#{EXT_TYPE}
+		,'N'
+		,NULL
+		,#{APP_TYPE}
+		,#{FILE_HASH}
+	)
+	</insert>
+	
+	<insert id="copyFilesInfo" parameterType="Map">
+	--FileManageMapper.copyFilesInfo
+
+	INSERT INTO COM_ATTACH ( 
+		  ATTACH_ID
+        , ATTACH_SEQ
+		, APP_SEQ
+		, FILE_NM
+		, REAL_FILE_NM
+		, FILE_SIZE
+		, USG_YN
+		, REG_DT
+		, REG_ID
+		, MOD_DT
+		, MOD_ID
+		, FILE_PATH
+		, EXT_TYPE
+		, DEL_YN
+		, FILE_BYTES
+		, APP_TYPE
+		, FILE_HASH
+	)
+	SELECT 
+		SEQ_ATTACH_ID.NEXTVAL
+        , #{ATTACHMENT_SEQ}
+		, #{APP_SEQ}
+		, FILE_NM
+		, #{ATTACHMENT_SEQ}
+		, FILE_SIZE
+		, 'Y'
+		, SYSDATE
+		, #{USER_ID}
+		, SYSDATE
+		, #{USER_ID}
+		, #{FILE_PATH}
+		, EXT_TYPE
+		, 'N'
+		, FILE_BYTES
+		, APP_TYPE
+		, FILE_HASH
+	  FROM COM_ATTACH
+	WHERE 1=1
+	  AND APP_SEQ		= #{OLD_APP_SEQ}
+	  AND ATTACH_SEQ	= #{OLD_ATTACHMENT_SEQ}
+	  AND DEL_YN 			= 'N'
+	</insert>
+	
+	<select id="selectAppSeq" parameterType="Map" resultType="String" useCache="false" flushCache="true">
+	--FileManageMapper.selectAppSeq
+	SELECT concat(TO_CHAR(SYSDATE,'YYYYMMDD') , lpad(floor(dbms_random.value()*power(36,10)), 10, 0)) from dual
+	</select>
+	
+	<delete id="deleteFileInfo" parameterType="Map">
+	--FileManageMapper.deleteFileInfo
+
+		UPDATE COM_ATTACH
+		   SET USG_YN = 'N'
+		     , DEL_YN = 'Y'
+		 WHERE APP_SEQ 			= #{APP_SEQ}  
+	<if test="ATTACHMENT_SEQ != null and ATTACHMENT_SEQ != ''">
+	 	   AND ATTACH_SEQ 	= #{ATTACHMENT_SEQ}
+	</if>
+	</delete>
+	
+	<insert id="insertFileDownLog" parameterType="Map">
+	--FileManageMapper.insertFileDownLog
+	INSERT INTO SYS_DOWNLOAD_LOG
+	(
+		  APP_SEQ
+		, ATTACHMENT_SEQ
+		, FILE_NAME
+		, DOWNLOAD_IP
+		, RESULT
+		, INS_DT
+	)
+	VALUES
+	(
+		  #{APP_SEQ}
+		, #{ATTACHMENT_SEQ}
+		, #{FILE_NAME}
+		, #{DOWNLOAD_IP}
+		, #{RESULT}
+		, SYSDATE
+	)
+	</insert>
+	
+	
+</mapper>

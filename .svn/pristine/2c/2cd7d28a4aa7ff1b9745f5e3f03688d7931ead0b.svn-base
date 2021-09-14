@@ -1,0 +1,5 @@
+#Spring security\uc758 \uc124\uc815 \uc815\ubcf4\ub97c File\ub85c \ud560 \uacbd\uc6b0 \uc0ac\uc6a9 
+#\uc0ac\uc6a9\uc790 \uc815\ubcf4
+#username=password,grantedAuthority[,grantedAuthority][,enabled|disabled]
+user=e21ad5b7b47da8463cc9e146c917db46e0af21d5d14214cdc5ee9845f0688994ba1cea9e229be5fa,ROLE_USER,enabled
+admin=2afb915ac472212fca2345327c40fb2435d3127c6c96b283152e49e9dd44dc12942d17aa53d2de60,ROLE_USER,ROLE_ADMIN,enabled

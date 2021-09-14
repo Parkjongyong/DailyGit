@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.AccountMgmt">
+
+	<select id="selectAccountMgmtList" parameterType="Map" resultType="Map">
+		--com.bdg.AccountMgmt.selectAccountMgmtList
+		SELECT COMP_CD                                                       AS COMP_CD       -- 회사코드          
+		      ,CLAUSE_CD                                                     AS CLAUSE_CD     -- 항목코드
+		      ,FUNC_GET_CODE_NAME('YS006', CLAUSE_CD)                        AS CLAUSE_NM     -- 항목명
+		      ,ACCOUNT_NO                                                    AS ACCOUNT_NO    -- 계정코드
+		      ,FUNC_GET_ACCOUNT_DESC(ACCOUNT_NO)                             AS ACCOUNT_DESC  -- 계정명
+		      ,'1'                                                           AS CODEMAPPING1  -- 계정팝업용
+		      ,ETC_ORDER_NO                                                  AS ETC_ORDER_NO  -- ETC내부오더코드
+		      ,ETC_ORDER_NM                                                  AS ETC_ORDER_NM  -- ETC내부오더명
+		      ,'1'                                                           AS CODEMAPPING2  -- ETC내부오더팝업용
+		      ,CHC_ORDER_NO                                                  AS CHC_ORDER_NO  -- CHC내부오더  
+		      ,CHC_ORDER_NM                                                  AS CHC_ORDER_NM  -- CHC내부오더명
+		      ,'1'                                                           AS CODEMAPPING3 -- CHC내부오더팝업용     
+		      ,DISTRIB_YN                                                    AS DISTRIB_YN    -- 유통판촉비계정여부
+		      ,DISPLAY_YN                                                    AS DISPLAY_YN    -- DISPLAY구분       
+		      ,CRE_DATE                                                      AS CRE_DATE      -- 등록일자          
+		      ,CRE_USER                                                      AS CRE_USER      -- 등록자ID          
+		      ,MOD_DATE                                                      AS MOD_DATE      -- 수정일자          
+		      ,MOD_USER                                                      AS MOD_USER      -- 수정자ID
+		      ,'R'                                                           AS CRUD          -- 행구분
+		  FROM CO_ACCOUNT_MGMT
+		 WHERE 1 = 1
+		<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		   AND COMP_CD   = #{SB_COMP_CD}
+		</if>
+		<if test="SB_CLAUSE_CD != null and SB_CLAUSE_CD != ''">
+		   AND CLAUSE_CD   = #{SB_CLAUSE_CD}
+		</if>
+		 ORDER BY COMP_CD
+		         ,CLAUSE_CD
+	</select>
+	
+	<select id="selectCountData" parameterType="Map" resultType="Map">
+		--com.bdg.AccountMgmt.selectCountData
+		SELECT COUNT(*) CNT
+		  FROM CO_ACCOUNT_MGMT
+		 WHERE 1 = 1                        
+		   AND COMP_CD    = #{COMP_CD}  
+		   AND CLAUSE_CD  = #{CLAUSE_CD}
+		   AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</select>
+	
+	<select id="selectDistribYn" parameterType="Map" resultType="Map">
+		--com.bdg.AccountMgmt.selectDistribYn
+		SELECT COUNT(*) CNT
+		  FROM CO_ACCOUNT_MGMT
+		 WHERE 1 = 1                        
+		   AND COMP_CD    = #{COMP_CD}  
+		   AND CLAUSE_CD  = #{CLAUSE_CD}
+		   AND DISTRIB_YN = 'Y' 
+	</select>
+	
+    <insert id="insertAccountMgmt" parameterType="Map">
+		--com.bdg.AccountMgmt.insertAccountMgmt
+		INSERT INTO CO_ACCOUNT_MGMT
+		(
+		 COMP_CD     
+		,CLAUSE_CD     
+		,ACCOUNT_NO    
+		,ETC_ORDER_NO
+		,ETC_ORDER_NM
+		,CHC_ORDER_NO
+		,CHC_ORDER_NM
+		,DISTRIB_YN  
+		,DISPLAY_YN  
+		,CRE_DATE    
+		,CRE_USER    
+		,MOD_DATE    
+		,MOD_USER
+		) VALUES (
+		           #{COMP_CD}
+		          ,#{CLAUSE_CD}
+		          ,#{ACCOUNT_NO}
+		          ,#{ETC_ORDER_NO}
+		          ,#{ETC_ORDER_NM}
+		          ,#{CHC_ORDER_NO}
+		          ,#{CHC_ORDER_NM}
+		          ,#{DISTRIB_YN}
+		          ,#{DISPLAY_YN}
+		          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		          ,#{CRE_USER}
+		          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		          ,#{MOD_USER}
+		         )
+
+    </insert>
+    
+    <update id="updateAccountMgmt" parameterType="Map">
+		--com.bdg.AccountMgmt.updateAccountMgmt
+		UPDATE CO_ACCOUNT_MGMT
+		   SET ETC_ORDER_NO = #{ETC_ORDER_NO}
+		      ,CHC_ORDER_NO = #{CHC_ORDER_NO}
+		      ,DISTRIB_YN   = #{DISTRIB_YN}
+		      ,DISPLAY_YN   = #{DISPLAY_YN}
+		      ,MOD_DATE     = TO_CHAR(SYSDATE, 'YYYYMMDD')
+		      ,MOD_USER     = #{MOD_USER}
+		 WHERE 1 = 1                                    
+		   AND COMP_CD    = #{COMP_CD}     
+		   AND CLAUSE_CD  = #{CLAUSE_CD}  
+		   AND ACCOUNT_NO = #{ACCOUNT_NO}
+    </update>
+    
+    <delete id="deleteAccountMgmt" parameterType="Map">
+		--com.bdg.AccountMgmt.deleteAccountMgmt
+		DELETE FROM CO_ACCOUNT_MGMT
+		 WHERE 1 = 1                                    
+		   AND COMP_CD    = #{COMP_CD}     
+		   AND CLAUSE_CD  = #{CLAUSE_CD}  
+		   AND ACCOUNT_NO = #{ACCOUNT_NO}
+    </delete>
+    
+	<select id="selectProjList" parameterType="Map" resultType="Map">
+		--com.bdg.AccountMgmt.selectProjList(부서코드가 존재하면 해당 부서의 내부오더만 조회)
+		SELECT COMP_CD
+		      ,ORDER_NO
+		      ,ORDER_GUBUN
+		      ,CCTR_CD
+		      ,ORDER_DESC
+		      ,INVEST_NO
+		      ,ACCOUNT_NO
+		  FROM CO_ORDER_MST
+		 WHERE 1=1
+		   AND COMP_CD = #{SB_COMP_CD}  
+		   AND ORDER_GUBUN = 'ZSAL'
+         ORDER BY COMP_CD
+                 ,ORDER_NO
+	</select> 
+</mapper>

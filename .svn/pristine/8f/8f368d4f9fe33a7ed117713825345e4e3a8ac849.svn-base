@@ -1,0 +1,200 @@
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="UTF-8" %>
+<%
+String CNTRT_NO = (request.getParameter("CNTRT_NO")!=null)?(String)request.getParameter("CNTRT_NO"):"";
+String CNTRT_NAME = (request.getParameter("CNTRT_NAME")!=null)?(String)request.getParameter("CNTRT_NAME"):"";
+String CNTRT_AMT = (request.getParameter("CNTRT_AMT")!=null)?(String)request.getParameter("CNTRT_AMT"):"";
+String CNTRT_DATE = (request.getParameter("CNTRT_DATE")!=null)?(String)request.getParameter("CNTRT_DATE"):"";
+String CNTRT_GUARANTEE = (request.getParameter("CNTRT_GUARANTEE")!=null)?(String)request.getParameter("CNTRT_GUARANTEE"):"";
+
+
+String PKG_SIGN_DATE = (request.getParameter("PKG_SIGN_DATE")!=null)?(String)request.getParameter("PKG_SIGN_DATE"):"";
+String VENDOR_NAME = (request.getParameter("VENDOR_NAME")!=null)?(String)request.getParameter("VENDOR_NAME"):"";
+String VENDOR_ADDRESS = (request.getParameter("VENDOR_ADDRESS")!=null)?(String)request.getParameter("VENDOR_ADDRESS"):"";
+String VENDOR_REGNO = (request.getParameter("VENDOR_REGNO")!=null)?(String)request.getParameter("VENDOR_REGNO"):"";
+String VENDOR_REPRE = (request.getParameter("VENDOR_REPRE")!=null)?(String)request.getParameter("VENDOR_REPRE"):"";
+String CORP_NO = (request.getParameter("CORP_NO")!=null)?(String)request.getParameter("CORP_NO"):"";
+String CNTRT_CURRENCY = (request.getParameter("CNTRT_CURRENCY")!=null)?(String)request.getParameter("CNTRT_CURRENCY"):"";
+
+
+String type = (request.getParameter("type")!=null)?(String)request.getParameter("type"):"01";
+String title = "";
+
+if(type.equals("01")){
+	title = "계약 보증금 지급각서";
+}else{
+	title = "하자이행 보증금 지급각서";
+}
+
+%>
+
+<html>
+<head>
+
+
+<body>
+
+
+<div style="padding:5px 0px 5px 0px" ></div>
+
+
+<div style="padding:10px 0px 0px 0px;font:bold 20pt 'Malgun Gothic';text-align:center;"><%=title %></div>
+<div style="padding:5px 0px 5px 0px;clear:both"></div>		
+<div style="padding:0px 0px 0px 0px;">
+	<table>
+		<colgroup>
+           <col width="25%"></col>
+           <col width="75%"></col>
+        </colgroup>
+		<tr>
+			<td style="padding:5px 4px 5px 4px;border:1px solid #808080;text-align:left;font:bold 12pt 'Malgun Gothic';background:#CCCCCC">계약번호</td>
+			<td style="padding:4px 4px 4px 4px;border:1px solid #808080;text-align:left;font:normal 10pt 'Malgun Gothic';"><%=CNTRT_NO %></td>
+		</tr>
+		<tr>
+			<td style="padding:5px 4px 5px 4px;border:1px solid #808080;text-align:left;font:bold 12pt 'Malgun Gothic';background:#CCCCCC">계약일자</td>
+			<td style="padding:4px 4px 4px 4px;border:1px solid #808080;text-align:left;font:normal 10pt 'Malgun Gothic';"><%=CNTRT_NAME %></td>
+		</tr>
+		<tr>
+			<td style="padding:5px 4px 5px 4px;border:1px solid #808080;text-align:left;font:bold 12pt 'Malgun Gothic';background:#CCCCCC">계약금액</td>
+			<td style="padding:4px 4px 4px 4px;border:1px solid #808080;text-align:left;font:normal 10pt 'Malgun Gothic';"><%=CNTRT_AMT %>&nbsp;&nbsp;&nbsp;(<%=CNTRT_CURRENCY %>)</td>
+		</tr>
+		<tr>
+			<td style="padding:5px 4px 5px 4px;border:1px solid #808080;text-align:left;font:bold 12pt 'Malgun Gothic';background:#CCCCCC">계약기간</td>
+			<td style="padding:4px 4px 4px 4px;border:1px solid #808080;text-align:left;font:normal 10pt 'Malgun Gothic';"><%=CNTRT_DATE %></td>
+		</tr>
+		<tr>
+			<td style="padding:5px 4px 5px 4px;border:1px solid #808080;text-align:left;font:bold 12pt 'Malgun Gothic';background:#CCCCCC">계약이행 보증금</td>
+			<td style="padding:4px 4px 4px 4px;border:1px solid #808080;text-align:left;font:normal 10pt 'Malgun Gothic';"><%=CNTRT_GUARANTEE %></td>
+		</tr>
+
+
+<% if(type.equals("01")){ %>
+		<tr>
+			<td  colspan="2" style="padding:25px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';">
+			&nbsp;&nbsp;&nbsp;위 계약을 체결함에 있어 당사의 귀책사유로 계약상의 의무를 이행하지 못하게 될 경우에는 위 계약보증금을 귀 회사에 즉시 현금으로 납부하겠으며, 기타 계약보증금의 귀속조치로 인한 여하한 조치에 대하여도 귀 회사의 결정 또는 요구에 따를 것임을 확약합니다.
+			</td>
+		</tr>
+		<tr>
+			<td  colspan="2" style="padding:5px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';">
+				&nbsp;&nbsp;&nbsp;귀 사와 체결된 위 계약건의 계약이행 보증금을 면제 받음에 있어 본인은 성실히 계약사항을 이행할 것이며, 만일 계약상의 의무를 이행하지 못하여 상기 계약이행 보증금을 귀사에 귀속할 사유가 발생할 경우에는 계약이행 보증금을 조건 없이 즉시 현금으로 납부할 것을 확약하며, 만약 계약을 이행하지 못할 경우에는 귀사에서 본인에게 지급할 어떠한 대금에서라도 동 금액을 차감 지급하여도 하등의 이의를 제기하지 않음은 물론 민•형사상의 모든 책임질 것을 각서 합니다.
+			</td>
+		</tr>
+	
+			<tr>
+			<td  colspan="2" style="padding:5px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';color: red;">
+				위 계약을 체결함에 있어 본 계약자는 계약에 관한 법률 시행령 제51조 규정에 의거 본 각서를 제출하며 동시행령 제53조의 규정에 의한 귀속 사유가 발생할 때에는 당해 지급각서 등 계약문서에 정한바와 따라 해당금액을 귀사에서 지칭한 납입기한에까지 현금으로 납부할 것을 확약합니다.네
+			</td>
+		</tr>
+				<tr>
+			<td  colspan="2" style="padding:5px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';">
+				상기 계약을 체결함에 있어 국계법 시행령 제50조 6호에 의거 계약(공사)이행보증금을 면제 받으며 만약 계약(공사)이행을 완료하지 못할 경우에는 상기 명시된 내용의 계약(공사)이행 보증금을 현금으로 납부하겠으며 문제가 발생 되었을 때에는 그의 관한 모든 법적 책임을 질 것을 확약합니다
+			</td>
+		</tr>			
+		<tr>
+			<td  colspan="2" style="padding:5px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';">
+				&nbsp;&nbsp;&nbsp;당 사는 귀 사와의 상기 계약 건에 있어 계약체결의 의무를 이행할 것을 확약하며,
+				만일 이를 위약 시는 계약이행보증금(계약금액의 25%)에 해당하는 상기금액을 현금으로     귀사에  납부하고 향후 어떠한 불이익도 감수할 것임을 서약하며 본 계약이행보증금  지급각서를 제출합니다.
+			</td>
+		</tr>
+		
+		
+
+		<tr>
+			<td  colspan="2" style="padding:5px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';text-align:center;">
+				<%=PKG_SIGN_DATE %>
+			</td>
+		</tr>
+		
+				
+		
+		<tr>
+			<td  colspan="2" style="padding:5px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';text-align:center;">
+				<table style="padding:5px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';">
+					<tr>
+						<td  align="right">공&nbsp;&nbsp;급&nbsp;자&nbsp;상&nbsp;호:</td>
+						<td><%=VENDOR_NAME %></td>
+					</tr>
+					<tr>
+						<td  align="right">주&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;소:</td>
+						<td><%=VENDOR_ADDRESS %></td>
+					</tr>
+					<tr>
+						<td  align="right">사업자등록번호:</td>
+						<td><%=VENDOR_REGNO %></td>
+					</tr>
+					
+					<tr>
+						<td  align="right">법인(주민)등록번호:</td>
+						<td><%=CORP_NO %></td>
+					</tr>
+					
+					<tr>
+						<td  align="right">대&nbsp;&nbsp;&nbsp;표&nbsp;&nbsp;성&nbsp;&nbsp;&nbsp;명:</td>
+						<td><%=VENDOR_REPRE %>(인)</td>
+					</tr>
+					
+				</table>
+			</td>
+		</tr>
+				
+		
+<% }else{ %>
+	
+<tr>
+	<td  colspan="2" style="padding:25px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';">
+		&nbsp;&nbsp;&nbsp;&nbsp;귀 사와 체결된 위 계약건의 하자이행 보증금을 면제 받음에 있어 본인은 성실히 계약사항을 이행할 것이며, 만일 계약 불이행 및 납품한 물품(장비, 용역, 공사 포함)에 하자가 발생하여 상기 하자이행 보증금을 귀사에 귀속할 사유가 발생할 경우에는 하자이행 보증금을 조건 없이 즉시 현금으로 납부할 것을 확약하며, 만약 하자를 이행하지 못할 경우에는 귀사에서 본인에게 지급할 어떠한 대금에서라도 동 금액을 차감 지급하여도 하등의 이의를 제기하지 않음은 물론 민•형사상의 모든 책임질 것을 각서 합니다.
+	</td>
+</tr>
+
+<tr>
+	<td  colspan="2" style="padding:5px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';text-align:center;">
+		<%=PKG_SIGN_DATE %>
+	</td>
+</tr>
+
+		
+
+<tr>
+	<td  colspan="2" style="padding:5px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';text-align:center;">
+		<table style="padding:5px 4px 5px 4px;font:bold 12pt 'Malgun Gothic';">
+			<tr>
+				<td>공&nbsp;&nbsp;급&nbsp;자&nbsp;상&nbsp;호:</td>
+				<td><%=VENDOR_NAME %></td>
+			</tr>
+			<tr>
+				<td>사업자등록번호:</td>
+				<td><%=VENDOR_REGNO %></td>
+			</tr>
+			<tr>
+				<td>주&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;소:</td>
+				<td><%=VENDOR_ADDRESS %></td>
+			</tr>
+			<tr>
+				<td>대&nbsp;&nbsp;&nbsp;표&nbsp;&nbsp;성&nbsp;&nbsp;&nbsp;명:</td>
+				<td><%=VENDOR_REPRE %>(인)</td>
+			</tr>
+			
+		</table>
+	</td>
+</tr>
+				
+<% } %>
+									
+	
+<tr>
+	<td  colspan="2" style="padding:5px 4px 5px 4px;font:bold 20pt 'Malgun Gothic';text-align: center;">
+		PARUCNC주식회사 사장 귀하		
+	</td>
+</tr>
+	
+									
+         								
+	</table>
+</div>
+
+
+		
+
+</body>
+</html>
+
+

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.mai.MainRoleViewDAO">
+	
+	<resultMap id="alarm" type="Map">
+        <result property="SUBJECT" column="SUBJECT" jdbcType="CLOB" javaType="java.lang.String" />
+        <result property="CONTENT" column="CONTENT" jdbcType="CLOB" javaType="java.lang.String" />
+    </resultMap>
+    
+    <resultMap id="popupMap" type="Map">
+        <result property="CONTENTS"    column="CONTENTS"    jdbcType="CLOB" javaType="java.lang.String" />
+    </resultMap>
+    
+	<select id="selectPopupMgmtListMain" parameterType="Map" resultMap="popupMap">
+	--MainRoleViewMapper.selectPopupMgmtListMain
+	SELECT
+		 TP.POPUP_SEQ AS SEQ
+		,TP.START_DT AS START_DATE
+		,TP.END_DT   AS END_DATE
+		,TP.TOP
+		,TP.LEFT
+		,TP.WIDTH
+		,TP.HEIGHT
+		,TP.SUBJECT
+		,TP.CONTENTS
+		,TP.SITE
+		,TP.DEL_YN
+	FROM SYS_POPUP TP
+	WHERE 1=1
+		AND TP.DEL_YN = 'N'
+		AND TP.SITE IN('I', 'A')
+		AND TP.PRESENT_FLAG = 'A' 				/* 내부사이트 공지팝업은 무조건 로그인 후 관련 팝업만 호출 */
+		AND TO_CHAR(SYSDATE ,'YYYYMMDDHH24MI') || '00' BETWEEN TP.START_DT  and TP.END_DT
+	ORDER BY TP.POPUP_SEQ
+	</select>
+	
+	<select id="selectPopupMgmtMain" parameterType="Map" resultMap="popupMap">
+	--MainRoleViewMapper.selectPopupMgmtMain
+	SELECT
+		 TP.POPUP_SEQ AS SEQ
+		,TP.START_DT AS START_DATE
+		,TP.END_DT  AS END_DATE
+		,TP.TOP
+		,TP.LEFT
+		,TP.WIDTH
+		,TP.HEIGHT
+		,TP.SUBJECT
+		,TP.CONTENTS
+		,TP.SITE
+		,TP.DEL_YN
+	FROM SYS_POPUP  TP
+	WHERE 1=1
+		AND TP.POPUP_SEQ = #{SEQ}
+	</select>
+	
+ 
+</mapper>

@@ -1,0 +1,278 @@
+<%@ page language="java" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.app.common.util.StringUtil"%>
+<%@page import="com.app.common.util.StringUtilEx"%>
+<%@ taglib prefix="c"       uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring"  uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"     uri="http://www.springframework.org/tags"%>
+<%
+
+/*******************************************************************
+  httpclient 호출로 파라미터 전송시 object 전송 불가
+  list,map => json string 유형으로 변환 전송 됨
+  json string 유형 데이터를 jstl 사용 가능하도록 object로 변경
+*******************************************************************/
+String AP_HEADER = request.getParameter("incrsReqInfo");
+String AP_ITEM = request.getParameter("itemInfo");
+String AP_RSN = request.getParameter("incrsReqRsnList");
+
+request.setAttribute("AP_HEADER" ,  com.app.common.util.JsonUtil.getMapFromJsonString(AP_HEADER)); //MAP
+request.setAttribute("AP_ITEM" ,  com.app.common.util.JsonUtil.getMapFromJsonString(AP_ITEM));//MAP
+request.setAttribute("AP_RSN" ,  com.app.common.util.JsonUtil.getListFromJsonString(AP_RSN));//LISTMAP
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<link href="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_reset.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_common.css'/>" rel="stylesheet"/>
+<!-- jquery -->
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-1.12.3/jquery-1.12.3.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/attach.js'/>"></script>
+<script type="text/javascript">
+var incrsRsnIdx = 0;
+$(document).ready(function() {
+    //전자결재 페이지에서 창에 높이 확인 가능하도록 수정
+    document.domain="parucnc.com";
+    //전자결재 부모창으로 높이 전송
+    var maxHeight = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight,document.documentElement.offsetHeight);
+    window.parent.postMessage(maxHeight, '*');	
+
+	$.each($(".appSeq"), function(idx, key){
+        
+        if ($("#" + $(this).attr("id")).val() != "") { 
+            displayFileUpload({
+                KEY_ID      : $(this).attr("id"),
+                DATA_FORMAT : 'vTable',
+                CALLBACK    : 'fnFileUploadCallback1'
+            });
+        }
+        
+        
+    });
+});
+
+//파일 업로드 콜백함수
+function fnFileUploadCallback1(data) {
+    //$('#fileUploadTable1').empty().html(data);
+    $('#ATTACH_AREA_' + incrsRsnIdx).empty().html(data);
+    incrsRsnIdx++;
+}
+
+</script>
+</head>
+<body>
+<div class="pop-wrap">
+    
+    <div class="pop-cont">
+    
+        <!-- ****************************************** 기본정보 ****************************************** -->
+        <div class="sub-tit first" id="section1">
+            <h4>기본정보</h4> <!-- 기본정보 -->
+            <div class="right">
+            </div>
+        </div>
+        
+        <table id="basicInfo" class="table-style">
+            <colgroup>
+                <col style="width:140px;">
+                <col>
+                <col style="width:140px;">
+                <col>
+            </colgroup>
+            <tbody>
+                <tr>
+                    <th>요청번호</th>  <!-- 인상요청번호 -->
+                    <td colspan="3">
+                        ${AP_HEADER.SUPPLY_PRICE_REQ_NO }
+                    </td>
+                </tr>
+                <tr>
+                    <th>요청건명</th>  <!-- 인상요청번호 -->
+                    <td colspan="3">
+                        ${AP_HEADER.SUPPLY_PRICE_REQ_NM }
+                    </td>
+                </tr>
+                <tr>
+                    <th>BP명</th>
+                    <td>
+                        ${AP_HEADER.VENDOR_NM }
+                    </td>
+                    <th>BP번호</th>
+                    <td>
+                        ${AP_HEADER.VENDOR_CD }
+                    </td>
+                </tr>
+                <tr>
+                    <th>요청일</th>  <!-- 요청일 -->
+                    <td>
+                        ${AP_HEADER.REQ_USER_DATE }
+                    </td>
+                    <th><td></td></th>
+                </tr>
+            </tbody>
+        </table>
+        
+                
+        <%-- <!-- ****************************************** 작성자 정보 ****************************************** -->
+        <div class="sub-tit" id="section2">
+            <h4>작성자 정보</h4>   <!-- 작성자 정보 -->
+        </div>
+        <table id="writerInfo" class="table-style">
+            <colgroup>
+                <col style="width:140px;">
+                <col>
+                <col style="width:140px;">
+                <col>
+            </colgroup>
+            <tbody>
+                <tr>
+                    <th>작성자 성명</th>  <!-- 작성자 성명 -->
+                    <td>
+                        ${AP_HEADER.USER_NM }
+                    </td>
+                    <th>작성자 소속명</th>  <!-- 작성자 소속명 -->
+                    <td>
+                        ${AP_HEADER.DEPT_NAME }
+                    </td>
+                </tr>
+                <tr>
+                    <th>작성자 휴대폰</th>  <!-- 작성자 휴대폰 -->
+                    <td>
+                        ${AP_HEADER.CELL_PHONE_NO }
+                    </td>
+                    <th>작성자 E-Mail</th>  <!-- 작성자 E-Mail -->
+                    <td>
+                        ${AP_HEADER.EMAIL }
+                    </td>
+                </tr>
+            </tbody>
+        </table> --%>
+        
+        <!-- ****************************************** 공급단가 정보 ****************************************** -->
+        <div class="sub-tit" id="section3">
+            <h4>공급단가 정보</h4>
+        </div>
+        <table id="itemInfo" class="table-style">
+            <thead>
+                <tr>
+                   <th style="width: 20px;">No</th>
+                   <th style="width: 80px;">SG</th>
+                   <th style="width: 70px;">품목번호</th>
+                   <th style="width: 200px;">품목명</th>
+                   <th style="width: 50px;">BP번호</th>
+                   <th style="width: 120px;">BP명</th>
+                   <th style="width: 40px;">통화</th>
+                   <th style="width: 70px;">요청단가</th>
+                   <th style="width: 70px;">이전단가</th>
+               </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: center;">${AP_ITEM.NO }</td>
+                    <td style="text-align: center;">${AP_ITEM.SRC_GRP_NM }</td>
+                    <td style="text-align: center;">${AP_ITEM.ITEM_CD }</td>
+                    <td style="text-align: left;">${AP_ITEM.ITEM_NM }</td>
+                    <td style="text-align: center;">${AP_ITEM.VENDOR_CD }</td>
+                    <td style="text-align: left;">${AP_ITEM.VENDOR_NM }</td>
+                    <td style="text-align: center;">${AP_ITEM.CURRENCY_CD }</td>
+                    <td style="text-align: right;">${AP_ITEM.MOD_UNIT_PRICE }</td>
+                    <td style="text-align: right;">${AP_ITEM.UNIT_PRICE }</td>
+                </tr>
+            </tbody>
+        </table>
+
+
+
+        <!-- ****************************************** 인상 근거 ****************************************** -->
+        <div class="sub-tit" id="section3">
+            <h4>인상 근거</h4>   <!-- 인상 근거 -->
+            <div class="right">
+                <!-- 
+                <button type="button" id="btnAddReason" class="btn">추가</button>
+                <button type="button" id="btnDeleteReason" class="btn">삭제</button> 
+                -->
+            </div>
+        </div>
+        <table id="reqRsnInfo" class="table-style">
+            <colgroup>
+                <%-- <col style="width:40px;"> --%>
+                <col style="width:60px;">
+                <col style="width:100px;">
+                <col style="width:*;">
+                <col style="width:25%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <!-- <th><input type="checkbox" id="chkAll" value="all"></th> -->
+                    <th>순번</th>
+                    <th>구분</th>
+                    <th>세부사항</th>
+                    <th>첨부</th>
+                </tr>
+            </thead>
+            <tbody id="tb_incrs_rsn">
+            
+            <c:forEach items="${AP_RSN }" var="rsn" varStatus="st">
+                <tr>
+                    <td style="text-align: center;">${st.index +1 }</td>
+                    <td style="text-align: center;">${rsn.RSN_TYPE_NM }</td>
+                    <td>${rsn.RSN_RMK }</td>
+                    <td>
+                        <input type="hidden" id="APP_SEQ_${st.index}" idx="${st.index}" class="appSeq" value="${rsn.APP_SEQ }" />
+                        <div id="ATTACH_AREA_${st.index}"></div>
+                    </td>
+                </tr>
+            </c:forEach>
+            </tbody>
+        </table>
+        <!-- ****************************************** 기타 첨부파일 ****************************************** -->
+        <%-- <div class="sub-tit" id="section4">
+            <input type="hidden" id="APP_SEQ" name="APP_SEQ" value="">
+            <h4>인상 근거</h4>  <!-- 기타 첨부파일 -->
+            <div class="right">
+                <button type="button" id="btnMultiFile" class="btn">첨부파일</button> <!-- 첨부파일 -->
+            </div>
+        </div>
+        <table class="table-style" id="fileUploadTable">
+            <colgroup>
+                <col style="width: 8%;">
+                <col style="width: 15%;">
+                <col style="width: *;">
+                <col style="width: 20%;">
+            </colgroup>
+            <thead>
+            <tr>
+                <th>No</th>  <!-- No -->
+                <th>구분</th>  <!-- 파일명 -->
+                <th>세부사항</th>  <!-- 등록일자 -->
+                <th>첨부</th>  <!-- 파일크기 -->
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4" class="t_center" style="height: 80px">등록된 정보가 없습니다.</td>
+                </tr>
+            </tbody>
+        </table>  --%>
+    </div>
+</div>
+<script>
+//첨부파일 조회
+function fnInitFileUpload() {
+    if ($("#APP_SEQ").val() != "") {
+        displayFileUpload({
+            KEY_ID : 'APP_SEQ',
+            DATA_FORMAT : 'table',
+            CALLBACK : 'fnFileUploadCallback'
+        });
+    }
+}
+
+//파일 업로드 콜백함수
+function fnFileUploadCallback(data) {
+    $('#fileUploadTable').empty().html(data);
+}
+</script>
+</body>

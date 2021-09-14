@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="common.CommonSelect">
+
+	<select id="selectCodeList" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectCodeList
+	SELECT CODE_GRP
+	     , CODE			
+	     , CODE_NM		
+	     , CODE_NM_ALT 
+	     , EXPL
+	     , ORD_NO
+	     , USG_YN
+	     , ATTR01
+	     , ATTR02
+	     , ATTR03
+	     , ATTR04
+	     , MOD_ID
+	  FROM COM_CODE
+	 WHERE CODE_GRP = #{CODE_GRP}
+	   AND USG_YN   = #{USG_YN}
+	<if test='ATTR01 != null and ATTR01 != ""'>
+	  AND ATTR01 = #{ATTR01}
+	</if>
+	<if test='ATTR02 != null and ATTR02 != ""'>
+	  AND ATTR02 = #{ATTR02}
+	</if>
+	<if test='ATTR03 != null and ATTR03 != ""'>
+	  AND ATTR03 = #{ATTR03}
+	</if>
+	<if test='ATTR04 != null and ATTR03 != ""'>
+      AND ATTR04 = #{ATTR04}
+    </if>
+	ORDER BY ORD_NO ASC
+	</select>
+	
+	<select id="selectCodeNmList" parameterType="Map" resultType="Map">
+    --CommonSelectMapper.selectCodeNmList
+    SELECT CODE_GRP
+         , CODE         
+         , CODE_NM || '(' || CODE || ')'  AS CODE_NM      
+         , CODE_NM_ALT 
+         , EXPL
+         , ORD_NO
+         , USG_YN
+         , ATTR01
+         , ATTR02
+         , ATTR03
+         , MOD_ID
+      FROM COM_CODE
+     WHERE CODE_GRP = #{CODE_GRP}
+       AND USG_YN = #{USG_YN}
+    <if test='ATTR01 != null and ATTR01 != ""'>
+      AND ATTR01 = #{ATTR01}
+    </if>
+    <if test='ATTR02 != null and ATTR02 != ""'>
+      AND ATTR02 = #{ATTR02}
+    </if>
+    <if test='ATTR03 != null and ATTR03 != ""'>
+      AND ATTR03 = #{ATTR03}
+    </if>
+    <if test='ATTR04 != null and ATTR03 != ""'>
+      AND ATTR04 = #{ATTR04}
+    </if>
+    ORDER BY ORD_NO ASC
+    </select>
+	
+	<select id="selectCodeListAll" parameterType="Map" resultType="Map">
+    --CommonSelectMapper.selectCodeListAll
+    SELECT CODE_GRP
+         , CODE         
+         , CODE_NM      
+         , CODE_NM_ALT 
+         , EXPL
+         , ORD_NO
+         , USG_YN
+         , ATTR01
+         , ATTR02
+         , ATTR03
+         , MOD_ID
+      FROM COM_CODE
+     WHERE CODE_GRP = #{CODE_GRP}
+    ORDER BY ORD_NO ASC
+    </select>
+    
+	<select id="selectRoleUserList" parameterType="hashmap" resultType="hashmap">
+	--CommonSelectMapper.selectRoleUserList
+	SELECT
+		DISTINCT
+		  A.USER_ID 	AS CODE
+		, B.USER_NM 	AS CODE_NM
+	FROM 
+		SYS_USER_ROLE A, SYS_USER B
+	WHERE   A.USER_ID = B.USER_ID
+		AND B.USG_YN = 'Y'
+		AND B.DEL_YN = 'N'
+		AND A.ROLE_CD IN 
+		<foreach item="item" index="index" collection="ROLE_CD" open="(" close=")" separator=",">
+			#{item}
+		</foreach>	
+		<if test='PUR_DEPT_CD != null and PUR_DEPT_CD != ""'>
+			AND B.DEPT_CD = #{PUR_DEPT_CD}
+		</if>
+	ORDER BY B.USER_NM	
+	</select>
+	
+	
+	<!-- 지정권한을 가진 부서목록을 조회 -->
+	<select id="selectRoleDeptList" parameterType="hashmap" resultType="hashmap">
+	--CommonSelectMapper.selectRoleDeptList
+		SELECT A.DEPT_CD AS CODE
+		      ,A.DEPT_NM AS CODE_NM
+		  FROM DEPT A
+		      ,SYS_DEPT_ROLE B
+		 WHERE A.DEL_YN = 'N'
+		   AND B.ROLE_CD = #{ROLE_CD}
+		   AND A.DEPT_CD = B.DEPT_CD
+		 
+	</select>
+		
+	<select id="selectDbTime" resultType="string">
+	--CommonSelectMapper.selectDbTime
+	SELECT TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS DB_TIME 
+	  FROM DUAL
+	</select>	
+	
+	<!-- 저장 위치 검색 -->
+    <select id="selectUnitList" parameterType="Map" resultType="Map">
+        --common.CommonSelect.selectUnitList
+            SELECT CODE     AS UNIT_CD
+			     , CODE_NM  AS UNIT_NM
+			  FROM COM_CODE
+			 WHERE CODE_GRP = 'A021'
+               AND USG_YN = 'Y'
+              <if test="S_UNIT_CD != null and S_UNIT_CD != ''">     
+              AND UPPER(CODE) LIKE  '%' || REPLACE(UPPER(#{S_UNIT_CD}),' ','') ||  '%'
+              </if>
+              <if test="S_UNIT_NM != null and S_UNIT_NM != ''">
+              AND UPPER(CODE_NM) LIKE  '%' || REPLACE(UPPER(#{S_UNIT_NM}),' ','') ||  '%'  
+              </if>
+            ORDER BY CODE_GRP ASC, ORD_NO ASC
+           
+    </select>
+    
+    <select id="selectUsersMailInfoList" parameterType="Map" resultType="Map">
+        SELECT 
+            USER_ID,
+            USER_NM,
+            EMAIL_ID AS EMAIL
+        FROM 
+            SYS_USER 
+        WHERE 1 = 1
+        <choose>
+            <when test="USER_LIST.size != 0">
+                AND USER_ID IN 
+                <foreach collection="USER_LIST" item="item" index="index" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </when>
+            <when test="USER_LIST.size == 0">
+               AND  1 != 1 
+            </when>
+        </choose> 
+    </select>
+    
+    <select id="selectUserInfo" parameterType="Map" resultType="Map">
+        
+        SELECT 
+             A.USER_ID
+			,A.USER_NM
+			,A.DEPT_CD
+            ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.DEPT_CD, '') AS DEPT_NM    			
+			,A.USER_NM_EN
+			,A.TEL_NO
+			,A.EMAIL_ID AS EMAIL
+			,A.MOBILE_NO
+			,A.FAX_NO
+        FROM 
+            SYS_USER A
+        WHERE 
+            A.USER_ID = #{USER_ID}
+        
+    </select>
+    
+    <!-- 플랜트 코드리스트 조회 -->
+    <select id="selectPlandCodeList" parameterType="Map" resultType="Map">
+    --common.CommonSelect.selectPlandCodeList
+	SELECT PLANT_CD AS CODE
+	     , PLANT_NM AS CODE_NM	
+	     , COMP_CD  AS ATTR01
+	  FROM PLANT_INFO
+	 ORDER BY PLANT_CD
+    </select> 
+    
+    <!-- 창고 코드리스트 조회 -->
+    <select id="selectStorageCodeList" parameterType="Map" resultType="Map">
+    --common.CommonSelect.selectStorageCodeList
+	SELECT STORAGE_CD AS CODE
+	     , STORAGE_NM AS CODE_NM
+	     , COMP_CD    AS ATTR01		
+	     , PLANT_CD   AS ATTR02
+	  FROM STORAGE_INFO
+	 ORDER BY STORAGE_CD
+    </select>     
+    
+	<select id="selectDocNo" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectDocNo
+	SELECT FUNC_GET_DOC_NO(#{DOC_GUBN}) AS DOC_NO 
+	  FROM DUAL
+	</select> 
+	
+    <!-- 계정 코드리스트 조회 -->
+    <select id="selectOpAccountCodeList" parameterType="Map" resultType="Map">
+    	--common.CommonSelect.selectOpAccountCodeList
+		SELECT ACCOUNT_NO                         AS CODE
+		      ,FUNC_GET_ACCOUNT_DESC(ACCOUNT_NO)  AS CODE_NM
+		      ,COMP_CD                            AS ATTR01
+		      ,CLAUSE_CD                          AS ATTR02
+		  FROM CO_ACCOUNT_MGMT
+		 WHERE 1 = 1
+		 ORDER BY COMP_CD
+		         ,CLAUSE_CD
+		         ,ACCOUNT_NO
+    </select>
+    
+    <!-- 계정 코드리스트 조회 -->
+    <select id="selectOpAccountCodeList2" parameterType="Map" resultType="Map">
+    	--common.CommonSelect.selectOpAccountCodeList2
+    	SELECT A.*
+    	  FROM (
+				SELECT ACCOUNT_NO                         AS CODE
+				      ,FUNC_GET_ACCOUNT_DESC(ACCOUNT_NO)  AS CODE_NM
+				      ,COMP_CD                            AS ATTR01
+				      ,CLAUSE_CD                          AS ATTR02
+				  FROM CO_ACCOUNT_MGMT
+				 WHERE 1 = 1
+				   AND DISTRIB_YN = 'Y'
+				UNION ALL
+				SELECT ACCOUNT_NO                         AS CODE
+				      ,FUNC_GET_ACCOUNT_DESC(ACCOUNT_NO)  AS CODE_NM
+				      ,COMP_CD                            AS ATTR01
+				      ,CLAUSE_CD                          AS ATTR02
+				  FROM CO_ACCOUNT_MGMT
+				 WHERE 1 = 1
+				   AND DISPLAY_YN = 'N'
+			  ) A	 
+		 ORDER BY A.ATTR01
+		         ,A.ATTR02
+		         ,A.CODE
+    </select>    
+    
+    <!-- 담당자별 관리부서 조회 -->
+    <select id="selectUserDeptCodeList" parameterType="Map" resultType="Map">
+    	--common.CommonSelect.selectUserDeptCodeList
+    	SELECT A.*
+    	  FROM (
+                SELECT A.DEPT_CD                                                                       AS CODE
+                      ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.DEPT_CD, '')                                    AS CODE_NM
+                      ,FUNC_GET_COST_CODE(A.COMP_CD, A.DEPT_CD, '')                                    AS CCTR_CD
+                      ,FUNC_GET_COST_NAME(A.COMP_CD, FUNC_GET_COST_CODE(A.COMP_CD, A.DEPT_CD, ''), '') AS CCTR_NM
+                      ,A.COMP_CD   			                                                           AS ATTR01
+                  FROM SYS_USER A
+                 WHERE A.USER_ID = #{USER_ID}
+                
+                UNION
+                
+		        SELECT B.ORG_CD                                                                        AS CODE
+		              ,FUNC_GET_DEPT_NAME(B.COMP_CD, B.ORG_CD, B.CRE_DATE)                             AS CODE_NM
+                      ,FUNC_GET_COST_CODE(B.COMP_CD, B.ORG_CD, '') AS CCTR_CD
+                      ,FUNC_GET_COST_NAME(B.COMP_CD, FUNC_GET_COST_CODE(B.COMP_CD, B.ORG_CD, ''), '')  AS CCTR_NM		              
+		              ,B.COMP_CD   			                                                           AS ATTR01
+		          FROM FI_USERS_DEPT B
+		         WHERE 1 = 1
+		           AND B.SABUN   = #{USER_ID}
+		       ) A
+		 ORDER BY CODE
+    </select>     
+    
+    <!-- 유통 판촉비 계정 코드리스트 조회 -->
+    <select id="selectOpDistribList" parameterType="Map" resultType="Map">
+    	--common.CommonSelect.selectOpDistribList
+		SELECT ACCOUNT_NO                         AS CODE
+		      ,FUNC_GET_ACCOUNT_DESC(ACCOUNT_NO)  AS CODE_NM
+		  FROM CO_ACCOUNT_MGMT
+		 WHERE 1 = 1
+		   AND COMP_CD    = #{SB_COMP_CD}
+		   AND DISTRIB_YN = 'Y'
+		   AND CLAUSE_CD  = '5'
+		 ORDER BY COMP_CD
+		         ,CLAUSE_CD
+		         ,ACCOUNT_NO
+    </select>
+    
+    
+	<insert id="insertEpsHistory" parameterType="Map">
+	--common.CommonSelect.insertEpsHistory
+	INSERT INTO EPS_HISTORY
+	 (
+	   EPS_DOC_NO
+      ,SEQ_NO
+      ,EPS_MAIN_KEY
+      ,EPS_PROCESS_KEY
+      ,EPS_FORM_ID
+      ,SABUN
+      ,ORG_CD
+      ,MANAGER_YN
+      ,REVIEW_ORG_CD
+      ,BGT_URL
+      ,BGT_NAME
+      ,EPS_TITLE
+      ,APPROVAL_ID
+      ,APPROVAL_NAME
+      ,APPROVAL_DESC
+      ,APPROVAL_DATE
+      ,STATUS
+      ,CRE_DATE
+      ,CRE_USER
+	 ) VALUES (
+	            #{EPS_DOC_NO}
+	           ,(
+	             SELECT NVL(MAX(SEQ_NO),0) + 1
+	               FROM EPS_HISTORY
+	              WHERE EPS_DOC_NO   = #{EPS_DOC_NO}
+	            )	            
+	           ,#{EPS_MAIN_KEY}
+               ,#{EPS_PROCESS_KEY}
+               ,#{EPS_FORM_ID}
+               ,#{SABUN}
+               ,#{ORG_CD}
+               ,#{MANAGER_YN}
+               ,#{REVIEW_ORG_CD}
+               ,#{BGT_URL}
+               ,#{BGT_NAME}
+               ,#{EPS_TITLE}
+               ,#{APPROVAL_ID}
+               ,#{APPROVAL_NAME}
+               ,#{APPROVAL_DESC}
+               ,#{APPROVAL_DATE}
+               ,#{STATUS}
+               ,TO_CHAR(SYSDATE,'YYYYMMDD')
+	           ,#{CRE_USER}
+	           )	           
+		</insert>
+		
+	<insert id="insertDeliveryHistory" parameterType="Map">
+	--common.CommonSelect.insertDeliveryHistory
+	INSERT INTO GR_DELIVERY_HISTORY
+	 (
+	   DOC_NO
+      ,DOC_SEQ
+      ,USER_ID
+      ,PROC_DATE
+      ,REMARK
+      ,DOC_STATUS
+      ,CRE_DATE
+      ,CRE_USER
+      ,MOD_DATE
+      ,MOD_USER
+	 ) VALUES (
+	            #{DOC_NO}
+	           ,(
+	             SELECT NVL(MAX(DOC_SEQ),0) + 1
+	               FROM GR_DELIVERY_HISTORY
+	              WHERE DOC_NO   = #{DOC_NO}
+	            )	            
+	           ,#{MOD_USER}
+	           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+	           ,#{REMARK}
+               ,#{DOC_STATUS}
+               ,TO_CHAR(SYSDATE,'YYYYMMDD')
+	           ,#{MOD_USER}
+               ,TO_CHAR(SYSDATE,'YYYYMMDD')
+	           ,#{MOD_USER}	           
+	           )	           
+		</insert>		
+
+	<select id="selectCostList" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectCostList
+ SELECT A.COST_CD CODE
+       ,A.COST_NM CODE_NM
+       ,A.COMP_CD ATTR01
+   FROM DEPT A
+  WHERE 1=1
+    AND A.COMP_CD  = #{COMP_CD}
+    AND A.DEPT_CD  = #{ORG_CD}
+    AND A.SDATE    = (
+                      SELECT MAX(SDATE)
+                        FROM DEPT B
+                       WHERE B.COMP_CD = A.COMP_CD
+                         AND B.DEPT_CD = A.DEPT_CD
+     <![CDATA[ 
+                         AND B.SDATE    <= TO_CHAR(SYSDATE,'YYYYMMDD')
+     ]]>
+                     )
+UNION
+ SELECT CCTR_CD  CODE
+       ,CCTR_NM  CODE_NM
+       ,COMP_CD  ATTR01
+   FROM CO_CCTR_MGMT 
+  WHERE 1=1
+    AND ORG_CD  = #{ORG_CD}
+UNION
+ SELECT FUNC_GET_COST_CODE(COMP_CD,ORG_CD, '')                                         AS CODE
+       ,FUNC_GET_COST_NAME(COMP_CD, FUNC_GET_COST_CODE(COMP_CD,ORG_CD, ''), CRE_DATE)  AS CODE_NM
+       ,COMP_CD                                                                        AS ATTR01 
+   FROM FI_USERS_DEPT
+  WHERE 1 = 1
+    AND COMP_CD = #{COMP_CD}
+    AND SABUN   = #{USER_ID}
+	</select>
+	
+	<select id="selectCompList" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectCompList
+SELECT A.*
+  FROM (	
+		SELECT COMP_CD                               CODE
+		      ,FUNC_GET_CODE_NAME('SYS001', COMP_CD) CODE_NM
+		   FROM DEPT A
+		  WHERE 1=1
+		    AND A.COMP_CD  = #{COMP_CD}
+		    AND A.DEPT_CD  = #{ORG_CD}
+		    AND A.SDATE    = (
+		                      SELECT MAX(SDATE)
+		                        FROM DEPT B
+		                       WHERE B.COMP_CD = A.COMP_CD
+		                         AND B.DEPT_CD = A.DEPT_CD
+		     <![CDATA[ 
+		                         AND B.SDATE    <= TO_CHAR(SYSDATE,'YYYYMMDD')
+		     ]]>
+		                     )
+		UNION ALL
+		 SELECT COMP_CD                                CODE
+		       ,FUNC_GET_CODE_NAME('SYS001', COMP_CD)  CODE_NM
+		   FROM CO_CCTR_MGMT 
+		  WHERE 1=1
+		    AND ORG_CD  = #{ORG_CD}
+		  GROUP BY COMP_CD
+		 ) A
+ ORDER BY A.CODE		 
+	</select>
+	
+	<select id="selectCheckEndData" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectCheckEndData
+SELECT CASE 
+         WHEN COUNT(0) > 0 THEN 'Y' 
+         ELSE                   'N' 
+       END USE_YN 
+  FROM CO_EXPIRY_DATE
+ WHERE 1 = 1
+   AND CRTN_YY = #{TB_CRTN_YY}
+   AND TO_DATE(TO_CHAR(SYSDATE,'YYYYMMDD'),'YYYYMMDD') BETWEEN TO_DATE(REG_FROM_DATE,'YYYYMMDD') AND TO_DATE(REG_TO_DATE,'YYYYMMDD')
+   AND BUGT_GUBN = CASE 
+                     WHEN #{G_MENU_CD} IN ('BDG111' , 'BDG112','BDG122','BDG123') THEN '1'
+                     WHEN #{G_MENU_CD} IN ('BDG113' , 'BDG114','BDG124','BDG125') THEN '2'
+                   ELSE                                                                '3'
+                   END
+	</select>
+	
+	<select id="selectRequestItemList1" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectRequestItemList1
+SELECT DISTINCT 
+       ITEM_LVL01     CODE
+      ,ITEM_LVL01_NM  CODE_NM
+  FROM CO_REQUEST_ITEM
+  ORDER BY ITEM_LVL01 
+	</select>
+    
+	<select id="selectRequestItemList2" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectRequestItemList2
+SELECT DISTINCT 
+       ITEM_LVL02    CODE
+      ,ITEM_LVL02_NM CODE_NM
+      ,ITEM_LVL01    ATTR01
+  FROM CO_REQUEST_ITEM
+ ORDER BY ITEM_LVL01 
+	</select>
+    
+	<select id="selectRequestItemList3" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectRequestItemList3
+SELECT DISTINCT 
+       ITEM_LVL03     CODE
+      ,ITEM_LVL03_NM  CODE_NM
+      ,ITEM_LVL01    ATTR01
+      ,ITEM_LVL02    ATTR02
+  FROM CO_REQUEST_ITEM
+ ORDER BY ITEM_LVL01
+	</select>
+    
+	<select id="selectStorageCompList" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectStorageCompList
+SELECT DISTINCT
+       COMP_CD                               CODE
+      ,FUNC_GET_CODE_NAME('SYS001', COMP_CD) CODE_NM
+  FROM CONFIRM_USER_INFO
+ WHERE CONFIRM_USER = #{CONFIRM_USER}
+ ORDER BY COMP_CD
+	</select>
+    
+	<select id="selectStoragePlantList" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectStoragePlantList
+SELECT DISTINCT 
+       A.PLANT_CD CODE
+      ,B.PLANT_NM CODE_NM
+      ,A.COMP_CD  ATTR01
+  FROM CONFIRM_USER_INFO A
+      LEFT OUTER JOIN 
+       PLANT_INFO B
+      ON    B.COMP_CD  = A.COMP_CD 
+        AND B.PLANT_CD = A.PLANT_CD 
+ WHERE A.CONFIRM_USER = #{CONFIRM_USER}
+ ORDER BY A.COMP_CD
+         ,A.PLANT_CD
+	</select>
+    
+	<select id="selectStorageList" parameterType="Map" resultType="Map">
+	--CommonSelectMapper.selectStorageList
+SELECT DISTINCT 
+       A.STORAGE_CD CODE
+      ,B.STORAGE_NM CODE_NM
+      ,A.COMP_CD    ATTR01
+      ,A.PLANT_CD   ATTR02
+  FROM CONFIRM_USER_INFO A
+      LEFT OUTER JOIN 
+       STORAGE_INFO B
+      ON    B.COMP_CD    = A.COMP_CD
+        AND B.PLANT_CD   = A.PLANT_CD
+        AND B.STORAGE_CD = A.STORAGE_CD
+ WHERE A.CONFIRM_USER = #{CONFIRM_USER}
+ ORDER BY A.COMP_CD
+         ,A.PLANT_CD
+         ,A.STORAGE_CD
+	</select>
+    
+</mapper>

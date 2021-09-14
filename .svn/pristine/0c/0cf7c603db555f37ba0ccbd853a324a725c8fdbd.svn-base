@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.OpSupplement">
+	<select id="selectOpSupplement" parameterType="Map" resultType="Map">
+--com.bdg.Supplement.selectOpSupplement
+SELECT A.COMP_CD                                           COMP_CD          -- 회사코드
+      ,A.CRTN_YMD                                          CRTN_YMD         -- 기준년월일
+      ,A.CCTR_CD                                           CCTR_CD          -- 코스트코드
+      ,FUNC_GET_COST_NAME(A.COMP_CD, A.CCTR_CD, NULL)      CCTR_NM          -- 코스트명
+      ,(SELECT CLAUSE_CD
+         FROM CO_ACCOUNT_MGMT B
+        WHERE B.ACCOUNT_NO = A.ACCOUNT_NO)                 CLAUSE_CD        -- 항목코드
+      ,A.ACCOUNT_NO                                        ACCOUNT_NO       -- 계정코드
+      ,FUNC_GET_ACCOUNT_DESC(A.ACCOUNT_NO)                 ACCOUNT_DESC     -- 계정명
+      ,A.STATUS                                            STATUS           -- 승인상태
+      ,A.BUGT_BASIC_AMT                                    BUGT_BASIC_AMT   -- 당월기본예산
+      ,A.BUGT_EXEC_AMT                                     BUGT_EXEC_AMT    -- 배정실행예산
+      ,A.BUGT_RESULT_AMT                                   BUGT_RESULT_AMT  -- 현재실적
+      ,A.BUGT_BALANCE_AMT                                  BUGT_BALANCE_AMT -- 실행잔액
+      ,A.REQUEST_AMT                                       REQUEST_AMT      -- 신청금액
+      ,A.CRE_DATE                                          CRE_DATE         -- 등록일자
+      ,A.CRE_USER                                          CRE_USER         -- 등록자ID
+      ,A.MOD_DATE                                          MOD_DATE         -- 수정일자
+      ,A.MOD_USER                                          MOD_USER         -- 수정자ID
+      ,'R'                                                 CRUD
+      ,'1'                                                 CODEMAPPING
+	  ,NVL(
+	       (
+	        SELECT COUNT(*) CNT
+	          FROM CO_BUGT_SUPPLEMENT B
+	         WHERE 1 = 1
+	           AND B.COMP_CD  = A.COMP_CD 
+               AND B.CRTN_YMD = A.CRTN_YMD
+               AND B.CCTR_CD  = A.CCTR_CD
+               AND STATUS     IN ('2', '3', '5')
+           )
+          , 0)                                             CNT      
+  FROM CO_BUGT_SUPPLE_MGMT A
+ WHERE 1=1
+	<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND A.COMP_CD  = #{SB_COMP_CD}
+ 	</if>
+   AND A.CRTN_YMD = REPLACE(#{TB_CRTN_YMD}, '-', '') 
+   	<if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+   AND A.CCTR_CD   = #{SB_CCTR_CD}
+   	</if>
+   <if test="SB_STATUS_CD != null and SB_STATUS_CD != ''">
+   AND A.STATUS  = #{SB_STATUS_CD}
+ </if>   
+  </select>
+
+	<select id="selectOpSupplementAmt" parameterType="Map" resultType="Map">
+--com.bdg.Supplement.selectOpSupplementAmt
+SELECT BUGT_BASIC_AMT                BUGT_BASIC_AMT   -- 당월기본예산
+      ,BUGT_EXEC_AMT                 BUGT_EXEC_AMT    -- 배정실행예산
+      ,BUGT_RESULT_AMT               BUGT_RESULT_AMT  -- 현재실적
+      ,BUGT_EXEC_AMT-BUGT_RESULT_AMT BUGT_BALANCE_AMT -- 실행잔액
+      ,ACCOUNT_NO                    ACCOUNT_NO       -- 계정
+      ,ACCOUNT_DESC                  ACCOUNT_DESC     -- 계정명
+  FROM (
+        SELECT CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '01' THEN B.WK_M01
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '02' THEN B.WK_M02
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '03' THEN B.WK_M03
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '04' THEN B.WK_M04
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '05' THEN B.WK_M05
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '06' THEN B.WK_M06
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '07' THEN B.WK_M07
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '08' THEN B.WK_M08
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '09' THEN B.WK_M09
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '10' THEN B.WK_M10
+                    WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '11' THEN B.WK_M11
+                    ELSE                                                                   B.WK_M12
+               END BUGT_BASIC_AMT
+              ,(
+                CASE WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '01' THEN C.WK_M01
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '02' THEN C.WK_M02
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '03' THEN C.WK_M03
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '04' THEN C.WK_M04
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '05' THEN C.WK_M05
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '06' THEN C.WK_M06
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '07' THEN C.WK_M07
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '08' THEN C.WK_M08
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '09' THEN C.WK_M09
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '10' THEN C.WK_M10
+                     WHEN SUBSTR(REPLACE(#{TB_CRTN_YMD},'-',''),5,2) = '11' THEN C.WK_M11
+                     ELSE                                                                  C.WK_M12
+                END
+               +
+                D.REQUEST_AMT
+               )                                                                           BUGT_EXEC_AMT
+              ,E.ACCOUNT_AMT                                                               BUGT_RESULT_AMT
+              ,Z.ACCOUNT_NO                                                                ACCOUNT_NO
+              ,FUNC_GET_ACCOUNT_DESC(Z.ACCOUNT_NO)                                         ACCOUNT_DESC     -- 계정명
+          FROM CO_BUGT_SUPPLEMENT A
+              INNER JOIN 
+               CO_ACCOUNT_MGMT Z
+              ON    Z.CLAUSE_CD  = '5'
+                AND Z.DISTRIB_YN = 'Y'
+              LEFT OUTER JOIN 
+               CO_BUGT_MODIFY_HEAD B
+              ON    B.COMP_CD    = A.COMP_CD
+                AND B.CRTN_YY    = SUBSTR(A.CRTN_YMD,0,4)
+                AND B.CCTR_CD    = A.CCTR_CD
+                AND B.ACCOUNT_NO = Z.ACCOUNT_NO
+              LEFT OUTER JOIN 
+               CO_BUGT_EXEC_HEAD C
+              ON    C.COMP_CD    = A.COMP_CD
+                AND C.CRTN_YYMM  = SUBSTR(A.CRTN_YMD,0,6)
+                AND C.CCTR_CD    = A.CCTR_CD
+                AND C.ACCOUNT_NO = Z.ACCOUNT_NO
+              LEFT OUTER JOIN 
+               (
+                SELECT COMP_CD
+                      ,CCTR_CD
+                      ,ACCOUNT_NO
+                      ,SUBSTR(CRTN_YMD,0,6) CRTN_YMD
+                      ,SUM(REQUEST_AMT)     REQUEST_AMT
+                  FROM CO_BUGT_SUPPLEMENT
+                 WHERE STATUS  = '4'
+                 GROUP BY COMP_CD
+                         ,SUBSTR(CRTN_YMD,0,6)
+                         ,CCTR_CD
+                         ,ACCOUNT_NO
+               ) D
+              ON    D.COMP_CD      = A.COMP_CD
+                AND D.CRTN_YMD     = SUBSTR(A.CRTN_YMD,0,6)
+                AND D.CCTR_CD      = A.CCTR_CD
+                AND D.ACCOUNT_NO   = Z.ACCOUNT_NO
+              LEFT OUTER JOIN 
+               CO_BUGT_RESULT E
+              ON    E.COMP_CD      = A.COMP_CD
+                AND E.CRTN_YYMM    = SUBSTR(A.CRTN_YMD,0,6)
+                AND E.CCTR_CD      = A.CCTR_CD 
+                AND E.ACCOUNT_NO   = Z.ACCOUNT_NO
+         WHERE A.COMP_CD    = #{SB_COMP_CD}
+           AND A.CRTN_YMD   = REPLACE(#{TB_CRTN_YMD}, '-', '')
+           AND A.CCTR_CD    = #{SB_CCTR_CD}
+           AND A.ACCOUNT_NO = #{TB_ACCOUNT_NO}
+       )
+  </select>
+  
+	<insert id="insertOpSupplement" parameterType="Map">
+--com.bdg.Supplement.insertOpSupplement
+INSERT INTO CO_BUGT_SUPPLE_MGMT
+ (
+   COMP_CD            -- 회사코드
+  ,CRTN_YMD           -- 기준년월일
+  ,CCTR_CD            -- 코스트코드
+  ,ACCOUNT_NO         -- 계정코드
+  ,STATUS             -- 상태
+  ,BUGT_BASIC_AMT     -- 당월기본예산
+  ,BUGT_EXEC_AMT      -- 배정실행예산
+  ,BUGT_RESULT_AMT    -- 현재실적
+  ,BUGT_BALANCE_AMT   -- 실행잔액
+  ,REQUEST_AMT        -- 신청금액
+  ,CRE_DATE           -- 등록일자
+  ,CRE_USER           -- 등록자ID
+  ,MOD_DATE           -- 수정일자
+  ,MOD_USER           -- 수정자ID
+ ) VALUES (
+            #{COMP_CD}
+           ,#{CRTN_YMD}
+           ,#{CCTR_CD}
+           ,#{ACCOUNT_NO}
+           ,#{STATUS}
+           ,#{BUGT_BASIC_AMT}
+           ,#{BUGT_EXEC_AMT}
+           ,#{BUGT_RESULT_AMT}
+           ,#{BUGT_BALANCE_AMT}
+           ,#{REQUEST_AMT}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{MOD_USER}
+           )
+	</insert>
+	
+	
+	<update id="updateOpSupplement" parameterType="Map">
+--com.bdg.Supplement.updateOpSupplement
+UPDATE CO_BUGT_SUPPLE_MGMT
+   SET REQUEST_AMT  = #{REQUEST_AMT}
+ WHERE COMP_CD    = #{COMP_CD}
+   AND CRTN_YMD   = #{CRTN_YMD}
+   AND CCTR_CD    = #{CCTR_CD}
+   AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</update>
+	
+	<delete id="delOpSupplement" parameterType="map">
+--com.bdg.Supplement.delOpSupplement
+DELETE FROM CO_BUGT_SUPPLE_MGMT
+ WHERE COMP_CD    = #{COMP_CD}
+   AND CRTN_YMD   = #{CRTN_YMD}
+   AND CCTR_CD    = #{CCTR_CD}
+   AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</delete>
+	
+	
+	<update id="confirmOpSupplement" parameterType="map">
+--com.bdg.Supplement.confirmOpSupplement
+UPDATE CO_BUGT_SUPPLE_MGMT
+   SET STATUS   = '2' 
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD    = #{SB_COMP_CD}
+   AND CRTN_YMD   = REPLACE(#{TB_CRTN_YMD},'-','')
+   AND CCTR_CD    = #{SB_CCTR_CD}
+	</update>
+
+	<update id="confirmCancelOpSupplement" parameterType="map">
+--com.bdg.Supplement.confirmCancelOpSupplement
+UPDATE CO_BUGT_SUPPLE_MGMT
+   SET STATUS   = '1' 
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD    = #{SB_COMP_CD}
+   AND CRTN_YMD   = REPLACE(#{TB_CRTN_YMD},'-','')
+   AND CCTR_CD    = #{SB_CCTR_CD}
+	</update>
+
+	<select id="selectOpAccountList" parameterType="Map" resultType="Map">
+SELECT ACCOUNT_NO
+      ,ACCOUNT_DESC
+  FROM CO_ACCOUNT_NO
+ WHERE 1=1
+	<if test="TB_ACCOUNT_NO != null and TB_ACCOUNT_NO != ''">
+   AND ACCOUNT_NO LIKE  '%' || #{TB_ACCOUNT_NO} || '%'  
+	</if>
+	<if test="TB_ACCOUNT_DESC != null and TB_ACCOUNT_DESC != ''">
+   AND ACCOUNT_DESC LIKE  '%' || #{TB_ACCOUNT_DESC} || '%'
+	</if> 						
+	</select>	
+	
+	<select id="selectOpDeptList" parameterType="Map" resultType="Map">
+--. 부서조회
+SELECT A.DEPT_CD
+      ,A.DEPT_NM
+  FROM DEPT A
+ WHERE 1=1
+	<if test="TB_COMP_CD != null and TB_COMP_CD != ''">
+   AND COMP_CD LIKE  '%' || #{TB_COMP_CD} || '%'  
+	</if>
+	<if test="TB_DEPT_CD != null and TB_DEPT_CD != ''">
+   AND DEPT_CD LIKE  '%' || #{TB_DEPT_CD} || '%'  
+	</if>
+	<if test="TB_DEPT_NM != null and TB_DEPT_NM != ''">
+   AND DEPT_NM LIKE  '%' || UPPER(#{TB_DEPT_NM}) || '%'  
+	</if>
+ ORDER BY DEPT_NM
+	</select>	
+
+	<update id="saveRemark" parameterType="Map">
+		UPDATE CO_BUGT_BASIC_HEAD
+		   SET REMARK = #{TB_REMARK}
+		 WHERE COMP_CD    = #{SB_COMP_CD}
+           AND CRTN_YY    = #{TB_CRTN_YY}
+           AND CCTR_CD    = #{SB_CCTR_CD}
+           AND ACCOUNT_NO = #{TB_ACCOUNT_NO}
+	</update>
+
+
+	<update id="returnOpSupplement" parameterType="map">
+--com.bdg.Supplement.returnOpSupplement
+UPDATE CO_BUGT_SUPPLEMENT
+   SET STATUS   = '3' 
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD    = #{COMP_CD}
+   AND CRTN_YMD   = #{CRTN_YMD}
+   AND CCTR_CD    = #{CCTR_CD}
+   AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</update>
+
+	<update id="updateOpSupplementSap" parameterType="map">
+--com.bdg.Supplement.updateOpSupplementSap
+UPDATE CO_BUGT_SUPPLEMENT
+   SET SAP_SEND_YN  = 'Y' 
+      ,MOD_DATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER = #{MOD_USER}
+ WHERE COMP_CD    = #{COMP_CD}
+   AND CRTN_YMD   = #{CRTN_YMD}
+   AND CCTR_CD    = #{CCTR_CD}
+   AND ACCOUNT_NO = #{ACCOUNT_NO}
+	</update>
+
+	<select id="sendCheckCnt" parameterType="Map" resultType="int">
+		--com.bdg.ExecBudget.sendCheckCnt
+SELECT COUNT(0) CNT
+  FROM CO_BUGT_SUPPLEMENT
+ WHERE COMP_CD      = #{COMP_CD}
+   AND CRTN_YMD     = REPLACE(#{CRTN_YMD},'-','')
+   AND PROCESS_TYPE = '2'
+	</select>
+	
+	<insert id="sendOpSupplement" parameterType="Map">
+	--BdgOpExecBudgetMgtMapper.sendOpSupplement
+INSERT INTO CO_BUGT_SUPPLEMENT
+SELECT COMP_CD
+      ,CRTN_YMD
+      ,CCTR_CD
+      ,ACCOUNT_NO
+      ,'2'
+      ,'1'
+      ,SUM(BUGT_BASIC_AMT)
+      ,SUM(BUGT_EXEC_AMT)
+      ,SUM(BUGT_RESULT_AMT)
+      ,SUM(BUGT_BALANCE_AMT) 
+      ,SUM(REQUEST_AMT)
+      ,NULL
+      ,'N'
+      ,NULL
+      ,TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,#{CRE_USER}
+      ,TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,#{MOD_USER}
+  FROM CO_BUGT_SUPPLE_MGMT
+ WHERE COMP_CD   = #{COMP_CD}
+   AND CRTN_YMD = REPLACE(#{CRTN_YMD},'-','')
+ GROUP BY COMP_CD
+         ,CRTN_YMD
+         ,CCTR_CD
+         ,ACCOUNT_NO
+	</insert>
+	
+    <delete id="sendCancelOpSupplement" parameterType="Map">
+		--BdgOpExecBudgetMgtMapper.sendCancelOpSupplement
+		DELETE FROM CO_BUGT_SUPPLEMENT
+		 WHERE COMP_CD      = #{COMP_CD}
+		   AND CRTN_YMD     = REPLACE(#{CRTN_YMD},'-','')
+		   AND PROCESS_TYPE = '2'
+    </delete>
+    
+   	<select id="selectStatusHeader" parameterType="Map" resultType="Map">
+	    --com.bdg.OpModifyMgt.selectStatusHeader
+		SELECT MAX(STATUS) STATUS
+		  FROM CO_BUGT_SUPPLE_MGMT
+		 WHERE 1 = 1
+		   AND COMP_CD  = #{SB_COMP_CD}
+	       AND CRTN_YMD = REPLACE(#{TB_CRTN_YMD},'-','')
+	       AND CCTR_CD  = #{SB_CCTR_CD}		
+	</select>
+	
+    <update id="updateCancelOpSupplement" parameterType="Map">
+		--com.bdg.OpExecBudget.updateCancelOpSupplement(전송취소)
+		UPDATE CO_BUGT_SUPPLE_MGMT
+		   SET STATUS = '2'
+	     WHERE COMP_CD       = #{SB_COMP_CD}
+	       AND CRTN_YMD      = REPLACE(#{TB_CRTN_YMD},'-','') 
+    </update>
+    
+    <update id="updatSendOpSupplement" parameterType="Map">
+		--com.bdg.OpExecBudget.updatSendOpSupplement(전송)
+		UPDATE CO_BUGT_SUPPLE_MGMT
+		   SET STATUS = '3'
+	     WHERE COMP_CD       = #{SB_COMP_CD}
+	       AND CRTN_YMD      = REPLACE(#{TB_CRTN_YMD},'-','') 
+    </update>
+
+</mapper>

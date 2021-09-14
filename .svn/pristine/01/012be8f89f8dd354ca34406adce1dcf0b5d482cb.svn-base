@@ -1,0 +1,548 @@
+<%@ page language="java" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.app.common.util.StringUtil"%>
+<%@page import="com.app.common.util.StringUtilEx"%>
+<%@ taglib prefix="c"       uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring"  uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"     uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fmt"     uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%
+
+/*******************************************************************
+  httpclient 호출로 파라미터 전송시 object 전송 불가
+  list,map => json string 유형으로 변환 전송 됨
+  json string 유형 데이터를 jstl 사용 가능하도록 object로 변경
+*******************************************************************/
+String AP_GR_INFO = request.getParameter("GR_INFO");
+String AP_CNTRT_INFO = request.getParameter("CNTRT_INFO");
+//String AP_AMT_INFO = request.getParameter("AMT_INFO");
+
+request.setAttribute("AP_GR_INFO" ,  com.app.common.util.JsonUtil.getMapFromJsonString(AP_GR_INFO)); //MAP
+request.setAttribute("AP_CNTRT_INFO" ,  com.app.common.util.JsonUtil.getMapFromJsonString(AP_CNTRT_INFO)); //MAP
+//request.setAttribute("AP_AMT_INFO" ,  com.app.common.util.JsonUtil.getMapFromJsonString(AP_AMT_INFO)); //MAP
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<link href="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_reset.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_common.css'/>" rel="stylesheet"/>
+<!-- jquery -->
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-1.12.3/jquery-1.12.3.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/attach.js'/>"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	fnInitFileUpload();
+    //전자결재 페이지에서 창에 높이 확인 가능하도록 수정
+    document.domain="parucnc.com";
+    //전자결재 부모창으로 높이 전송
+    var maxHeight = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight,document.documentElement.offsetHeight);
+    window.parent.postMessage(maxHeight, '*');	
+	
+});
+</script>
+</head>
+<body>
+<div class="pop-wrap fixed">
+    <div class="pop-cont"><!-- 상단 타이틀 영역 고정시 fixed 클래스 추가 -->
+        <div class="cont-tit" id="section1">
+            <h3>검수 정보</h3>
+        </div>
+        
+        <div class="section1 scrolls">
+            <div class="sub-tit first">
+                <h4>검수의견&nbsp;[계약번호 : ${AP_CNTRT_INFO.CNTRT_NO}]</h4>
+            </div>
+            <table class="table-style">
+                <tbody>
+                    <tr>
+                        <td colspan="4">
+                            <textarea rows="5" class="wp100" id="INSP_OPINION" readonly="readonly"><c:out value="${AP_GR_INFO.INSP_OPINION}"/></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section2 scrolls">
+            <div class="sub-tit" id="section2">
+                <h4>기본정보&nbsp;<em>[검수요청일로부터 10일 이내에 검수완료하고 그 일자를 입력해야 합니다.]</em></h4>
+            </div>
+            
+            <table class="table-style">
+                <colgroup>
+                    <col style="width:15%;">
+                    <col style="width:35%;">
+                    <col style="width:15%;">
+                    <col style="width:35%;">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th>검수번호</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_NO}
+                        </td>
+                        <th>PO No</th>
+                        <td>
+                            ${AP_GR_INFO.PO_NO}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>검수건명</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_NM}
+                        </td>
+                        <th>계약번호</th>
+                        <td>
+                            ${AP_CNTRT_INFO.CNTRT_NO}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>검수일</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_DATE}
+                        </td>
+                        <th>검수승인일</th>
+                        <td>
+                            ${AP_GR_INFO.SIGN_DATE}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>검수담당자</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_PIC_NM}
+                        </td>
+                        <th>검수부서</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_DEPT_NM}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section3 scrolls">
+            <div class="sub-tit" id="section3">
+                <h4>검수요청내역</h4>
+            </div>
+            <!-- realgrid 들어가는 영역 : S -->
+            <div class="realgrid-area">
+                <div id="inspGridView"></div>
+            </div>
+            
+            <table class="table-style">
+                <colgroup>
+                    <col style="width:15%;">
+                    <col style="width:18%;">
+                    <col style="width:15%;">
+                    <col style="width:18%;">
+                    <col style="width:12%;">
+                    <col style="width:18%;">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th>검수요청금액</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_REQ_AMT}
+                        </td>
+                        <th>검수요청금액(누적합계)</th>
+                        <td>
+                            <%-- ${AP_AMT_INFO.TOT_INSP_REQ_AMT} --%>
+                        </td>
+                        <th>누적검수율</th>
+                        <td>
+                            %
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 최종인수요청인 경우에만 지체여부 체크 -->
+        <div class="section4 scrolls">
+            <div class="sub-tit" id="section4">
+                <h4>지체여부</h4>
+            </div>
+            
+            <table class="table-style">
+                <colgroup>
+                    <col style="width:15%;">
+                    <col style="width:18%;">
+                    <col style="width:15%;">
+                    <col style="width:18%;">
+                    <col style="width:15%;">
+                    <col style="width:18%;">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th>계약종료일자</th>
+                        <td colspan="5">
+                            ${AP_CNTRT_INFO.CNTRT_END_YMD}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>지체발생일</th>
+                        <td align="right">
+                            ${AP_GR_INFO.DELAY_DAY}일
+                        </td>
+                        <th>지체상금율</th>
+                        <td align="right">
+                            ${AP_CNTRT_INFO.ETC_HOLD_RATE}%
+                        </td>
+                        <th>지체상금</th>
+                        <td align="right">
+                            ${AP_GR_INFO.DELAY_AMT}원
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>지체발생원인주체</th>
+                        <td colspan="5">
+                            ${AP_GR_INFO.DELAY_AGT_TEXT}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>지체발생사유</th>
+                        <td colspan="5">
+                            <textarea rows="3" class="wp100" id="DELAY_RSN" name="DELAY_RSN" readonly="readonly">${AP_GR_INFO.DELAY_RSN}</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>면제요청일</th>
+                        <td align="right">
+                            ${AP_GR_INFO.DELAY_EXCEPT_DAY}일
+                        </td>
+                        <th>면제요청금액</th>
+                        <td align="right">
+                            ${AP_GR_INFO.DELAY_EXCEPT_AMT}원
+                        </td>
+                        <th>부과지체상금</th>
+                        <td align="right">
+                            ${AP_GR_INFO.DELAY_NET_AMT}원
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>면제사유</th>
+                        <td colspan="5">
+                            <textarea rows="3" class="wp100" id="DELAY_EXCEPT_REASON" name="DELAY_EXCEPT_REASON" readonly="readonly">${AP_GR_INFO.DELAY_EXCEPT_REASON}</textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section5 scrolls">
+            <div class="layoutArea m_b50">
+                <input type="hidden" id="APP_SEQ_DEPT" name="APP_SEQ_DEPT" value="${AP_GR_INFO.APP_SEQ_DEPT}">
+                <div class="sub-tit" id="section5">
+                    <h4>검수보고서 증빙파일&nbsp;<em>[증빙파일을 반드시 첨부해 주시기 바랍니다.]</em></h4>
+                    <div class="right">
+                        <!-- <a href="#none" id="btnMultiFile_dept" class="btn writeBtn">첨부파일</a> -->
+                        <button type="button" class="btn" id="btnMultiFile_dept">첨부파일</button>
+                    </div>
+                </div>
+            
+                <div id="fileUploadTable_dept" class="jqGridArea m_t5">
+                    <table class="table-style t_center topLineNo leftLine">
+                        <colgroup>
+                            <col style="width: 8%;">
+                            <col style="width: 67%;">
+                            <col style="width: 15%;">
+                            <col style="width: 10%;">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>파일명</th>
+                            <th>등록일자</th>
+                            <th>파일크기</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td colspan="4" class="t_center" style="height: 80px">파일이 없습니다.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <hr class="horizon">
+        
+        <div class="section6 scrolls">
+            <div class="cont-tit"  id="section6">
+                <h3>검수요청정보</h3>
+            </div>
+            
+            <div class="sub-tit first">
+                <h4>기본정보</h4>
+            </div>
+            
+            <table class="table-style">
+                <colgroup>
+                    <col style="width:12%;">
+                    <col style="width:24%;">
+                    <col style="width:12%;">
+                    <col style="width:12%;">
+                    <col style="width:12%;">
+                    <col style="width:12%;">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th>검수요청번호</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_SEQ}
+                        </td>
+                        <th>검수요청일자</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_REQ_DATE}
+                        </td>
+                        <th>검수요청차수</th>
+                        <td align="right">
+                            ${AP_GR_INFO.ORDER_NO}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>검수요청건명</th>
+                        <td colspan="5">
+                            ${AP_GR_INFO.INSP_REQ_NM}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>BP명</th>
+                        <td>
+                            ${AP_CNTRT_INFO.VENDOR_NAME}
+                        </td>
+                        <th>검수요청담당자</th>
+                        <td colspan="3">
+                            ${AP_GR_INFO.INSP_REQ_PIC}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>담당자 전화번호</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_REQ_PIC_MOBILE_NO}
+                        </td>
+                        <th>담당자 E-mail</th>
+                        <td colspan="3">
+                            ${AP_GR_INFO.INSP_REQ_PIC_EMAIL}
+                        </td>
+                        <!-- <th>지체일수/금액</th>
+                        <td colspan = "3">
+                            <input id="delayDaysAndAmt" class="wp100 readOnly" style="text-align:left;" value="" readonly></input>
+                        </td> -->
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section7 scrolls">
+            <div class="sub-tit" id="section7">
+                <h4>검수요청내역</h4>
+            </div>
+            <!-- realgrid 들어가는 영역 : S -->
+            <div class="realgrid-area">
+                <div id="inspReqGridView"></div>
+            </div>
+            
+            <table class="table-style">
+                <colgroup>
+                    <col style="width:15%;">
+                    <col style="width:18%;">
+                    <col style="width:15%;">
+                    <col style="width:18%;">
+                    <col style="width:12%;">
+                    <col style="width:18%;">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th>검수요청금액</th>
+                        <td>
+                            ${AP_GR_INFO.INSP_REQ_AMT}
+                        </td>
+                        <th>검수요청금액(누적합계)</th>
+                        <td>
+                            <%-- ${AP_AMT_INFO.TOT_INSP_REQ_AMT} --%>
+                        </td>
+                        <th>누적검수율</th>
+                        <td>
+                            <input type="text" style="text-align:right;" class="wp80 readOnly" id="totInspReqAmtRate2" value="" readonly></input>%
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section8 scrolls">
+            <div class="sub-tit" id="section8">
+                <h4>검수요청 의견</h4>
+            </div>
+            
+            <table class="table-style">
+                <colgroup>
+                    <col style="width:15%;">
+                    <col style="width:*">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th>검수요청 의견</th>
+                        <td>
+                            <textarea rows="2" class="wp100" id="VENDOR_REMARK" readonly><c:out value="${AP_GR_INFO.REMARK}"/></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="section9 scrolls">
+            <div class="sub-tit" id="section9">
+                <h4>하자이행 보증보험</h4>
+            </div>
+            
+            <table class="table-style">
+                <colgroup>
+                    <col style="width:15%;">
+                    <col style="width:18%;">
+                    <col style="width:15%;">
+                    <col style="width:18%;">
+                    <col style="width:12%;">
+                    <col style="width:18%;">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th>최종검수요청</th>
+                        <td colspan="5">
+                            <c:if test="${AP_GR_INFO.FINAL_RECEIPT_YN eq 'Y'}">
+                                <div style="margin-left:5px;"><input type="checkbox" id="FINAL_RECEIPT_YN" value="Y" onclick="return false;" checked readonly="readonly"></div>
+                            </c:if>
+                            <c:if test="${AP_GR_INFO.FINAL_RECEIPT_YN ne 'Y'}">
+                                <div style="margin-left:5px;"><input type="checkbox" id="FINAL_RECEIPT_YN" value="N" onclick="return false;" readonly="readonly"></div>
+                            </c:if>
+                        </td>
+                    </tr>
+                    <c:if test="${AP_CNTRT_INFO.CNTRT_SEC_F eq '04'.toString() && AP_GR_INFO.FINAL_RECEIPT_YN eq 'Y'.toString()}">
+                    <tr>
+                        <th>보증보험회사</th>
+                        <td>
+                            ${AP_GR_INFO.WRNTY_CO_NM}
+                        </td>
+                        <th>보증보험번호</th>
+                        <td>
+                            ${AP_GR_INFO.WRNTY_NO}
+                        </td>
+                        <th>보증첨부파일</th>
+                        <td>
+                            <input type="hidden" id="FAULT_WRNTY_APP_SEQ" value="${AP_GR_INFO.FAULT_WRNTY_APP_SEQ}" />
+                            <c:if test="${AP_GR_INFO.FAULT_WRNTY_FILE_NM != null && AP_GR_INFO.FAULT_WRNTY_FILE_NM ne '' }">
+                                <c:set value="N" var="readOnlyYn"/>
+                                    <jsp:include page="/upload/fileAttachInc.do" flush="true">
+                                        <jsp:param name="formName"              value="faultWrntyFile"/>
+                                        <jsp:param name="READ_ONLY"             value="Y"/>
+                                        <jsp:param name="RESPONSE_PARAM_ID"     value="FAULT_WRNTY_APP_SEQ"/>
+                                        <jsp:param name="CALL_BACK_FUNC"        value="callBack_faultWrntyFile"/>
+                                        <jsp:param name="APP_SEQ"               value="${AP_GR_INFO.FAULT_WRNTY_APP_SEQ}"/>
+                                        <jsp:param name="FILE_NAME"             value="${AP_GR_INFO.FAULT_WRNTY_FILE_NM}"/>
+                                    </jsp:include>
+                            </c:if>
+                        </td>
+                    </tr>
+                    </c:if>
+                </tbody>
+            </table>
+            
+            <div id="agreeDiv" style="display:none;" >
+                <table class="table-style" style="border-top:0px;">
+                    <colgroup>
+                    <col style="width:16%;">
+                    <col style="width:15%;">
+                    <col style="width:10%;">
+                    <col style="width:15%;">
+                    <col style="width:12%;">
+                    <col style="width:*;">
+                </colgroup>
+                    <tr>
+                        <th>
+                            <a href="javascript:void(1);">하자이행 지급각서 동의</a>
+                        </th>
+                        <td colspan="5">
+                            동의일시 : <strong><c:out value="${AP_GR_INFO.PAY_TERMS_DATE}"></c:out></strong>
+                            <!-- <a href="#none" class="tBtn" id="payAgreePopup">지급각서 조회</a> -->
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="section10 scrolls">
+            <div class="layoutArea m_b50">
+                <input type="hidden" id="ATT_FILE" name="ATT_FILE" value="${AP_GR_INFO.ATT_FILE}">
+                <div class="sub-tit" id="section10">
+                    <h4>검수요청 증빙파일</h4>
+                    <!-- <div class="f_right">
+                        <a href="#none" id="btnMultiFile" class="btn writeBtn" style="display:none;">첨부파일</a>
+                    </div> -->
+                </div>
+            
+                <div id="fileUploadTable" class="jqGridArea m_t5">
+                    <table class="table-style t_center topLineNo leftLine">
+                        <colgroup>
+                            <col style="width: 8%;">
+                            <col style="width: 67%;">
+                            <col style="width: 15%;">
+                            <col style="width: 10%;">
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>파일명</th>
+                            <th>등록일자</th>
+                            <th>파일크기</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td colspan="4" class="t_center" style="height: 80px">파일이 없습니다.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div><!-- //popCont -->
+</div>
+<script>
+
+//첨부파일 조회
+function fnInitFileUpload() {
+  //검수요청 증빙파일
+  if ($("#ATT_FILE").val() != "") { 
+      displayFileUpload({
+          KEY_ID      : 'ATT_FILE',
+          DATA_FORMAT : 'table',
+          CALLBACK    : 'fnFileUploadCallback'
+      });
+  }
+  
+  //검수보고서 증빙파일
+  if ($("#APP_SEQ_DEPT").val() != "") { 
+      displayFileUpload({
+          KEY_ID      : 'APP_SEQ_DEPT',
+          DATA_FORMAT : 'table',
+          CALLBACK    : 'fnFileUploadCallback_dept'
+      });
+  }
+  
+}
+//파일업로드 콜백
+function fnFileUploadCallback(data)
+{
+  $("#fileUploadTable").empty().html(data);
+}
+
+function fnFileUploadCallback_dept(data)
+{
+  $("#fileUploadTable_dept").empty().html(data);
+}
+</script>
+</body>

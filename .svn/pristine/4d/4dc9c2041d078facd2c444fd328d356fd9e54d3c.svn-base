@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="interface">
+
+    <select id="selectDeptData" parameterType="Map" resultType="Map">
+    <!-- 
+    	테스트용
+               '1000'         AS COMP_CD
+	          ,A.DEPT_CD      AS ORG_CD
+	          ,A.DEPT_NM      AS ORG_NM
+	          ,A.MANAGER_ID
+	          ,A.MANAGER_NAME AS MANAGER_NM
+	          ,A.UP_DEPT_CD   AS UP_ORG_CD
+	          ,''             AS UP_ORG_NM
+	          ,''             AS COST_CD
+	          ,''             AS COST_NM
+	          ,A.DEL_YN
+	          ,'20200701'     AS SDATE
+	          ,'99991231'     AS EDATE
+	          ,A.INS_DT       AS CRE_DATE_TIME
+              ,A.INS_ID       AS CRE_USER
+              ,A.MOD_DT       AS UPD_DATE_TIME
+              ,A.MOD_ID       AS UPD_USER
+     -->
+    <![CDATA[
+	    --interface.selectDeptData
+	    SELECT A.COMP_CD
+              ,A.ORG_CD
+              ,A.ORG_NM
+              ,A.SDATE
+              ,A.EDATE
+              ,A.MANAGER_ID
+              ,A.MANAGER_NM
+              ,A.PRIOR_ORG_CD AS UP_ORG_CD
+              --,A.UP_ORG_NM
+              ,A.PRIOR_ORG
+              ,A.COST_CD
+              ,A.COST_NM
+              ,A.CRE_DATE_TIME
+              ,A.CRE_USER
+              ,A.UPD_DATE_TIME
+              ,A.UPD_USER              
+	      FROM EP_DEPARTMENT A
+	     WHERE 1 = 1
+	       --AND (
+	       --        A.CRE_DATE_TIME >= TO_CHAR(SYSDATE-7, 'YYYYMMDD') || '000000'
+	       --     OR A.UPD_DATE_TIME >= TO_CHAR(SYSDATE-7, 'YYYYMMDD') || '000000'
+	       --    )
+	]]>
+    </select>
+    
+    <select id="selectUserData" parameterType="Map" resultType="Map">
+    <!-- 
+          테스트용
+              COMP_CD         AS COMP_CD
+              ,USER_ID         AS SABUN             
+              ,USER_NM         AS NAME              
+              ,DEPT_CD         AS ORG_CD        
+              ,DESIGNATION     AS JIKWEE_CD     
+              ,DESIGNATION_N   AS JIKWEE_NM
+              ,GRADE_CODE      AS JIKCHAK_CD
+              ,GRADE_NAME      AS JIKCHAK_NM
+              ,'20200701'      AS EMP_YMD
+              ,NULL            AS RET_YMD
+              ,NULL            AS DISPATCH_ORG_CD
+              ,MOBILE_NO       AS HP_NUMBER
+              ,EMAIL_ID        AS MAIL
+              ,USER_STATUS
+              ,INS_DT          AS CRE_DATE_TIME
+              ,INS_ID          AS CRE_USER
+              ,MOD_DT          AS UPD_DATE_TIME
+              ,MOD_ID          AS UPD_USER
+    
+     -->
+    <![CDATA[
+	    --interface.selectUserData
+	    SELECT A.SAP_COMP_CD AS COMP_CD
+	          ,A.SABUN
+	          ,A.NAME
+	          ,A.ORG_CD
+	          ,A.JIKWEE_CD
+	          ,A.JIKWEE_NM
+	          ,A.JIKCHAK_CD
+	          ,A.JIKCHAK_NM
+	          ,A.EMP_YMD
+	          ,A.RET_YMD
+	          ,A.DISPATCH_ORG_CD
+	          ,A.HP_NUMBER
+	          ,A.MAIL
+	          ,A.USER_STATUS
+	          ,A.CRE_DATE_TIME
+	          ,A.CRE_USER
+	          ,A.UPD_DATE_TIME
+	          ,A.UPD_USER              
+	      FROM EP_EMPLOYEE A
+	     WHERE 1 = 1
+	       --AND (
+	       --        A.CRE_DATE_TIME >= TO_CHAR(SYSDATE-7, 'YYYYMMDD')
+	       --     OR A.UPD_DATE_TIME >= TO_CHAR(SYSDATE-7, 'YYYYMMDD')
+	       --    )
+	]]>
+    </select> 
+
+    <select id="selectHRBugtIfData" parameterType="Map" resultType="Map">
+    <![CDATA[
+	    --interface.selectHRBugtIfData
+	    SELECT A.COMP_CD
+	          ,A.CRTN_YY
+	          ,A.ORG_CD
+	          ,LPAD(A.BUGT_GUBUN, 10, 0) AS BUGT_GUBUN
+	          ,A.MM_01
+	          ,A.MM_02
+	          ,A.MM_03
+	          ,A.MM_04
+	          ,A.MM_05
+	          ,A.MM_06
+	          ,A.MM_07
+	          ,A.MM_08
+	          ,A.MM_09
+	          ,A.MM_10
+	          ,A.MM_11
+	          ,A.MM_12
+	      FROM HR_BUGT_IF A
+	     WHERE CRTN_YY = #{TB_CRTN_YY}
+	     
+	]]>
+    </select>
+    
+    <select id="selectHRVacatHeadData" parameterType="Map" resultType="Map">
+    <![CDATA[
+	    --interface.selectHRVacatHeadData
+	    SELECT A.COMP_CD
+	          ,A.CRTN_YYMM
+	          ,A.ORG_CD
+	          ,A.SABUN
+	          ,A.VACAT_NUM
+	          ,A.VACAT_AMT
+	      FROM HR_VACAT_HEAD_IF A
+	]]>
+    </select>
+    
+    <select id="selectHRVacatDetailData" parameterType="Map" resultType="Map">
+    <![CDATA[
+	    --interface.selectHRVacatDetailData
+	    SELECT A.COMP_CD
+	          ,A.CRTN_YYMM
+	          ,A.ORG_CD
+	          ,A.SABUN
+	          ,A.VACAT_DAY
+	          ,A.VACAT_GUBUN
+	          ,A.VACAT_TXT
+	      FROM HR_VACAT_DETAIL_IF A
+	]]>
+    </select>
+    
+	<select id="receptionTravel" parameterType="Map" resultType="Map">
+	--interface.receptionTravel
+SELECT COMP_ID
+      ,CRTN_YYMM
+      ,ORG_CD
+      ,SABUN
+      ,TRANS_AMT
+      ,TRAVEL_AMT
+      ,ROOM_AMT
+      ,TRANS_CNT
+ FROM IF_MISO_RECV_TRAVEL
+WHERE 1=1
+  AND COMP_ID   = #{SB_COMP_CD}
+  AND CRTN_YYMM = TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(#{TB_CRTN_YYMM},'-',''),'YYYYMM'),-1),'YYYYMM')
+	</select>
+
+	<select id="receptionVacationH" parameterType="Map" resultType="Map">
+	--interface.receptionVacationH
+SELECT COMP_CD
+      ,CRTN_YYMM
+      ,ORG_CD
+      ,SABUN
+      ,VACAT_NUM
+ FROM HR_VACAT_HEAD_IF
+WHERE 1=1
+  AND COMP_CD   = #{SB_COMP_CD}
+  AND CRTN_YYMM = TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(#{TB_CRTN_YYMM},'-',''),'YYYYMM'),-1),'YYYYMM')
+	</select>
+
+	<select id="receptionVacationD" parameterType="Map" resultType="Map">
+	--interface.receptionVacationD
+SELECT COMP_CD
+      ,CRTN_YYMM
+      ,ORG_CD
+      ,SABUN
+      ,VACAT_DAY
+      ,VACAT_GUBUN
+      ,VACAT_TXT
+ FROM HR_VACAT_DETAIL_IF
+WHERE 1=1
+  AND COMP_CD   = #{SB_COMP_CD}
+  AND CRTN_YYMM = TO_CHAR(ADD_MONTHS(TO_DATE(REPLACE(#{TB_CRTN_YYMM},'-',''),'YYYYMM'),-1),'YYYYMM')
+	</select>
+
+	<select id="receptionPromDetail" parameterType="Map" resultType="Map">
+	--interface.receptionPromDetail
+SELECT A.*
+  FROM (	
+		SELECT A.COMP_CD
+		      ,A.CRTN_YYYMM
+		      ,A.ORG_CD
+		      ,A.SABUN
+		      ,A.RESULT_AMT
+		      ,ROW_NUMBER() OVER(ORDER BY SEQ DESC) AS RNUM
+		  FROM (      
+				SELECT COMP_CD
+				      ,CRTN_YYYMM
+				      ,ORG_CD
+				      ,SABUN
+				      ,RESULT_AMT
+				      ,1 SEQ
+				  FROM IF_MISO_RECV_RESULT
+				 WHERE 1=1
+				   AND COMP_CD    = #{COMP_CD}
+				   AND CRTN_YYYMM = REPLACE(#{CRTN_YYMM},'-','')
+				   AND SABUN      = #{REQ_SABUN}
+				UNION ALL
+				SELECT #{COMP_CD} AS COMP_CD
+				      ,REPLACE(#{CRTN_YYMM},'-','') AS CRTN_YYYMM
+				      ,''           AS ORG_CD
+				      ,#{REQ_SABUN} AS SABUN
+				      ,NULL         AS RESULT_AMT
+				      ,0 SEQ
+				  FROM DUAL
+		        ) A
+		) A
+ WHERE RNUM = 1		
+	</select>
+
+
+</mapper>

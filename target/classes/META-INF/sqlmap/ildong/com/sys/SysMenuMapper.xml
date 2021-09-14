@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.Menu">
+
+    <select id="selectMenuList" parameterType="Map" resultType="Map">
+    --MenuMapper.selectMenuList
+    SELECT A.*
+          ,CASE WHEN IS_ROLE_MAPPING = '1' THEN 'Y' ELSE 'N' END MENU_USE_YN
+      FROM (
+             SELECT SYS_CONNECT_BY_PATH(MENU_CD, '.') TREE
+                  , SYS_CONNECT_BY_PATH(LPAD(ORD_NO,10,'0'), '.') TREE_ORD_NO
+                  , M1.MENU_CD
+                  , M1.MENU_NM
+                  , M1.MENU_NM_EN
+                  , M1.LINK_URL
+                  , M1.LINK_TARGET
+                  , LEVEL-1 LVL
+                  , M1.UP_MENU_CD
+                  , (SELECT MENU_NM
+                       FROM SYS_MENU I01
+                      WHERE M1.MODULE_TYPE = I01.MODULE_TYPE
+                        AND M1.UP_MENU_CD  = I01.MENU_CD
+                    ) UP_MENU_NM
+                  , M1.ORD_NO
+                  , DECODE( (SELECT COUNT(1) FROM SYS_ROLE_MENU WHERE ROLE_CD = #{ROLE_CD} AND MENU_CD = M1.MENU_CD), 0, '0', '1') AS IS_ROLE_MAPPING
+	              , M1.USG_YN
+	              , M1.MODULE_YN
+	              , M1.DISPLAY_YN
+	              , CASE WHEN CONNECT_BY_ISLEAF = 1 THEN 'N'
+                    ELSE 'Y' END  AS    HAS_CHILD_YN
+                  , M1.MODULE_TYPE
+              FROM SYS_MENU M1
+             WHERE M1.MODULE_TYPE =  DECODE(#{MODULE_TYPE}, NULL, 'B', #{MODULE_TYPE}) /**P*/
+      START WITH MENU_CD = 'ROOT'
+    CONNECT BY PRIOR MENU_CD = UP_MENU_CD
+           ) A
+     WHERE MENU_CD != 'ROOT'
+     ORDER BY TREE_ORD_NO
+    </select>
+
+    
+    <select id="selectMenuDetailList" parameterType="Map" resultType="Map">
+    --MenuMapper.selectMenuDetailList
+    SELECT    MN.MENU_CD
+            , MN.MENU_NM
+            , MN.MENU_NM_EN
+            , MN.LINK_URL
+            , MN.LINK_TARGET
+            , MN.UP_MENU_CD
+            , MN.ORD_NO
+            , MN.USG_YN
+            , MN.MODULE_YN
+            , MN.DISPLAY_YN
+            , (SELECT MENU_NM
+                FROM SYS_MENU I01
+               WHERE MN.MODULE_TYPE = I01.MODULE_TYPE
+                 AND MN.UP_MENU_CD  = I01.MENU_CD
+             ) UP_MENU_NM
+                             
+    FROM    SYS_MENU MN
+    WHERE    MN.MODULE_TYPE = #{MODULE_TYPE}
+        AND MN.MENU_CD = #{MENU_CD_SE}
+    </select>
+    
+    <update id="updateMenuDetail" parameterType="Map">
+    --MenuMapper.updateMenuDetail
+    UPDATE    SYS_MENU
+    SET          MENU_CD     = #{MENU_CD} 
+            , MENU_NM     = #{MENU_NM}
+            , MENU_NM_EN = #{MENU_NM_EN}
+            , LINK_URL     = #{LINK_URL} 
+            , MODULE_YN  = #{MODULE_YN} 
+            , DISPLAY_YN = #{DISPLAY_YN}
+            , USG_YN    = #{USG_YN}
+            , ORD_NO    = #{ORD_NO}
+            , MOD_ID    = #{REG_ID}
+            , MOD_DT    = SYSDATE
+    WHERE    MENU_CD = #{MENU_CD}
+    </update>
+    
+    <insert id="insertMenuDetail" parameterType="Map">
+    --MenuMapper.insertMenuDetail
+    INSERT INTO SYS_MENU
+    (
+          MODULE_YN
+        , MENU_CD
+        , UP_MENU_CD
+        , MENU_NM
+        , MENU_NM_EN
+        , ORD_NO
+        , LINK_URL
+        , USG_YN
+        , MODULE_TYPE
+        , DISPLAY_YN
+        , INS_ID
+        , INS_DT
+    )
+    VALUES 
+    (
+          #{MODULE_YN}
+        , #{MENU_CD}
+        , #{UP_MENU_CD}
+        , #{MENU_NM}
+        , #{MENU_NM_EN}
+        , #{ORD_NO}
+        , #{LINK_URL}
+        , #{USG_YN}
+        , #{MODULE_TYPE}
+        , #{DISPLAY_YN}
+        , #{REG_ID}
+        , SYSDATE
+    )
+    </insert>
+    
+    <select id="checkDeleteMenuList" parameterType="Map" resultType="Map">
+    --MenuMapper.checkDeleteMenuList
+    SELECT COUNT(1) CNT
+      FROM SYS_ROLE_MENU
+     WHERE MENU_CD IN
+     <foreach item="item" index="index" collection="MENU_CD_ARR" open="(" close=")" separator=",">
+         #{item}
+     </foreach>    
+    </select>
+    
+    <update id="deleteMenu" parameterType="Map">
+    --MenuMapper.deleteMenu
+        <if test="MENU_CD_ARR != null">
+        DELETE FROM SYS_MENU
+        WHERE MENU_CD IN 
+            <foreach item="item" index="index" collection="MENU_CD_ARR" open="(" close=")" separator=",">
+                #{item}
+            </foreach>    
+        </if>
+    </update>
+</mapper>

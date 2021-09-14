@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.PromDetail">
+	<select id="selectPromDetail" parameterType="Map" resultType="Map">
+--com.bdg.PromDetail.selectPromDetail
+SELECT COMP_CD                                               COMP_CD          -- 회사코드
+      ,CRTN_YYMM                                             CRTN_YYMM        -- 기준년월
+      ,ORG_CD                                                ORG_CD           -- 작성부서코드
+      ,CHC_ETC_GBN                                           CHC_ETC_GBN      -- CHC/ETC구분
+      ,REQ_SABUN                                             REQ_SABUN        -- 신청사번
+      ,FUNC_GET_USER_NAME(REQ_SABUN)                         REQ_SABUN_NM     -- 사원명
+      ,REQ_ORG_CD                                            REQ_ORG_CD       -- 신청부서코드
+      ,FUNC_GET_DEPT_NAME(COMP_CD, REQ_ORG_CD, CRE_DATE)     REQ_ORG_NM       -- 신청부서명
+      ,DISTRIB_CD                                            DISTRIB_CD       -- 유통코드
+      ,FORWARD_AMT                                           FORWARD_AMT      -- 이월금액
+      ,BAL_BUGT_AMT                                          BAL_BUGT_AMT     -- 당월예산금액
+      ,ETC_BUGT_AMT                                          ETC_BUGT_AMT     -- 기타금액
+      ,ETC_TOT_AMT                                           ETC_TOT_AMT      -- 기타누계금액
+      ,RESULT_AMT                                            RESULT_AMT       -- 실적
+      ,CRE_DATE                                              CRE_DATE         -- 등록일자
+      ,CRE_USER                                              CRE_USER         -- 등록자ID
+      ,MOD_DATE                                              MOD_DATE         -- 수정일자
+      ,MOD_USER                                              MOD_USER         -- 수정자ID
+      ,  NVL(FORWARD_AMT, 0) 
+       + NVL(BAL_BUGT_AMT, 0)
+       + NVL(ETC_TOT_AMT, 0)                                 TOT_BUDGET       -- 예산누계 = 이월금액 + 당월예산 + 기타누계금액
+      ,( NVL(FORWARD_AMT, 0) 
+       + NVL(BAL_BUGT_AMT, 0) 
+       + NVL(ETC_TOT_AMT, 0)) - NVL(RESULT_AMT, 0)           BAL_BUDGET       -- 예산잔액 = 예산누계 – 실적
+      ,'1'                                                   CODEMAPPING1
+      ,'R'                                                   CRUD                 
+  FROM FI_PROMOTE_MGMT
+ WHERE 1=1
+	<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD     = #{SB_COMP_CD}
+ 	</if>
+	<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+ 	</if>
+	<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+ 	</if>
+	<if test="SB_DIST != null and SB_DIST != ''">
+   AND DISTRIB_CD  = #{SB_DIST}
+ 	</if>
+ ORDER BY COMP_CD    
+         ,CRTN_YYMM
+         ,ORG_CD
+         ,CHC_ETC_GBN
+         ,REQ_SABUN
+  </select>
+  
+	<select id="selectPromDetailExcel" parameterType="Map" resultType="Map">
+--com.bdg.PromDetail.selectPromDetailExcel
+SELECT COMP_CD                                           COMP_CD          -- 회사코드
+      ,CRTN_YYMM                                         CRTN_YYMM        -- 기준년월
+      ,ORG_CD                                            ORG_CD           -- 작성부서코드
+      ,CHC_ETC_GBN                                       CHC_ETC_GBN      -- CHC/ETC구분
+      ,REQ_SABUN                                         REQ_SABUN        -- 신청사번
+      ,FUNC_GET_USER_NAME(REQ_SABUN)                     REQ_SABUN_NM     -- 사원명
+      ,REQ_ORG_CD                                        REQ_ORG_CD       -- 신청부서코드
+      ,FUNC_GET_DEPT_NAME(COMP_CD, REQ_ORG_CD, TO_CHAR(SYSDATE,'YYYYMMDD')) REQ_ORG_NM       -- 신청부서명
+      ,DISTRIB_CD                                        DISTRIB_CD       -- 유통코드
+      ,FORWARD_AMT                                       FORWARD_AMT      -- 이월금액
+      ,BAL_BUGT_AMT                                      BAL_BUGT_AMT     -- 당월예산금액
+      ,ETC_BUGT_AMT                                      ETC_BUGT_AMT     -- 기타금액
+      ,RESULT_AMT                                        RESULT_AMT       -- 실적
+      ,  NVL(FORWARD_AMT, 0) 
+       + NVL(BAL_BUGT_AMT, 0) 
+       + NVL(ETC_BUGT_AMT, 0)                            TOT_BUDGET       -- 예산누계 = 이월금액 + 당월예산 + 기타금액
+      ,( NVL(FORWARD_AMT, 0) 
+       + NVL(BAL_BUGT_AMT, 0) 
+       + NVL(ETC_BUGT_AMT, 0)) - NVL(RESULT_AMT, 0)      BAL_BUDGET       -- 예산잔액 = 예산누계 – 실적
+      ,'1'                                               CODEMAPPING1
+      ,'R'                                               CRUD
+      ,REMARK                                            REMARK           -- 비고
+  FROM FI_PROMOTE_MGMT_EXCL
+ WHERE 1=1
+	<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD     = #{SB_COMP_CD}
+ 	</if>
+	<if test="TB_CRTN_YYMM != null and TB_CRTN_YYMM != ''">
+   AND CRTN_YYMM   = REPLACE(#{TB_CRTN_YYMM},'-','')
+ 	</if>
+	<if test="TB_ORG_CD != null and TB_ORG_CD != ''">
+   AND ORG_CD      = #{TB_ORG_CD}
+ 	</if>
+	<if test="SB_CHC_ETC_GBN != null and SB_CHC_ETC_GBN != ''">
+   AND CHC_ETC_GBN = #{SB_CHC_ETC_GBN}
+ 	</if>
+	<if test="SB_DIST != null and SB_DIST != ''">
+   AND DISTRIB_CD  = #{SB_DIST}
+ 	</if>
+ ORDER BY COMP_CD    
+         ,CRTN_YYMM
+         ,ORG_CD
+         ,CHC_ETC_GBN
+         ,REQ_SABUN
+  </select>
+  
+	<insert id="insertPromDetail" parameterType="Map">
+--com.bdg.PromDetail.insertPromDetail
+INSERT INTO FI_PROMOTE_MGMT
+ (
+   COMP_CD          -- 회사코드
+  ,CRTN_YYMM        -- 기준년월
+  ,ORG_CD           -- 작성부서코드
+  ,CHC_ETC_GBN      -- CHC/ETC구분
+  ,REQ_SABUN        -- 신청사번
+  ,REQ_ORG_CD       -- 신청부서코드
+  ,DISTRIB_CD       -- 유통코드
+  ,FORWARD_AMT      -- 이월금액
+  ,BAL_BUGT_AMT     -- 당월예산금액
+  ,ETC_BUGT_AMT     -- 기타금액
+  ,ETC_TOT_AMT      -- 기타누계금액
+  ,RESULT_AMT       -- 실적
+  ,CRE_DATE         -- 등록일자
+  ,CRE_USER         -- 등록자ID
+  ,MOD_DATE         -- 수정일자
+  ,MOD_USER         -- 수정자ID
+ ) VALUES (
+            #{COMP_CD}
+           ,#{CRTN_YYMM}
+           ,#{ORG_CD}
+           ,#{CHC_ETC_GBN}
+           ,#{REQ_SABUN}
+           ,#{REQ_ORG_CD}
+           ,#{DISTRIB_CD}
+           ,#{FORWARD_AMT}
+           ,#{BAL_BUGT_AMT}
+           ,#{ETC_BUGT_AMT}
+           ,#{ETC_TOT_AMT}
+           ,#{RESULT_AMT}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{CRE_USER}
+           ,TO_CHAR(SYSDATE,'YYYYMMDD')
+           ,#{MOD_USER}
+           )
+	</insert>
+	
+	<insert id="insertPromDetailExcel" parameterType="Map">
+--com.bdg.PromDetail.insertPromDetailExcel
+INSERT INTO FI_PROMOTE_MGMT_EXCL
+ (
+   COMP_CD          -- 회사코드
+  ,CRTN_YYMM        -- 기준년월
+  ,ORG_CD           -- 작성부서코드
+  ,CHC_ETC_GBN      -- CHC/ETC구분
+  ,REQ_SABUN        -- 신청사번
+  ,REQ_ORG_CD       -- 신청부서코드
+  ,DISTRIB_CD       -- 유통코드
+  ,FORWARD_AMT      -- 이월금액
+  ,BAL_BUGT_AMT     -- 당월예산금액
+  ,ETC_BUGT_AMT     -- 기타금액
+  ,RESULT_AMT       -- 실적
+  ,REMARK           -- 비고
+ ) VALUES (
+            #{COMP_CD}
+           ,REPLACE(#{CRTN_YYMM},'-','')
+           ,#{ORG_CD}
+           ,#{CHC_ETC_GBN}
+           ,#{REQ_SABUN}
+           , (
+              SELECT DISTINCT DEPT_CD
+                FROM SYS_USER
+               WHERE USER_ID = #{REQ_SABUN}
+             )
+           ,#{DISTRIB_CD}
+           ,#{FORWARD_AMT}
+           ,#{BAL_BUGT_AMT}
+           ,#{ETC_BUGT_AMT}
+           ,#{RESULT_AMT}
+           ,CASE WHEN (
+                       SELECT COUNT(0)
+                         FROM SYS_USER
+                        WHERE COMP_CD = #{COMP_CD}
+                          AND USER_ID = #{REQ_SABUN}
+                      ) = 0                               THEN '유저정보가 존재하지 않습니다.'
+                  WHEN (
+                        SELECT COUNT(0)
+                          FROM COM_CODE
+                         WHERE CODE_GRP  = 'YS008'
+                           AND CODE      = #{DISTRIB_CD}
+                       ) = 0                              THEN '유통정보가 존재하지 않습니다.'
+                  ELSE                                         NULL
+            END
+           )
+	</insert>
+	
+	<insert id="savePromDetailUpload" parameterType="Map">
+--com.bdg.PromDetail.savePromDetailUpload
+INSERT INTO FI_PROMOTE_MGMT
+SELECT COMP_CD
+      ,CRTN_YYMM
+      ,ORG_CD
+      ,CHC_ETC_GBN
+      ,REQ_SABUN
+      ,REQ_ORG_CD
+      ,DISTRIB_CD
+      ,FORWARD_AMT
+      ,BAL_BUGT_AMT
+      ,ETC_BUGT_AMT
+      ,ETC_BUGT_AMT AS ETC_TOT_AMT
+      ,RESULT_AMT
+      ,TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,#{CRE_USER}
+      ,TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,#{MOD_USER}
+  FROM FI_PROMOTE_MGMT_EXCL
+ WHERE COMP_CD     = #{COMP_CD}
+   AND CRTN_YYMM   = REPLACE(#{CRTN_YYMM},'-','')
+   AND ORG_CD      = #{ORG_CD}
+   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+   AND DISTRIB_CD  = #{DISTRIB_CD}
+	</insert>
+	
+	<update id="updatePromDetail" parameterType="Map">
+--com.bdg.PromDetail.updatePromDetail
+MERGE INTO FI_PROMOTE_MGMT A
+USING (
+       SELECT #{COMP_CD}                                                        COMP_CD
+             ,#{CRTN_YYMM}                                                      CRTN_YYMM
+             ,#{ORG_CD}                                                         ORG_CD
+             ,#{CHC_ETC_GBN}                                                    CHC_ETC_GBN
+             ,#{REQ_SABUN}                                                      REQ_SABUN
+             ,#{REQ_ORG_CD}                                                     REQ_ORG_CD
+             ,#{DISTRIB_CD}                                                     DISTRIB_CD
+             ,#{FORWARD_AMT}                                                    FORWARD_AMT
+             ,#{BAL_BUGT_AMT}                                                   BAL_BUGT_AMT
+             ,#{ETC_BUGT_AMT}                                                   ETC_BUGT_AMT
+             ,#{ETC_TOT_AMT}                                                    ETC_TOT_AMT
+             ,#{RESULT_AMT}                                                     RESULT_AMT
+             ,TO_CHAR(SYSDATE,'YYYYMMDD')                                       CRE_DATE
+             ,#{CRE_USER}                                                       CRE_USER
+             ,TO_CHAR(SYSDATE,'YYYYMMDD')                                       MOD_DATE
+             ,#{MOD_USER}                                                       MOD_USER
+         FROM DUAL A
+        ) B
+         ON (
+                 A.COMP_CD      = B.COMP_CD
+             AND A.CRTN_YYMM    = B.CRTN_YYMM
+             AND A.ORG_CD       = B.ORG_CD
+             AND A.CHC_ETC_GBN  = B.CHC_ETC_GBN
+             AND A.REQ_SABUN    = B.REQ_SABUN
+            )
+WHEN MATCHED THEN
+    UPDATE
+       SET A.DISTRIB_CD   = B.DISTRIB_CD
+          ,A.FORWARD_AMT  = B.FORWARD_AMT
+          ,A.BAL_BUGT_AMT = B.BAL_BUGT_AMT
+          ,A.ETC_BUGT_AMT = B.ETC_BUGT_AMT
+          ,A.ETC_TOT_AMT  = B.ETC_TOT_AMT
+          ,A.MOD_DATE     = B.MOD_DATE
+          ,A.MOD_USER     = B.MOD_USER
+WHEN NOT MATCHED THEN
+        INSERT
+        (
+          A.COMP_CD
+         ,A.CRTN_YYMM
+         ,A.ORG_CD
+         ,A.CHC_ETC_GBN
+         ,A.REQ_SABUN
+         ,A.REQ_ORG_CD
+         ,A.DISTRIB_CD
+         ,A.FORWARD_AMT
+         ,A.BAL_BUGT_AMT
+         ,A.ETC_BUGT_AMT
+         ,A.ETC_TOT_AMT
+         ,A.RESULT_AMT
+         ,A.CRE_DATE
+         ,A.CRE_USER
+         ,A.MOD_DATE
+         ,A.MOD_USER
+        ) VALUES (
+                   B.COMP_CD
+                  ,B.CRTN_YYMM
+                  ,B.ORG_CD
+                  ,B.CHC_ETC_GBN
+                  ,B.REQ_SABUN
+                  ,B.REQ_ORG_CD
+                  ,B.DISTRIB_CD
+                  ,B.FORWARD_AMT
+                  ,B.BAL_BUGT_AMT
+                  ,B.ETC_BUGT_AMT
+                  ,B.ETC_TOT_AMT
+                  ,B.RESULT_AMT
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,B.CRE_USER
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                  ,B.MOD_USER
+                 )
+	</update>
+
+	<delete id="delPromDetail" parameterType="map">
+--com.bdg.PromDetail.delPromDetail
+DELETE FROM FI_PROMOTE_MGMT
+ WHERE COMP_CD     = #{COMP_CD}
+   AND CRTN_YYMM   = REPLACE(#{CRTN_YYMM},'-','')
+   AND ORG_CD      = #{ORG_CD}
+   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+   AND REQ_SABUN   = #{REQ_SABUN}
+	</delete>
+
+	<delete id="delPromDetailUpload" parameterType="map">
+--com.bdg.PromDetail.delPromDetailUpload
+DELETE FROM FI_PROMOTE_MGMT
+ WHERE COMP_CD     = #{COMP_CD}
+   AND CRTN_YYMM   = REPLACE(#{CRTN_YYMM},'-','')
+   AND ORG_CD      = #{ORG_CD}
+   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+   AND DISTRIB_CD  = #{DISTRIB_CD}
+	</delete>
+
+	<delete id="delPromDetailExcel" parameterType="map">
+--com.bdg.PromDetail.delPromDetailExcel(ETC구분과 유통코드로 일괄 삭제)
+DELETE FROM FI_PROMOTE_MGMT_EXCL
+ WHERE COMP_CD     = #{COMP_CD}
+   AND CRTN_YYMM   = REPLACE(#{CRTN_YYMM},'-','')
+   AND ORG_CD      = #{ORG_CD}
+   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+   AND DISTRIB_CD  = #{DISTRIB_CD}
+	</delete>
+
+	<insert id="updatePromDetail2" parameterType="Map">
+	--com.bdg.PromDetail.updatePromDetail2(실적 개별 수신 UPDATE)
+UPDATE FI_PROMOTE_MGMT
+   SET RESULT_AMT = #{RESULT_AMT}
+      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER   = #{MOD_USER}
+ WHERE 1 = 1
+   AND COMP_CD     = #{COMP_CD}
+   AND CRTN_YYMM   = #{CRTN_YYMM}
+   AND ORG_CD      = #{ORG_CD}
+   AND CHC_ETC_GBN = #{CHC_ETC_GBN}
+   AND REQ_SABUN   = #{REQ_SABUN}
+	</insert>
+
+	<select id="promDetailUserList" parameterType="Map" resultType="Map">
+--com.bdg.PromDetail.promDetailUserList
+SELECT USER_ID
+  FROM SYS_USER
+ WHERE COMP_CD = #{SB_COMP_CD}
+   AND DEPT_CD = #{TB_ORG_CD}
+   AND USG_YN = 'Y' 
+ 
+	</select>	
+
+
+</mapper>

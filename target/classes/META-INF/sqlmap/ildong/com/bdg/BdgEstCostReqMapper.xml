@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.EstCostReq">
+	<select id="selectEstCostReqList" parameterType="Map" resultType="Map">
+--com.bdg.EstCostReq.selectEstCostReqList
+SELECT COMP_CD        -- 회사코드
+      ,CTRN_YMD       -- 의뢰년월일
+      ,ORG_CD         -- 부서코드
+      ,REQ_DOC_NO     -- 견적번호
+      ,STATUS         -- 상태
+      ,DOC_TITLE      -- 제목
+      ,ITEM_TYPE      -- 품목분류
+      ,DISTRIB_TYPE   -- 유통분류
+      ,REQ_TYPE       -- 견적유형
+      ,REQ_CODE       -- CODE
+      ,PRODUCT_NM     -- 제품명
+      ,SALE_QTY       -- 년판매량
+      ,USE_TYPE       -- 사용용도
+      ,NEED_DATE      -- 필요시기
+      ,REFER_PRODUCT  -- 기존참고제품
+      ,PACK_TYPE      -- 포장형태
+      ,PACK_WAY       -- 포장방법
+      ,ETC_DESC       -- 기타참고사항
+      ,SAP_SEND_YN    -- SAP전송여부
+      ,EPS_DOC_NO     -- 전자결재문서번호
+      ,CRE_DATE       -- 등록일자
+      ,CRE_USER       -- 등록자ID
+      ,MOD_DATE       -- 수정일자
+      ,MOD_USER       -- 수정자ID
+      ,'R'               CRUD
+  FROM CO_REQUEST_HEAD
+ WHERE 1=1
+<if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   AND COMP_CD = #{SB_COMP_CD}
+</if>		   
+<if test="TB_START_DATE != null and TB_START_DATE != ''">
+	<![CDATA[AND CTRN_YMD >= REPLACE(#{TB_START_DATE},'-','')]]>
+</if>		   
+<if test="TB_END_DATE != null and TB_END_DATE != ''">
+	<![CDATA[AND CTRN_YMD <= REPLACE(#{TB_END_DATE},'-','')]]>
+</if>		   
+<if test="TB_ORG_CD != null and TB_ORG_CD != ''">
+   AND ORG_CD = #{TB_ORG_CD}
+</if>		   
+<if test="SB_STATUS != null and SB_STATUS != ''">
+   AND STATUS = #{SB_STATUS}
+</if>		   
+<if test="TB_REQ_DOC_NO != null and TB_REQ_DOC_NO != ''">
+   AND REQ_DOC_NO LIKE '%' || #{TB_REQ_DOC_NO} || '%'
+</if>		   
+ ORDER BY COMP_CD
+         ,CTRN_YMD
+         ,ORG_CD
+         ,REQ_DOC_NO
+	</select>
+	
+	<select id="selectEstCostReqListPop" parameterType="Map" resultType="Map">
+--com.bdg.EstCostReq.selectEstCostReqListPop
+SELECT COMP_CD        -- 회사코드
+      ,CTRN_YMD       -- 의뢰년월일
+      ,ORG_CD         -- 부서코드
+      ,REQ_DOC_NO     -- 견적번호
+      ,STATUS         -- 상태
+      ,DOC_TITLE      -- 제목
+      ,ITEM_TYPE      -- 품목분류
+      ,DISTRIB_TYPE   -- 유통분류
+      ,REQ_TYPE       -- 견적유형
+      ,REQ_CODE       -- CODE
+      ,PRODUCT_NM     -- 제품명
+      ,SALE_QTY       -- 년판매량
+      ,USE_TYPE       -- 사용용도
+      ,NEED_DATE      -- 필요시기
+      ,REFER_PRODUCT  -- 기존참고제품
+      ,PACK_TYPE      -- 포장형태
+      ,PACK_WAY       -- 포장방법
+      ,ETC_DESC       -- 기타참고사항
+      ,SAP_SEND_YN    -- SAP전송여부
+      ,EPS_DOC_NO     -- 전자결재문서번호
+      ,CRE_DATE       -- 등록일자
+      ,CRE_USER       -- 등록자ID
+      ,MOD_DATE       -- 수정일자
+      ,MOD_USER       -- 수정자ID
+      ,'R'               CRUD
+  FROM CO_REQUEST_HEAD
+ WHERE 1=1
+   AND EPS_DOC_NO = #{EPS_DOC_NO}
+ ORDER BY COMP_CD
+         ,CTRN_YMD
+         ,ORG_CD
+         ,REQ_DOC_NO
+	</select>	
+	
+	<select id="selectStatusHeader" parameterType="Map" resultType="Map">
+	    --com.bdg.EstCostReq.selectStatusHeader
+		SELECT MAX(STATUS) STATUS
+		  FROM CO_REQUEST_HEAD
+		 WHERE 1 = 1
+		   AND COMP_CD   = #{COMP_CD}
+	       AND CTRN_YMD = REPLACE(#{CTRN_YMD},'-','')
+	       AND ORG_CD    = #{ORG_CD} 		
+	</select>	
+	
+	
+	<select id="selectEstCostReqDetail" parameterType="Map" resultType="Map">
+		--com.bdg.EstCostReq.selectEstCostReqDetail
+SELECT A.COMP_CD        -- 회사코드
+      ,A.CTRN_YMD       -- 의뢰년월일
+      ,A.ORG_CD         -- 부서코드
+      ,A.REQ_DOC_NO     -- 견적번호
+      ,A.DOC_TITLE      -- 제목
+      ,A.ITEM_TYPE      -- 품목분류
+      ,A.DISTRIB_TYPE   -- 유통분류
+      ,A.REQ_TYPE       -- 견적유형
+      ,A.REQ_CODE       -- CODE
+      ,A.PRODUCT_NM     -- 제품명
+      ,A.SALE_QTY       -- 년판매량
+      ,A.USE_TYPE       -- 사용용도
+      ,A.NEED_DATE      -- 필요시기
+      ,A.REFER_PRODUCT  -- 기존참고제품
+      ,A.PACK_TYPE      -- 포장형태
+      ,A.PACK_WAY       -- 포장방법
+      ,A.ETC_DESC       -- 기타참고사항
+      ,A.SAP_SEND_YN    -- SAP전송여부
+      ,A.EPS_DOC_NO     -- 전자결재문서번호
+      ,A.CRE_DATE       -- 등록일자
+      ,A.CRE_USER       -- 등록자ID
+      ,A.MOD_DATE       -- 수정일자
+      ,A.MOD_USER       -- 수정자ID
+      ,B.SEQ_NO         -- 일련번호
+      ,B.STAND_DESC     -- 규격
+  FROM CO_REQUEST_HEAD A
+      LEFT OUTER JOIN
+       CO_REQUEST_DETAIL B
+      ON    B.COMP_CD     =  A.COMP_CD
+        AND B.CTRN_YMD    =  A.CTRN_YMD
+        AND B.ORG_CD      =  A.ORG_CD
+        AND B.REQ_DOC_NO  =  A.REQ_DOC_NO
+ WHERE 1=1
+   AND A.COMP_CD     = #{SB_COMP_CD}
+   AND A.ORG_CD      = #{TB_ORG_CD}
+   AND A.REQ_DOC_NO  = #{TB_REQ_DOC_NO}
+	</select>
+	
+	<select id="selectSendEstCostReqList" parameterType="Map" resultType="Map">
+		--com.bdg.EstCostReq.selectSendEstCostReqList
+		SELECT A.COMP_CD        -- 회사코드
+		      ,A.CTRN_YMD       -- 의뢰년월일
+		      ,A.ORG_CD         -- 부서코드
+		      ,A.REQ_DOC_NO     -- 견적번호
+		      ,A.COMP_CD        AS BUKRS --회사코드
+		      ,A.REQ_DOC_NO     AS ZCONO --견적번호
+		      ,B.SEQ_NO         AS ZSEQ  --견적요청 서브번호 
+		      ,A.ITEM_TYPE || A.DISTRIB_TYPE || A.REQ_TYPE AS BMODEL --비즈니스모델
+		      ,A.DOC_TITLE || '(' ||  B.STAND_DESC || ')' AS ZCONO_TXT        
+		      ,A.EPS_DOC_NO     -- 전자결재문서번호
+		  FROM CO_REQUEST_HEAD A
+		      LEFT OUTER JOIN
+		       CO_REQUEST_DETAIL B
+		      ON    B.COMP_CD     =  A.COMP_CD
+		        AND B.CTRN_YMD    =  A.CTRN_YMD
+		        AND B.ORG_CD      =  A.ORG_CD
+		        AND B.REQ_DOC_NO  =  A.REQ_DOC_NO
+		 WHERE 1=1
+		   AND A.EPS_DOC_NO  = #{EPS_DOC_NO}
+	</select>	
+	
+    <update id="updateEstCostReq" parameterType="Map">
+--com.bdg.EstCostReq.updateEstCostReq
+UPDATE CO_REQUEST_HEAD
+   SET DOC_TITLE     = #{TB_DOC_TITLE}
+      ,ITEM_TYPE     = #{SB_ITEM_TYPE}
+      ,DISTRIB_TYPE  = #{SB_DISTRIB_TYPE}
+      ,REQ_TYPE      = #{SB_REQ_TYPE}
+      ,REQ_CODE      = #{TB_REQ_CODE}
+      ,PRODUCT_NM    = #{TB_PRODUCT_NM}
+      ,SALE_QTY      = #{TB_SALE_QTY}
+      ,USE_TYPE      = #{TB_USE_TYPE}
+      ,NEED_DATE     = #{TB_NEED_DATE}
+      ,REFER_PRODUCT = #{TB_REFER_PRODUCT}
+      ,PACK_WAY      = #{TB_PACK_WAY}
+   <if test="RD_PACK_TYPE1 != null and RD_PACK_TYPE1 != ''">
+      ,PACK_TYPE = #{RD_PACK_TYPE1}
+   </if>		   
+   <if test="RD_PACK_TYPE2 != null and RD_PACK_TYPE2 != ''">
+      ,PACK_TYPE = #{RD_PACK_TYPE2}
+   </if>		   
+   <if test="RD_PACK_TYPE3 != null and RD_PACK_TYPE3 != ''">
+      ,PACK_TYPE = #{RD_PACK_TYPE3}
+   </if>		   
+   <if test="RD_PACK_TYPE4 != null and RD_PACK_TYPE4 != ''">
+      ,PACK_TYPE = #{RD_PACK_TYPE4}
+   </if>		   
+   <if test="RD_PACK_TYPE5 != null and RD_PACK_TYPE5 != ''">
+      ,PACK_TYPE = #{RD_PACK_TYPE5}
+   </if>		   
+   <if test="RD_PACK_TYPE6 != null and RD_PACK_TYPE6 != ''">
+      ,PACK_TYPE = #{RD_PACK_TYPE6}
+   </if>		   
+      ,ETC_DESC      = #{TB_ETC_DESC}
+      ,MOD_DATE      = TO_CHAR(SYSDATE, 'YYYYMMDD')
+      ,MOD_USER      = #{MOD_USER}
+ WHERE COMP_CD    = #{SB_COMP_CD}
+   AND CTRN_YMD   = #{TB_CTRN_YMD}
+   AND ORG_CD     = #{TB_ORG_CD}
+   AND REQ_DOC_NO = #{TB_REQ_DOC_NO}
+    </update>
+    
+    <insert id="insertEstCostReq" parameterType="Map">
+--com.bdg.EstCostReq.insertEstCostReq
+INSERT INTO CO_REQUEST_HEAD
+(
+  COMP_CD        -- 회사코드
+ ,CTRN_YMD       -- 의뢰년월일
+ ,ORG_CD         -- 부서코드
+ ,REQ_DOC_NO     -- 견적번호
+ ,STATUS         -- 상태
+ ,DOC_TITLE      -- 제목
+ ,ITEM_TYPE      -- 품목분류
+ ,DISTRIB_TYPE   -- 유통분류
+ ,REQ_TYPE       -- 견적유형
+ ,REQ_CODE       -- CODE
+ ,PRODUCT_NM     -- 제품명
+ ,SALE_QTY       -- 년판매량
+ ,USE_TYPE       -- 사용용도
+ ,NEED_DATE      -- 필요시기
+ ,REFER_PRODUCT  -- 기존참고제품
+ ,PACK_TYPE      -- 포장형태
+ ,PACK_WAY       -- 포장방법
+ ,ETC_DESC       -- 기타참고사항
+ ,SAP_SEND_YN    -- SAP전송여부
+ ,EPS_DOC_NO     -- 전자결재문서번호
+ ,CRE_DATE       -- 등록일자
+ ,CRE_USER       -- 등록자ID
+ ,MOD_DATE       -- 수정일자
+ ,MOD_USER       -- 수정자ID
+) VALUES (
+           #{SB_COMP_CD}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{TB_ORG_CD}
+          ,#{TB_REQ_DOC_NO}
+          ,'1'
+          ,#{TB_DOC_TITLE}
+          ,#{SB_ITEM_TYPE}
+          ,#{SB_DISTRIB_TYPE}
+          ,#{SB_REQ_TYPE}
+          ,#{TB_REQ_CODE}
+          ,#{TB_PRODUCT_NM}
+          ,#{TB_SALE_QTY}
+          ,#{TB_USE_TYPE}
+          ,#{TB_NEED_DATE}
+          ,#{TB_REFER_PRODUCT}
+		   <if test="RD_PACK_TYPE1 != null and RD_PACK_TYPE1 != ''">
+		      ,#{RD_PACK_TYPE1}
+		   </if>		   
+		   <if test="RD_PACK_TYPE2 != null and RD_PACK_TYPE2 != ''">
+		      ,#{RD_PACK_TYPE2}
+		   </if>		   
+		   <if test="RD_PACK_TYPE3 != null and RD_PACK_TYPE3 != ''">
+		      ,#{RD_PACK_TYPE3}
+		   </if>		   
+		   <if test="RD_PACK_TYPE4 != null and RD_PACK_TYPE4 != ''">
+		      ,#{RD_PACK_TYPE4}
+		   </if>		   
+		   <if test="RD_PACK_TYPE5 != null and RD_PACK_TYPE5 != ''">
+		      ,#{RD_PACK_TYPE5}
+		   </if>		   
+		   <if test="RD_PACK_TYPE6 != null and RD_PACK_TYPE6 != ''">
+		      ,#{RD_PACK_TYPE6}
+		   </if>
+		   <if test="RD_PACK_TYPE1 == null and RD_PACK_TYPE2 == null and RD_PACK_TYPE3 == null and RD_PACK_TYPE4 == null and RD_PACK_TYPE5 == null and RD_PACK_TYPE6 == null ">
+		      , NULL
+		   </if>
+          ,#{TB_PACK_WAY} 
+          ,#{TB_ETC_DESC}
+          ,'N'
+          ,NULL
+          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+          ,#{CRE_USER}
+          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+          ,#{MOD_USER}
+         )
+    </insert>
+    
+    <delete id="deleteEstCostReq" parameterType="Map">
+--com.bdg.EstCostReq.deleteEstCostReq
+DELETE FROM CO_REQUEST_HEAD
+ WHERE COMP_CD    = #{COMP_CD}
+   AND CTRN_YMD   = #{CTRN_YMD}
+   AND ORG_CD     = #{ORG_CD}
+   AND REQ_DOC_NO = #{REQ_DOC_NO}
+    </delete>
+    
+    <delete id="deleteEstCostDetail" parameterType="Map">
+--com.bdg.EstCostReq.deleteEstCostDetail
+DELETE FROM CO_REQUEST_DETAIL
+ WHERE COMP_CD    = #{SB_COMP_CD}
+   AND ORG_CD     = #{TB_ORG_CD}
+   AND REQ_DOC_NO = #{TB_REQ_DOC_NO}
+    </delete>
+
+    <delete id="deleteEstCostHead" parameterType="Map">
+--com.bdg.EstCostReq.deleteEstCostHead
+DELETE FROM CO_REQUEST_HEAD
+ WHERE COMP_CD    = #{SB_COMP_CD}
+   AND CTRN_YMD   = #{TB_CTRN_YMD}
+   AND ORG_CD     = #{TB_ORG_CD}
+   AND REQ_DOC_NO = #{TB_REQ_DOC_NO}
+    </delete>
+
+    <insert id="insertEstCostDetail" parameterType="Map">
+--com.bdg.EstCostReq.insertEstCostDetail
+INSERT INTO CO_REQUEST_DETAIL
+(
+  COMP_CD     -- 회사코드
+ ,CTRN_YMD    -- 의뢰년월일
+ ,ORG_CD      -- 부서코드
+ ,REQ_DOC_NO  -- 견적번호
+ ,SEQ_NO      -- 일련번호
+ ,STAND_DESC  -- 규격
+ ,CRE_DATE    -- 등록일자
+ ,CRE_USER    -- 등록자ID
+ ,MOD_DATE    -- 수정일자
+ ,MOD_USER    -- 수정자ID
+) VALUES (
+           #{SB_COMP_CD}
+          ,NVL(#{TB_CTRN_YMD}, TO_CHAR(SYSDATE,'YYYYMMDD'))
+          ,#{TB_ORG_CD}
+          ,#{TB_REQ_DOC_NO}
+          ,#{SEQ_NO}
+          ,#{TB_STAND_DESC}
+          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+          ,#{CRE_USER}
+          ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+          ,#{MOD_USER}
+         )
+</insert>
+
+<select id="getReqDocNo" parameterType="Map" resultType="Map">
+SELECT FUNC_GET_REQ_DOC_NO(TO_CHAR(SYSDATE,'YYMM')) REQ_DOC_NO
+  FROM DUAL
+</select>
+
+	<update id="apprEstCost" parameterType="map">
+	--com.bdg.EstCostReq.apprEstCost
+		UPDATE CO_REQUEST_HEAD
+		   SET STATUS      = '2'
+		      ,EPS_DOC_NO  = #{EPS_DOC_NO}
+		      ,MOD_DATE    = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER    = #{MOD_USER}
+		 WHERE COMP_CD     = #{COMP_CD}
+		   AND CTRN_YMD    = REPLACE(#{CTRN_YMD},'-','')
+		   AND ORG_CD      = #{ORG_CD}
+		   AND REQ_DOC_NO  = #{REQ_DOC_NO}
+	</update>
+	
+	<update id="updateStatus" parameterType="Map">
+	--com.bdg.EstCostReq.updateStatus
+		UPDATE CO_REQUEST_HEAD
+		   SET STATUS     = #{STATUS}
+		      ,EPS_DOC_NO = CASE WHEN #{STATUS} = '1' THEN ''
+		                         ELSE EPS_DOC_NO
+		                    END
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER   = #{APPROVAL_ID}
+		 WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+	</update>
+	
+    <update id="updateEstCostReqStatus6" parameterType="Map">
+		--com.bdg.EstCostReq.updateEstCostReqStatus6(SAP전송오류)
+		UPDATE CO_REQUEST_HEAD
+		   SET STATUS     = '6'
+		 WHERE COMP_CD    = #{COMP_CD}
+		   AND CTRN_YMD   = #{CTRN_YMD}
+		   AND ORG_CD     = #{ORG_CD}
+		   AND REQ_DOC_NO = #{REQ_DOC_NO} 
+    </update>
+    
+    <update id="updateEstCostReqStatus6All" parameterType="Map">
+		--com.bdg.EstCostReq.updateEstCostReqStatus6All(SAP전송오류사전처리)
+		UPDATE CO_REQUEST_HEAD
+		   SET STATUS     = '6'
+		 WHERE EPS_DOC_NO = #{EPS_DOC_NO} 
+    </update>    
+    
+    <update id="updatSendFlag" parameterType="Map">
+		--com.bdg.EstCostReq.updatSendFlag(전송)
+		UPDATE CO_REQUEST_HEAD
+		   SET SAP_SEND_YN = 'Y'
+		 WHERE COMP_CD    = #{COMP_CD}
+		   AND CTRN_YMD   = #{CTRN_YMD}
+		   AND ORG_CD     = #{ORG_CD}
+		   AND REQ_DOC_NO = #{REQ_DOC_NO} 
+    </update>
+    
+    <select id="selectEstCostCnt" parameterType="Map" resultType="Map">
+--com.bdg.EstCostReq.selectEstCostCnt
+SELECT COUNT(0) CNT
+  FROM CO_REQUEST_RESULT
+ WHERE COMP_CD     = #{SB_COMP_CD}
+   AND REQ_DOC_NO  = #{TB_REQ_DOC_NO}
+   AND SEQ_NO      = #{SEQ_NO}
+ GROUP BY COMP_CD
+         ,REQ_DOC_NO
+         ,SEQ_NO
+
+	</select>
+
+    <select id="selectEstCostReqDetailResult" parameterType="Map" resultType="Map">
+--com.bdg.EstCostReq.selectEstCostReqDetailResult
+SELECT COMP_CD                               COMP_CD    -- 회사코드
+      ,REQ_DOC_NO                            REQ_DOC_NO -- 견적번호
+      ,SEQ_NO                                SEQ_NO     -- 일련번호
+      ,REQ_GUBN                              REQ_GUBN   -- 견적구분
+      ,MAT_NUMBER                            MAT_NUMBER -- 자재코드
+      ,MAT_DESC                              MAT_DESC   -- 자재명
+      ,CURR_CD                               CURR_CD    -- 통화
+      ,TO_CHAR(REQ_AMT01, 'FM9,999,999,999') REQ_AMT01  -- 주재료비
+      ,TO_CHAR(REQ_AMT02, 'FM9,999,999,999') REQ_AMT02  -- 공통재료비
+      ,TO_CHAR(REQ_AMT03, 'FM9,999,999,999') REQ_AMT03  -- 직접인건비
+      ,TO_CHAR(REQ_AMT04, 'FM9,999,999,999') REQ_AMT04  -- 간접인건비
+      ,TO_CHAR(REQ_AMT05, 'FM9,999,999,999') REQ_AMT05  -- 기계감가비
+      ,TO_CHAR(REQ_AMT06, 'FM9,999,999,999') REQ_AMT06  -- 기타감가비
+      ,TO_CHAR(REQ_AMT07, 'FM9,999,999,999') REQ_AMT07  -- 노무성경비
+      ,TO_CHAR(REQ_AMT08, 'FM9,999,999,999') REQ_AMT08  -- 설비성경비
+      ,TO_CHAR(REQ_AMT09, 'FM9,999,999,999') REQ_AMT09  -- 외주가공비
+      ,TO_CHAR(REQ_AMT10, 'FM9,999,999,999') REQ_AMT10  -- 기술료
+      ,TO_CHAR(REQ_AMT11, 'FM9,999,999,999') REQ_AMT11  -- 개발상각비
+      ,TO_CHAR(REQ_AMT12, 'FM9,999,999,999') REQ_AMT12  -- 품질관리-노무
+      ,TO_CHAR(REQ_AMT13, 'FM9,999,999,999') REQ_AMT13  -- 품질관리-기계
+      ,TO_CHAR(REQ_AMT14, 'FM9,999,999,999') REQ_AMT14  -- 품질보증비
+      ,TO_CHAR(REQ_AMT15, 'FM9,999,999,999') REQ_AMT15  -- 시약재료비
+      ,TO_CHAR(
+               (
+                  REQ_AMT01
+                + REQ_AMT02
+                + REQ_AMT03
+                + REQ_AMT04
+                + REQ_AMT05
+                + REQ_AMT06
+                + REQ_AMT07
+                + REQ_AMT08
+                + REQ_AMT09
+                + REQ_AMT10
+                + REQ_AMT11
+                + REQ_AMT12
+                + REQ_AMT13
+                + REQ_AMT14
+                + REQ_AMT15
+                ), 'FM9,999,999,999'
+             )                               REQ_AMT16 -- 합계
+      ,CRE_DATE                              CRE_DATE   -- 등록일자
+      ,CRE_USER                              CRE_USER   -- 등록자ID
+  FROM CO_REQUEST_RESULT
+ WHERE COMP_CD     = #{SB_COMP_CD}
+   AND REQ_DOC_NO  = #{TB_REQ_DOC_NO}
+   AND SEQ_NO      = #{SEQ_NO}
+
+	</select>
+
+    
+</mapper>

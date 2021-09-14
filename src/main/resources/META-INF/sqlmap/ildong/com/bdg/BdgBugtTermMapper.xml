@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.BugtTerm">
+<select id="selectBugtTermList" parameterType="Map" resultType="Map">
+--com.bdg.BugtTerm.selectBugtTermList
+SELECT CRTN_YY         -- 년도
+      ,BUGT_GUBN       -- 예산구분
+      ,REG_FROM_DATE   -- 등록시작일
+      ,REG_TO_DATE     -- 등록종료일
+      ,CRE_DATE        -- 등록일자
+      ,CRE_USER        -- 등록자ID
+      ,MOD_DATE        -- 수정일자
+      ,MOD_USER        -- 수정자ID
+      ,'R' CRUD
+  FROM CO_EXPIRY_DATE
+ WHERE 1=1
+	<if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+   AND CRTN_YY    = #{TB_CRTN_YY}
+	</if>
+	<if test="SB_BUGT_GUBN != null and SB_BUGT_GUBN != ''">
+   AND BUGT_GUBN  = #{SB_BUGT_GUBN}
+	</if>
+ ORDER BY CRTN_YY
+         ,BUGT_GUBN
+</select>
+
+	
+    <update id="updateBugtTerm" parameterType="Map">
+--com.bdg.BugtTerm.updateBugtTerm
+UPDATE CO_EXPIRY_DATE
+   SET REG_FROM_DATE = #{REG_FROM_DATE}
+      ,REG_TO_DATE   = #{REG_TO_DATE}
+      ,MOD_DATE      = TO_CHAR(SYSDATE,'YYYYMMDD')
+      ,MOD_USER      = #{MOD_ID}
+ WHERE CRTN_YY   = #{CRTN_YY}
+   AND BUGT_GUBN = #{BUGT_GUBN}
+    </update>
+    
+    <insert id="insertBugtTerm" parameterType="Map">
+--com.bdg.BugtTerm.insertBugtTerm
+INSERT INTO CO_EXPIRY_DATE
+(
+  CRTN_YY        -- 년도
+ ,BUGT_GUBN      -- 예산구분
+ ,REG_FROM_DATE  -- 등록시작일
+ ,REG_TO_DATE    -- 등록종료일
+ ,CRE_DATE       -- 등록일자
+ ,CRE_USER       -- 등록자ID
+ ,MOD_DATE       -- 수정일자
+ ,MOD_USER       -- 수정자ID
+) VALUES (
+           #{CRTN_YY}
+          ,#{BUGT_GUBN}
+          ,#{REG_FROM_DATE}
+          ,#{REG_TO_DATE}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{INS_ID}
+          ,TO_CHAR(SYSDATE,'YYYYMMDD')
+          ,#{MOD_ID}
+         )
+    </insert>
+    
+    <delete id="deleteBugtTerm" parameterType="Map">
+--com.bdg.BugtTerm.deleteBugtTerm
+DELETE FROM CO_EXPIRY_DATE
+ WHERE 1 = 1
+   AND CRTN_YY   = #{CRTN_YY}
+   AND BUGT_GUBN = #{BUGT_GUBN}
+    </delete>
+    
+</mapper>

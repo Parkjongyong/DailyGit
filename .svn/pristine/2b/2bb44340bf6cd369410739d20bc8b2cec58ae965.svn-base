@@ -1,0 +1,407 @@
+<%@ page language="java" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page import="java.util.*"%>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.app.common.util.StringUtil"%>
+<%@page import="org.apache.commons.collections.MapUtils"%>
+<%@page import="org.apache.commons.lang.*"%>
+<%@page import="com.app.common.util.StringUtilEx"%>
+<%@page import="com.app.common.util.PropertiesUtil"%>
+<%@ taglib prefix="c"       uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring"  uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"     uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fmt"    uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%
+/*******************************************************************/
+// 투자구매품의 결재폼.
+/*******************************************************************/
+String URL_IN = PropertiesUtil.getProperty("HTTP.SERVER.URL.IN");
+request.setAttribute("URL_IN" ,  URL_IN);
+/*******************************************************************
+  httpclient 호출로 파라미터 전송시 object 전송 불가
+  list,map => json string 유형으로 변환 전송 됨
+  json string 유형 데이터를 jstl 사용 가능하도록 object로 변경
+*******************************************************************/
+/*******************************************************************/
+//투자구매품의 정보
+/*******************************************************************/
+String INV_APRV  = request.getParameter("invAprv");
+request.setAttribute("INV_APRV", com.app.common.util.JsonUtil.getMapFromJsonString(INV_APRV));
+Map<String, Object> invAprv = (Map<String, Object>)request.getAttribute("INV_APRV");
+
+invAprv.put("PREV_APRV_AMT_SUM", StringUtilEx.digitFormat(MapUtils.getDoubleValue(invAprv, "PREV_APRV_AMT_SUM"), "#,###") );
+invAprv.put("PO_AMT_SUM",        StringUtilEx.digitFormat(MapUtils.getDoubleValue(invAprv, "PO_AMT_SUM"), "#,###") );
+
+/*******************************************************************/
+//서브투자정보
+/*******************************************************************/
+String INV_INFO  = request.getParameter("investInfo");
+request.setAttribute("INV_INFO", com.app.common.util.JsonUtil.getMapFromJsonString(INV_INFO));
+
+Map<String, Object> invInfo = (Map<String, Object>)request.getAttribute("INV_INFO");
+
+if ("KRW".equals(MapUtils.getString(invInfo, "CURRENCY_CD",""))){
+    invInfo.put("AMT", StringUtilEx.digitFormat(MapUtils.getDoubleValue(invInfo, "AMT"), "#,###")   );
+}else{
+    invInfo.put("AMT", StringUtilEx.digitFormat(MapUtils.getDoubleValue(invInfo, "AMT"), "#,###.00") );
+}
+invInfo.put("AMT_KRW",      StringUtilEx.digitFormat (MapUtils.getDoubleValue(invInfo, "AMT_KRW"), "#,###") );
+invInfo.put("AVAIL_AMT",    StringUtilEx.digitFormat((MapUtils.getDoubleValue(invInfo, "AMT_KRW") - MapUtils.getDoubleValue(invAprv, "PREV_APRV_AMT_SUM")), "#,###") );
+invInfo.put("APPROVAL_YMD", StringUtilEx.formatDate  (MapUtils.getString(invInfo,"APPROVAL_YMD",""), "-"));
+
+/*******************************************************************/
+//구매명세 목록
+/*******************************************************************/
+String PO_ITEM_LIST  = request.getParameter("poItemList");
+request.setAttribute("PO_ITEM_LIST", com.app.common.util.JsonUtil.getListFromJsonString(PO_ITEM_LIST)); //LISTMAP
+
+List<Map<String, Object>> poItemList = (List<Map<String, Object>>)request.getAttribute("PO_ITEM_LIST");
+for(Map<String, Object> poItem : poItemList){
+	String currencyFormat = "#,###";
+	if ( !"KRW".equals(MapUtils.getString(poItem, "CURRENCY_CD","")) ){
+	    currencyFormat = "#,###.00";
+	}
+    poItem.put("PO_QTY",             StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "PO_QTY")                   ) );
+    poItem.put("UNIT_PRICE",         StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "UNIT_PRICE"),currencyFormat) );
+    poItem.put("PO_AMT",             StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "PO_AMT"),    currencyFormat) );
+    poItem.put("EXC_RATE",           StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "EXC_RATE"),  currencyFormat) );
+    poItem.put("PO_AMT_KRW",         StringUtilEx.digitFormat(MapUtils.getDoubleValue(poItem, "PO_AMT_KRW"),"#,###") );
+    poItem.put("DELY_DATE_TO",       StringUtilEx.formatDate (MapUtils.getString     (poItem, "DELY_DATE_TO", ""), "-")          );
+}
+/*******************************************************************/
+//투자일정 목록
+/*******************************************************************/
+String INV_SCHEDULE_LIST  = request.getParameter("invScheduleList");
+request.setAttribute("INV_SCHEDULE_LIST", com.app.common.util.JsonUtil.getListFromJsonString(INV_SCHEDULE_LIST)); //LISTMAP
+List<Map<String, Object>> invScheduleList = (List<Map<String, Object>>)request.getAttribute("INV_SCHEDULE_LIST");
+for(Map<String, Object> invSchedule : invScheduleList){
+	invSchedule.put("APRV_YMD", StringUtilEx.formatDate (MapUtils.getString(invSchedule, "APRV_YMD",""), "-") );
+	invSchedule.put("GR_YMD",   StringUtilEx.formatDate (MapUtils.getString(invSchedule, "GR_YMD"  ,""), "-") );
+	invSchedule.put("INSP_YMD", StringUtilEx.formatDate (MapUtils.getString(invSchedule, "INSP_YMD",""), "-") );
+	invSchedule.put("CMPL_YMD", StringUtilEx.formatDate (MapUtils.getString(invSchedule, "CMPL_YMD",""), "-") );
+}
+/*******************************************************************/
+//IMS 투자일정
+/*******************************************************************/
+String IMS_SCHEDULE  = request.getParameter("imsSchedule");
+request.setAttribute("IMS_SCHEDULE", com.app.common.util.JsonUtil.getMapFromJsonString(IMS_SCHEDULE));
+Map<String, Object> imsSchedule = (Map<String, Object>)request.getAttribute("IMS_SCHEDULE");
+imsSchedule.put("APRV_YMD", StringUtilEx.formatDate (MapUtils.getString(imsSchedule, "APRV_YMD",""), "-") );
+imsSchedule.put("GR_YMD",   StringUtilEx.formatDate (MapUtils.getString(imsSchedule, "GR_YMD"  ,""), "-") );
+imsSchedule.put("INSP_YMD", StringUtilEx.formatDate (MapUtils.getString(imsSchedule, "INSP_YMD",""), "-") );
+imsSchedule.put("CMPL_YMD", StringUtilEx.formatDate (MapUtils.getString(imsSchedule, "CMPL_YMD",""), "-") );
+
+//견적제출목록
+//String RFX_SUBMIT_LIST = request.getParameter("rfxSubmitList");
+//request.setAttribute("RFX_SUBMIT_LIST" ,  com.app.common.util.JsonUtil.getListFromJsonString(RFX_SUBMIT_LIST)); //LISTMAP
+/* if (request.getAttribute("RFX_SUBMIT_LIST")!=null){
+    List<Map<String, Object>> rfxSubmitList = (List<Map<String, Object>>)request.getAttribute("RFX_SUBMIT_LIST");
+    
+    for(Map<String, Object> rfxSubmit : rfxSubmitList){
+        String rfxCurrencyFormat = "#,###";
+        if ( !"KRW".equals(MapUtils.getString(rfxSubmit, "CURRENCY_CD", "KRW")) ){
+            rfxCurrencyFormat = "#,###.00";
+        }
+        rfxSubmit.put("AMT", StringUtilEx.digitFormat(MapUtils.getDoubleValue(rfxSubmit, "AMT"), rfxCurrencyFormat));
+        rfxSubmit.put("AMT_KRW", StringUtilEx.digitFormat(MapUtils.getDoubleValue(rfxSubmit, "AMT_KRW"), "#,###"));
+    }
+} */
+
+//첨부파일
+String FILE_LIST = request.getParameter("fileList");
+request.setAttribute("FILE_LIST" ,  com.app.common.util.JsonUtil.getListFromJsonString(FILE_LIST)); //LISTMAP
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<link href="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_reset.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_common.css'/>" rel="stylesheet"/>
+<!-- jquery -->
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-1.12.3/jquery-1.12.3.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/attach.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/common.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/popup.js'/>"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    //전자결재 페이지에서 창에 높이 확인 가능하도록 수정
+    document.domain="parucnc.com";
+    //전자결재 부모창으로 높이 전송
+    var maxHeight = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight,document.documentElement.offsetHeight);
+    window.parent.postMessage(maxHeight, '*');	
+    
+});
+function downloadRfxFile(appSeq){
+	$("#APP_SEQ").val(appSeq);
+	var win = window.open("about:blank", "dowmloadFilePop", "toolbar=no,scrollbars=yes,resizable=yes,width=600,height=300");
+	document.downForm.action = '${URL_IN}/downloadFilePop.do';
+	document.downForm.submit();
+}
+</script>
+<style>
+    .ellipsis{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    } 
+</style>
+</head>
+<body>
+    <form name="downForm" target="dowmloadFilePop">
+        <input type="hidden" id="APP_SEQ" name="APP_SEQ"/>
+    </form>
+    <div class="pop-wrap">
+        <div class="pop-cont link">
+            <div class="section1 scrolls">
+                <div class="sub-tit first" id="section1">
+                    <h4>투자정보</h4>
+                </div>
+                <table class="table-style">
+                    <colgroup>
+                        <col style="width: 15%;">
+                        <col>
+                        <col style="width: 15%;">
+                        <col>
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <th style="text-align: left;"><span>투자번호</span></th>
+                            <td>${INV_INFO.INVEST_NO}</td>
+                            <th style="text-align: left;"><span>투자명</span></th>
+                            <td>${INV_INFO.SUB_INVEST_NM}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;"><span>제품</span></th>
+                            <td>${INV_INFO.ITEM_NM}</td>
+                            <th style="text-align: left;"><span>집행부서</span></th>
+                            <td>${INV_INFO.DEPT_NM}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;"><span>구분</span></th>
+                            <td>${INV_INFO.INVEST_DIV_NM}</td>
+                            <th style="text-align: left;"><span>코스트센터</span></th>
+                            <td>${INV_INFO.COST_DEP_NM}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;"><span>유형</span></th>
+                            <td>${INV_INFO.INVEST_TYPE_NM}</td>
+                            <th style="text-align: left;"><span>담당자</span></th>
+                            <td>${INV_INFO.PIC_NM}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;"><span>승인예산금액</span></th>
+                            <td>${INV_INFO.AMT_KRW}</td>
+                            <th style="text-align: left;"><span>기품의금액</span></th>
+                            <td>${INV_APRV.PREV_APRV_AMT_SUM}</td>
+                        </tr>
+                        <tr>
+                             <th style="text-align: left;"><span>가용예산금액</span></th>
+                            <td>${INV_INFO.AVAIL_AMT}</td>
+                            <th style="text-align: left;"><span>구매품의금액</span></th>
+                            <td>${INV_APRV.PO_AMT_SUM}</td>
+                        </tr>
+                        <tr>
+                            <th style="text-align: left;"><span>투자품의일</span></th>
+                            <td colspan="3">${INV_INFO.APPROVAL_YMD}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="sub-tit">
+                    <h4>비고(투자목적)</h4>
+                </div>
+                <div>
+                    <table  id="basicInfo" class="table-style"><tr><td>${INV_APRV.REMARK}</td></tr></table>
+                </div>
+            </div>
+            
+            <div class="section3 scrolls">
+                <div class="sub-tit"  id="section3">
+                    <h4>구매 명세</h4>
+                </div>
+                <div>
+                    <table class="table-style">
+                        <thead>
+                            <tr>
+                                <th style="width:10%">PO일련번호</th>
+                				<th style="width:15%">Maker</th>
+                				<th                 >품목번호</th>
+                				<th style="width:8%">수량</th>
+                				<th style="width:15%">단가</th>
+                				<th style="width:8%">통화</th>
+                				<th style="width:15%">&nbsp;</th>
+                				<c:if test="${INV_APRV.INV_APRV_TYP=='P'}">
+                				<th style="width:15%">납기일</th>
+                				</c:if>
+                            </tr>
+                            <tr>
+                                <th                  >품목순번</th>
+                                <th                  >구매처</th>
+                                <th                  >품목명</th>
+                                <th                  >단위</th>
+                                <th                  >금액</th>
+                                <th                  >환율</th>
+                                <th                  >금액(KRW)</th>
+                                <c:if test="${INV_APRV.INV_APRV_TYP=='P'}">
+                                <th                  >지급조건</th>
+                                </c:if>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="ITEM" items="${PO_ITEM_LIST}" varStatus="status">
+            				<tr>
+                				<td style="text-align: center;">${ITEM.PO_SEQ}</td>
+                				<td style="text-align: center;" class="ellipsis">${ITEM.VENDOR_NM}</td>
+                				<td style="text-align: left;" >${ITEM.ITEM_CD}</td>
+                				<td style="text-align: right;">${ITEM.PO_QTY}</td>
+                				<td style="text-align: right;">${ITEM.UNIT_PRICE}</td>
+                				<td style="text-align: center;">${ITEM.CURRENCY_CD}</td>
+            				    <th                           >&nbsp;</th>
+                				<c:if test="${INV_APRV.INV_APRV_TYP=='P'}">
+                				<td style="text-align: center;">${ITEM.DELY_DATE_YMD}</td>
+                				</c:if>
+            				</tr>
+            				<tr>
+            				    <td style="text-align: center;">${ITEM.PO_LINE_NO}</td>
+            				    <td style="text-align: center;" class="ellipsis">${ITEM.INV_VENDOR_NM}</td>
+            				    <td style="text-align: left;"   class="ellipsis">${ITEM.ITEM_NM}</td>
+            				    <td style="text-align: right;">${ITEM.ORDER_UNIT}</td>
+            				    <td style="text-align: right;">${ITEM.PO_AMT}</td>
+            				    <td style="text-align: right;">${ITEM.EXC_RATE}</td>
+            				    <td style="text-align: right;">${ITEM.PO_AMT_KRW}</td>
+            				    <c:if test="${INV_APRV.INV_APRV_TYP=='P'}">
+                                <td style="text-align: center;">${PO_INFO.CHARGE_COND_CD_NM}</td>
+                                </c:if>
+            				</tr>
+            				</c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <%--
+            <c:if test="${RFX_SUBMIT_LIST!=null}">
+            <div class="section3 scrolls">
+                <div class="sub-tit"  id="section3">
+                    <h4>품목별 견적현황</h4>
+                </div>
+                <div>
+                    <table class="table-style">
+                        <thead>
+                            <tr>
+                                <th style="width:15%">SG</th>
+                                <th style="width:10%">품목코드</th>
+                                <th                 >품목명</th>
+                                <th style="width:20%">BP명</th>
+                                <th style="width:5%">통화</th> 
+                                <th style="width:10%">단가</th>
+                                <th style="width:5%">순위</th>
+                                <th style="width:10%">견적서파일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="SUBMIT" items="${RFX_SUBMIT_LIST}" varStatus="status">
+                                <tr>
+                                    <c:if test="${SUBMIT.RNK==1}">
+                                        <td align="left" rowspan="${SUBMIT.CNT}" class="ellipsis">${SUBMIT.SRC_GRP_NM}</td>
+                                        <td              rowspan="${SUBMIT.CNT}">${SUBMIT.ITEM_CD}</td>
+                                        <td align="left" rowspan="${SUBMIT.CNT}" class="ellipsis">${SUBMIT.ITEM_NM}</td>
+                                    </c:if>
+                                    <td align="left" class="ellipsis">${SUBMIT.VENDOR_NM}</td>
+                                    <td style="text-align: center">${SUBMIT.CURRENCY_CD}</td>
+                                    <td style="text-align: right;">${SUBMIT.AMT_KRW}</td>
+                                    <td style="text-align: center;">${SUBMIT.RNK}</td>
+                                    <td style="text-align: center;">
+                                        <c:if test="${SUBMIT.APP_SEQ!=null and SUBMIT.APP_SEQ!=''}">
+                                        <a href="javascript:downloadRfxFile('${SUBMIT.APP_SEQ}');" style="color:blue;">다운로드</a>
+                                        </c:if>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </c:if>
+             --%>
+            <br>
+            <div class="section1 scrolls">
+                <div class="sub-tit first" id="section1">
+                    <h4>구매 개요</h4>
+                </div>
+	            <hr color="black" style="border:0;height:2px">
+                <div id="investAprvCnts">${INV_APRV.PURCHS_SUMRY}</div>
+                <hr color="black" style="border:0;height:1px">
+            </div>
+            <br>
+            <div class="section3 scrolls">
+                <div class="sub-tit"  id="section3">
+                    <h4>투자일정</h4>
+                </div>
+                <div>
+                    <table class="table-style">
+                        <colgroup>
+                            <col style="width:20%">
+                            <col style="width:20%">
+                            <col style="width:20%">
+                            <col style="width:20%">
+                            <col style="width:20%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>PO일련번호</th>
+                                <th>투자품의일</th>
+                                <th>입고/Shipping 예정일</th>
+                                <th>검수완료예정일</th>
+                                <th>완료보고예정</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="text-align: center;">IMS</td>
+                                <td style="text-align: center;">${IMS_SCHEDULE.APRV_YMD}</td>
+                                <td style="text-align: center;">${IMS_SCHEDULE.GR_YMD}</td>
+                                <td style="text-align: center;">${IMS_SCHEDULE.INSP_YMD}</td>
+                                <td style="text-align: center;">${IMS_SCHEDULE.CMPL_YMD}</td>
+                            </tr>
+                            <c:forEach var="SCHEDULE" items="${INV_SCHEDULE_LIST}" varStatus="status">
+                            <tr>
+                                <td style="text-align: center;">${SCHEDULE.PO_SEQ}</td>
+                                <td style="text-align: center;">${SCHEDULE.APRV_YMD}</td>
+                                <td style="text-align: center;">${SCHEDULE.GR_YMD}</td>
+                                <td style="text-align: center;">${SCHEDULE.INSP_YMD}</td>
+                                <td style="text-align: center;">${SCHEDULE.CMPL_YMD}</td>
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+	        <c:if test="${INV_APRV.APP_SEQ_ETC != null and INV_APRV.APP_SEQ_ETC != ''}">
+            <div class="section6 scrolls">
+                <div class="sub-tit">
+	                <h4>첨부파일</h4>
+	                <input type="hidden" id="APP_SEQ_ETC" value="${INV_APRV.APP_SEQ_ETC}">
+	            </div>
+	            <div id="fileUploadTableEtc" class="jqGridArea m_t5">
+                    <table class="table-style">
+                        <tbody>
+                            <tr>
+                                <th style="text-align: center;" width="10%">No</th>
+                                <th style="text-align: center;">파일명</th>
+                            </tr>
+                            <c:forEach var="FILE" items="${FILE_LIST}" varStatus="status">
+                            <tr class="F_File_ROW">
+                                <td style="text-align: center;">${status.count}</td>
+                                <td class="t_left">
+                                <a href="${URL_IN}/download.do?APP_SEQ=${FILE.APP_SEQ}&amp;ATTACHMENT_SEQ=${FILE.ATTACHMENT_SEQ}" title="${FILE.FILE_NAME}" style="color:blue;" download="${FILE.FILE_NAME}">${FILE.FILE_NAME}</a></td>
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+	                </table>
+	            </div>
+            </div>
+            </c:if>
+        </div>
+        <!-- //popCont -->
+    </div>
+</body>

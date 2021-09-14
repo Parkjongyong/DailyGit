@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="common.MessageSend">
+
+	<select id="selectMailSmsInfo" parameterType="Map" resultType="Map">
+    --MessageSendMapper.selectMailSmsInfo
+	SELECT	 ALERT_ID AS MAIL_ID
+			, REMARK 
+			, SUBJECT
+			, USE_YN 
+			, SENDER_NM
+			, SENDER_EMAIL 
+			, SENDER_PHONE
+			, RECEIVER_NM
+			, RECEIVER_EMAIL
+			, RECEIVER_PHONE
+			, CONTENT_PATH
+			, SMS_MSG
+			, NOTE_MSG
+			, TEST_RECEIVER_EMAIL
+			, TEST_RECEIVER_PHONE
+			, TEST_RECEIVER_NOTE_ID
+			, TEST_CC_EMAIL
+			, MAIL_YN
+			, SMS_YN
+			, NOTE_YN
+	FROM	ALERT_INFO
+	WHERE	ALERT_ID = #{MAIL_ID}
+	</select>
+		
+</mapper>

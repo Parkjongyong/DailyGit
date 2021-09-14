@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.SysCmmLogMgmt">
+
+    <resultMap id="rfcLogResultMap" type="Map">
+        <result property="JCO_PARAMS" column="JCO_PARAMS" jdbcType="CLOB" javaType="java.lang.String" />
+        <result property="JCO_DATA"   column="JCO_DATA"    jdbcType="CLOB" javaType="java.lang.String" />
+    </resultMap>
+    
+    <resultMap id="alarmLogResultMap" type="Map">
+        <result property="SUBJECT"  column="SUBJECT"  jdbcType="CLOB" javaType="java.lang.String" />
+        <result property="CONTENT"  column="CONTENT"  jdbcType="CLOB" javaType="java.lang.String" />
+    </resultMap>
+    
+    <resultMap id="batchLogResultMap" type="Map">
+        <result property="BATCH_ERR_MSG"  column="BATCH_ERR_MSG"  jdbcType="CLOB" javaType="java.lang.String" />
+    </resultMap>
+
+    <select id="selectRfcLogMgmtList" parameterType="Map" resultType="Map">
+    --SysCmmLogMgmtMapper.selectRfcLogMgmtList
+    SELECT *
+      FROM (
+            SELECT COUNT(*) OVER() AS TOT_CNT
+                 , ROW_NUMBER() OVER(ORDER BY JCO_SEQ DESC) AS RNUM
+                 , JCO_SEQ
+                 , FUNCTION_NAME
+                 , RESULT AS RESULT_CD
+                 , DECODE(RESULT, 'S', '성공', 'E', '오류') AS RESULT_NM
+                 , DECODE(LENGTH(RESULT_MSG), NULL, '', RESULT_MSG) AS RESULT_MSG
+                 , DECODE(LENGTH(JCO_PARAMS), NULL, '', '1') AS D_JCO_PARAMS
+                 , DECODE(LENGTH(JCO_DATA), NULL, '', '1') AS D_JCO_DATA
+                 , TO_CHAR(START_DT, 'YYYY-MM-DD HH24:MI:SS') AS START_DT
+                 , TO_CHAR(END_DT, 'YYYY-MM-DD HH24:MI:SS') AS END_DT   
+              FROM JCO_LOG
+             WHERE 1 = 1
+            <if test="S_FUNCTION_NAME != null and S_FUNCTION_NAME != ''">
+                AND FUNCTION_NAME LIKE  '%' || #{S_FUNCTION_NAME} ||  '%'
+            </if>
+            <if test="S_RESULT_CD != null and S_RESULT_CD != ''">
+                <choose>
+	                <when test="S_RESULT_CD != null and S_RESULT_CD eq 'S'.toString()">
+	                    AND RESULT = #{S_RESULT_CD}
+	                </when>
+	                <otherwise>
+	                    AND (RESULT = #{S_RESULT_CD} OR RESULT IS NULL)
+	                </otherwise>
+	            </choose>
+            </if>
+            <if test="TB_START_DT != null and TB_START_DT != ''">
+            <![CDATA[AND TO_CHAR(START_DT, 'YYYY-MM-DD') >= #{TB_START_DT}]]>
+            </if>
+            <if test="TB_END_DT != null and TB_END_DT != ''">
+            <![CDATA[AND TO_CHAR(END_DT, 'YYYY-MM-DD') <= #{TB_END_DT}]]>
+            </if>
+          )
+    <![CDATA[WHERE RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 500)]]>
+    </select>
+    
+    <select id="selectRfcLogMgmtDetail" parameterType="Map" resultMap="rfcLogResultMap">
+    --SysCmmLogMgmtMapper.selectRfcLogMgmtDetail
+	    SELECT JCO_PARAMS
+	         , JCO_DATA
+	      FROM JCO_LOG
+	     WHERE JCO_SEQ = #{JCO_SEQ}
+    </select>
+    
+    <select id="selectAlarmLogMgmtList" parameterType="Map" resultMap="alarmLogResultMap">
+    --SysCmmLogMgmtMapper.selectAlarmLogMgmtList
+    SELECT *
+      FROM (
+            SELECT COUNT(*) OVER() AS TOT_CNT
+                 , ROW_NUMBER() OVER(ORDER BY SEQ DESC) AS RNUM
+                 , SEQ
+	 			 , MAIL_ID
+	 			 , MSG_TYPE
+				 , FROM_ID
+				 , TO_ID
+				 , SUBJECT
+				 , DECODE(LENGTH(CONTENT), NULL, '', '1') AS D_CONTENT_DATA
+				 , TO_CHAR(TO_DATE(INS_DT, 'YYYY-MM-DD HH24:MI:SS') , 'YYYY-MM-DD HH24:MI:SS') AS INS_DT
+              FROM ALERT_LOG  
+             WHERE 1 = 1
+            <if test="S_ID_NAME != null and S_ID_NAME != ''">
+                AND MAIL_ID LIKE  '%' || #{S_ID_NAME} ||  '%'
+            </if>
+            <if test="S_MSG_TYPE != null and S_MSG_TYPE != ''">
+                AND MSG_TYPE = #{S_MSG_TYPE}
+            </if>
+            <if test="TB_START_DT != null and TB_START_DT != ''">
+            <![CDATA[AND TO_CHAR(TO_DATE(INS_DT, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD') >= #{TB_START_DT}]]>
+            </if>
+            <if test="TB_END_DT != null and TB_END_DT != ''">
+            <![CDATA[AND TO_CHAR(TO_DATE(INS_DT, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD') <= #{TB_END_DT}]]>
+            </if>
+          )
+    <![CDATA[WHERE RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 500)]]>
+    </select>	   
+    
+    
+    <select id="selectBatchLogMgmtList" parameterType="Map" resultType="Map">
+    --SysCmmLogMgmtMapper.selectBatchLogMgmtList
+        SELECT COUNT(*) OVER() AS TOT_CNT
+             , ROW_NUMBER() OVER(ORDER BY A.BATCH_ID ASC) AS RNUM
+             , A.BATCH_ID
+             , A.BATCH_DESC
+             , A.RUN_IP
+             , A.BATCH_YN
+             , DECODE(B.BATCH_START_TIME, NULL, '', TO_CHAR(TO_DATE(B.BATCH_START_TIME, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')) AS BATCH_START_TIME
+             , DECODE(B.BATCH_END_TIME, NULL, '', TO_CHAR(TO_DATE(B.BATCH_END_TIME, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')) AS BATCH_END_TIME
+             , B.BATCH_SUCC_YN
+             , B.TOTAL_CNT
+             , B.SUCC_CNT
+             , B.FAIL_CNT
+             , A.BATCH_ARG1
+             , A.BATCH_ARG2
+             , A.BATCH_ARG3
+             , A.BATCH_ARG4
+             , A.BATCH_ARG5
+             , A.BATCH_ARG6
+             , A.BATCH_ARG7
+             , A.BATCH_ARG8
+             , A.BATCH_ARG9
+             , A.BATCH_ARG10
+             , 'R' CRUD
+          FROM SYS_BATCH_MASTER A,
+              ( SELECT BATCH_ID
+                     , BATCH_START_TIME
+                     , BATCH_END_TIME
+                     , BATCH_SUCC_YN
+                     , NVL(TOTAL_CNT, '0') AS TOTAL_CNT
+                     , NVL(SUCC_CNT, '0') AS SUCC_CNT
+                     , NVL(FAIL_CNT, '0') AS FAIL_CNT
+                 FROM (
+                        SELECT ROW_NUMBER() OVER(PARTITION BY BATCH_ID ORDER BY BATCH_START_TIME DESC) AS RNUM
+                             , BATCH_ID
+                             , BATCH_START_TIME
+                             , BATCH_END_TIME
+                             , BATCH_SUCC_YN
+                             , TOTAL_CNT
+                             , SUCC_CNT
+                             , FAIL_CNT
+                          FROM SYS_BATCH_LOG 
+                       )
+                WHERE RNUM = 1
+              ) B
+        WHERE A.BATCH_ID = B.BATCH_ID(+)
+        <if test="BATCH_ID != null and BATCH_ID != ''">
+          AND A.BATCH_ID LIKE '%'|| #{BATCH_ID} || '%'
+        </if>
+        <if test="BATCH_DESC != null and BATCH_DESC != ''">
+          AND A.BATCH_DESC LIKE '%'||#{BATCH_DESC} || '%'
+        </if>
+        
+    </select>
+    
+    <select id="selectBatchLogMgmtDetailList" parameterType="Map" resultType="Map">
+    --SysCmmLogMgmtMapper.selectBatchLogMgmtDetailList
+    SELECT *
+      FROM (
+            SELECT COUNT(*) OVER() AS TOT_CNT
+                 , ROW_NUMBER() OVER(ORDER BY BATCH_SEQ DESC) AS RNUM
+                 , BATCH_SEQ
+                 , BATCH_ID
+                 , BATCH_IP
+                 , DECODE(BATCH_START_TIME, NULL, '', TO_CHAR(TO_DATE(BATCH_START_TIME, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')) AS BATCH_START_TIME
+                 , DECODE(BATCH_END_TIME, NULL, '', TO_CHAR(TO_DATE(BATCH_END_TIME, 'YYYYMMDDHH24MISS'), 'YYYY-MM-DD HH24:MI:SS')) AS BATCH_END_TIME 
+                 , BATCH_SUCC_YN
+                 , DECODE(LENGTH(BATCH_ERR_MSG), '', '', '1') AS BATCH_ERR_MSG
+                 , BATCH_RUN_TIME
+                 , PROC_ID
+                 , TOTAL_CNT
+                 , SUCC_CNT
+                 , FAIL_CNT
+              FROM SYS_BATCH_LOG  
+             WHERE BATCH_ID = #{BATCH_ID}
+            <if test="TB_START_DT != null and TB_START_DT != ''">
+            <![CDATA[AND TO_CHAR(TO_DATE(BATCH_START_TIME, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD') >= #{TB_START_DT}]]>
+            </if>
+            <if test="TB_END_DT != null and TB_END_DT != ''">
+            <![CDATA[AND TO_CHAR(TO_DATE(BATCH_START_TIME, 'YYYY-MM-DD HH24:MI:SS'), 'YYYY-MM-DD') <= #{TB_END_DT}]]>
+            </if>
+          )
+    <![CDATA[WHERE RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 500)]]>
+    </select>      
+    
+    <select id="selectAlarmLogMgmtDetail" parameterType="Map" resultMap="alarmLogResultMap">
+    --SysCmmLogMgmtMapper.selectAlarmLogMgmtDetail
+        SELECT SUBJECT
+             , CONTENT
+             , MSG_TYPE
+          FROM ALERT_LOG
+         WHERE SEQ = #{SEQ}
+    </select>
+    
+    <select id="selectBatchLogMgmtErrDetail" parameterType="Map" resultMap="batchLogResultMap">
+    --SysCmmLogMgmtMapper.selectBatchLogMgmtErrDetail
+        SELECT BATCH_ERR_MSG
+          FROM SYS_BATCH_LOG
+         WHERE BATCH_SEQ = #{BATCH_SEQ}
+    </select>
+    
+    <update id="updateBatchMaster" parameterType="Map">
+    --SysCmmLogMgmtMapper.updateBatchMaster
+    UPDATE SYS_BATCH_MASTER
+    SET BATCH_ARG1  = #{BATCH_ARG1 } 
+       ,BATCH_ARG2  = #{BATCH_ARG2 }
+       ,BATCH_ARG3  = #{BATCH_ARG3 }
+       ,BATCH_ARG4  = #{BATCH_ARG4 }
+       ,BATCH_ARG5  = #{BATCH_ARG5 }
+       ,BATCH_ARG6  = #{BATCH_ARG6 }
+       ,BATCH_ARG7  = #{BATCH_ARG7 }
+       ,BATCH_ARG8  = #{BATCH_ARG8 }
+       ,BATCH_ARG9  = #{BATCH_ARG9 }
+       ,BATCH_ARG10 = #{BATCH_ARG10}
+    WHERE BATCH_ID = #{BATCH_ID}
+      AND BATCH_YN = 'Y'
+    </update> 
+    
+    <update id="updateParamBatchMaster" parameterType="Map">
+    --SysCmmLogMgmtMapper.updateParamBatchMaster
+    UPDATE SYS_BATCH_MASTER
+    SET BATCH_ARG1  = NULL
+       ,BATCH_ARG2  = NULL
+       ,BATCH_ARG3  = NULL
+       ,BATCH_ARG4  = NULL
+       ,BATCH_ARG5  = NULL
+       ,BATCH_ARG6  = NULL
+       ,BATCH_ARG7  = NULL
+       ,BATCH_ARG8  = NULL
+       ,BATCH_ARG9  = NULL
+       ,BATCH_ARG10 = NULL
+    WHERE BATCH_ID = #{BATCH_ID}
+      AND BATCH_YN = 'Y'
+    </update> 
+    
+</mapper>

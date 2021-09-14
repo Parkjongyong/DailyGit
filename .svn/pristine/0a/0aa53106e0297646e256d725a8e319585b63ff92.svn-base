@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		<aop:config proxy-target-class="true" >
+			
+		</aop:config>
+		<aop:aspectj-autoproxy proxy-target-class="true"/>
+		
+<!-- 		<bean id="sessionScope" class="com.app.common.session.UserSessionUtil" scope="session"> -->
+<!-- 			<aop:scoped-proxy proxy-target-class="true"/> -->
+<!-- 		</bean> -->
+		
+		<aop:config>
+			<aop:pointcut id="requiredTx" expression="execution(* com.app..service.*Service.*(..))"/>
+			<aop:advisor advice-ref="txAdvice" pointcut-ref="requiredTx" />
+		</aop:config>
+</beans>
+

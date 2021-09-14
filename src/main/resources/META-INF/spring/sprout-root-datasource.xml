@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		
+	
+	<!-- ========================= Datasource DEFINITIONS ======================== -->
+	<bean id="dataSourceForSprout" class="org.springframework.jndi.JndiObjectFactoryBean">
+    	<property name="jndiName" value="${spring.datasource.jndi.name.sprout}"/>
+    	<property name="resourceRef" value="${spring.datasource.jndi.prefix}"/>
+	</bean>
+	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+    	<property name="jndiName" value="${spring.datasource.jndi.name.biz}"/>
+    	<property name="resourceRef" value="${spring.datasource.jndi.prefix}"/>
+	</bean>
+	
+	<beans profile="dbcp_datasource">
+		<bean id="dataSourceForSprout" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+	    	 <property name="driverClassName" value="${jdbc.driverClassName}"/>
+	    	 <property name="url" value="${jdbc.url}"/>
+	         <property name="username" value="${jdbc.username}"/> 
+		     <property name="password" value="${jdbc.password}"/> 
+	         <property name="defaultAutoCommit" value="false"/>
+	         <property name="maxActive" value="${jdbc.maxActive}"/>
+	         <property name="initialSize" value="${jdbc.initialSize}"/>
+			<!-- property name="idleConnectionTestPeriod" value="30"/>
+        	<property name="preferredTestQuery" value="SELECT 1"/ -->
+         
+		</bean>
+		<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	    	 <property name="driverClassName" value="${jdbc.driverClassName}"/>
+	    	 <property name="url" value="${jdbc.url}"/>
+	         <property name="username" value="${jdbc.username}"/> 
+		     <property name="password" value="${jdbc.password}"/> 
+	         <property name="defaultAutoCommit" value="false"/>
+	         <property name="maxActive" value="${jdbc.maxActive}"/>
+	         <property name="initialSize" value="${jdbc.initialSize}"/>
+
+        	<property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+			<property name="testOnBorrow" value="true"/>
+        	<property name="testOnReturn" value="false"/>
+        	<property name="testWhileIdle" value="true"/>
+        	<property name="maxIdle" value="5"/>
+    		<property name="maxWait" value="6000"/>
+        	
+		</bean>
+		
+		<bean id="dataSource2" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	    	 <property name="driverClassName" value="${jdbc.driverClassName2}"/>
+	    	 <property name="url" value="${jdbc.url2}"/>
+	         <property name="username" value="${jdbc.username2}"/> 
+		     <property name="password" value="${jdbc.password2}"/> 
+	         <property name="defaultAutoCommit" value="false"/>
+	         <property name="maxActive" value="${jdbc.maxActive2}"/>
+	         <property name="initialSize" value="${jdbc.initialSize2}"/>
+
+        	<property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+			<property name="testOnBorrow" value="true"/>
+        	<property name="testOnReturn" value="false"/>
+        	<property name="testWhileIdle" value="true"/>
+        	<property name="maxIdle" value="5"/>
+    		<property name="maxWait" value="6000"/>
+        	
+		</bean>
+
+		<bean id="dataSource3" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+	    	 <property name="driverClassName" value="${jdbc.driverClassName3}"/>
+	    	 <property name="url" value="${jdbc.url3}"/>
+	         <property name="username" value="${jdbc.username3}"/> 
+		     <property name="password" value="${jdbc.password3}"/> 
+	         <property name="defaultAutoCommit" value="false"/>
+	         <property name="maxActive" value="${jdbc.maxActive3}"/>
+	         <property name="initialSize" value="${jdbc.initialSize3}"/>
+
+        	<property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+			<property name="testOnBorrow" value="true"/>
+        	<property name="testOnReturn" value="false"/>
+        	<property name="testWhileIdle" value="true"/>
+        	<property name="maxIdle" value="5"/>
+    		<property name="maxWait" value="6000"/>
+        	
+		</bean>	
+	</beans>
+	
+	<!-- 
+	Beans setting when sql log
+	
+	** use web.xml setting 
+		<context-param>
+	    	<param-name>spring.profiles.active</param-name>
+	    	<param-value>sql_log</param-value>
+		</context-param>
+	** jvm properties
+		-Dspring.profiles.active=sql_log
+ -->
+  	<beans profile="sql_log">
+ 		<bean id="sqlFormatter" class="com.ecbank.framework.log.sqllog.Log4JdbcCustomFormatter">
+			<property name="sqlPrefix" value="SQL::: " />
+			<property name="loggingCallMethod" value="true"/>
+	    </bean>
+		<bean id="dataSourceForSprout" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+			<constructor-arg> 
+				<bean class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+			    	<property name="driverClassName" value="${jdbc.driverClassName}"/>
+			    	<property name="url" value="${jdbc.url}"/>
+			        <property name="username" value="${jdbc.username}"/> 
+				    <property name="password" value="${jdbc.password}"/> 
+			        <property name="defaultAutoCommit" value="false"/>
+			        <property name="maxActive" value="${jdbc.maxActive}"/>
+			        <property name="initialSize" value="${jdbc.initialSize}"/>
+				</bean>
+			</constructor-arg>
+			<property name="logFormatter" ref="sqlFormatter"/>
+		</bean>
+		<bean id="dataSource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+			<constructor-arg>
+				<bean class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+			    	<property name="driverClassName" value="${jdbc.driverClassName}"/>
+			    	<property name="url" value="${jdbc.url}"/>
+			        <property name="username" value="${jdbc.username}"/> 
+				    <property name="password" value="${jdbc.password}"/> 
+			        <property name="defaultAutoCommit" value="false"/>
+			        <property name="maxActive" value="${jdbc.maxActive}"/>
+			        <property name="initialSize" value="${jdbc.initialSize}"/>
+			        
+			        <property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+					<property name="testOnBorrow" value="true"/>
+		        	<property name="testOnReturn" value="false"/>
+		        	<property name="testWhileIdle" value="true"/>
+		        	<property name="maxIdle" value="5"/>
+		    		<property name="maxWait" value="6000"/>
+		    		
+				</bean>
+			</constructor-arg>
+			<property name="logFormatter" ref="sqlFormatter"/>
+		</bean>
+		
+		<bean id="dataSource2" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+			<constructor-arg>
+				<bean class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+			    	<property name="driverClassName" value="${jdbc.driverClassName2}"/>
+			    	<property name="url" value="${jdbc.url2}"/>
+			        <property name="username" value="${jdbc.username2}"/> 
+				    <property name="password" value="${jdbc.password2}"/> 
+			        <property name="defaultAutoCommit" value="false"/>
+			        <property name="maxActive" value="${jdbc.maxActive2}"/>
+			        <property name="initialSize" value="${jdbc.initialSize2}"/>
+			        
+			        <property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+					<property name="testOnBorrow" value="true"/>
+		        	<property name="testOnReturn" value="false"/>
+		        	<property name="testWhileIdle" value="true"/>
+		        	<property name="maxIdle" value="5"/>
+		    		<property name="maxWait" value="6000"/>
+		    		
+				</bean>
+			</constructor-arg>
+			<property name="logFormatter" ref="sqlFormatter"/>
+		</bean>
+				
+		<bean id="dataSource3" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+			<constructor-arg>
+				<bean class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+			    	<property name="driverClassName" value="${jdbc.driverClassName3}"/>
+			    	<property name="url" value="${jdbc.url3}"/>
+			        <property name="username" value="${jdbc.username3}"/> 
+				    <property name="password" value="${jdbc.password3}"/> 
+			        <property name="defaultAutoCommit" value="false"/>
+			        <property name="maxActive" value="${jdbc.maxActive3}"/>
+			        <property name="initialSize" value="${jdbc.initialSize3}"/>
+			        
+			        <property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+					<property name="testOnBorrow" value="true"/>
+		        	<property name="testOnReturn" value="false"/>
+		        	<property name="testWhileIdle" value="true"/>
+		        	<property name="maxIdle" value="5"/>
+		    		<property name="maxWait" value="6000"/>
+		    		
+				</bean>
+			</constructor-arg>
+			<property name="logFormatter" ref="sqlFormatter"/>
+		</bean>		
+ 	</beans>
+</beans>

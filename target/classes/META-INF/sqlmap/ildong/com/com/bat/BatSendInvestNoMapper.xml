@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchSendInvest">
+
+    <select id="selectSendAssetList" parameterType="Map" resultType="Map">
+	    --com.bat.BatchSendInvest.selectSendAssetList
+	            SELECT A.COMP_CD        AS BUKRS
+	                  ,A.INVEST_NO      AS ZINVNR
+	                  ,A.CRTN_YY        AS GJAHR
+	                  ,A.BUSIN_TITLE    AS KTEXT
+	                  ,A.ORG_CD         AS KOSTV
+	                  ,A.ASSET_CLASS    AS ANLKL
+	                  ,A.CAPITAL_DATE   AS AKTIV
+		              ,SUM(B.WK_M01)    AS WKG001
+		              ,SUM(B.WK_M02)    AS WKG002
+		              ,SUM(B.WK_M03)    AS WKG003
+		              ,SUM(B.WK_M04)    AS WKG004
+		              ,SUM(B.WK_M05)    AS WKG005
+		              ,SUM(B.WK_M06)    AS WKG006
+		              ,SUM(B.WK_M07)    AS WKG007
+		              ,SUM(B.WK_M08)    AS WKG008
+		              ,SUM(B.WK_M09)    AS WKG009
+		              ,SUM(B.WK_M10)    AS WKG010
+		              ,SUM(B.WK_M11)    AS WKG011
+		              ,SUM(B.WK_M12)    AS WKG012
+	              FROM CO_BUGT_TANG_ASSET_HEAD A
+	                  INNER JOIN 
+	                   CO_BUGT_TANG_ASSET_DETAIL B
+	                  ON    B.COMP_CD   = A.COMP_CD
+                        AND B.CRTN_YY   = A.CRTN_YY
+                        AND B.ORG_CD    = A.ORG_CD
+                        AND B.INVEST_NO = A.INVEST_NO
+	             WHERE 1 = 1
+	               AND A.COMP_CD = #{COMP_CD}
+                   AND A.CRTN_YY = #{CRTN_YY}
+				   <if test="ORG_CD != null and ORG_CD != ''">
+				   AND A.ORG_CD   = #{ORG_CD}
+				   </if>                   
+                 GROUP BY A.COMP_CD     
+                         ,A.INVEST_NO   
+                         ,A.CRTN_YY     
+                         ,A.BUSIN_TITLE 
+                         ,A.ORG_CD      
+                         ,A.ASSET_CLASS 
+                         ,A.CAPITAL_DATE
+
+    </select>
+	    
+</mapper>

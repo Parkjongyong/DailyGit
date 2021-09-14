@@ -1,0 +1,716 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bdg.TangAsset">
+
+	<select id="selectTangAssetMgtHeadList" parameterType="Map" resultType="Map">
+		--com.bdg.TangAsset.selectTangAssetMgtHeadList
+		SELECT A.*
+		      ,FUNC_GET_COST_NAME(A.COMP_CD, A.CCTR_CD, A.CRE_DATE)      AS CCTR_NM       -- 코스트명
+		      ,FUNC_GET_CODE_NAME('YS001', A.STATUS)                     AS STATUS_NM     -- 승인상태
+		      ,'R'                                                       AS CRUD
+		  FROM (
+		        SELECT 'D1'                                              AS DATA_GUBN    -- 구분(당해년도 정보)
+		              ,B.COMP_CD                                         AS COMP_CD      -- 회사코드
+                      ,B.CRTN_YY                                         AS CRTN_YY      -- 기준년도
+                      ,B.CCTR_CD                                         AS CCTR_CD      -- 코스트코드
+                      ,B.INVEST_NO                                       AS INVEST_NO    -- 투자번호
+                      ,B.STATUS                                          AS STATUS       -- 승인상태
+                      ,NVL(B.SAP_SEND_YN, 'N')                           AS SAP_SEND_YN  -- SAP전송여부
+                      ,B.INVEST_GOAL                                     AS INVEST_GOAL  -- 투자목적
+                      ,B.BUSIN_TITLE                                     AS BUSIN_TITLE  -- 사업명
+                      ,B.ASSET_CLASS                                     AS ASSET_CLASS  -- 자산유형(자산클래스)
+                      ,B.CAPITAL_DATE                                    AS CAPITAL_DATE -- 자본화일자
+                      ,B.FUND_GUBUN                                      AS FUND_GUBUN   -- 자금유형
+                      ,B.CONST_ACC_YN                                    AS CONST_ACC_YN -- 건설가계정
+                      ,B.TERM_YN                                         AS TERM_YN      -- 당기완료
+                      ,B.EPS_DOC_NO                                      AS EPS_DOC_NO   -- 전자결재문서번호
+                      ,B.BFR_CRTN_YN                                     AS BFR_CRTN_YN  -- 전년도 유형자산여부
+                      ,B.CRE_DATE                                        AS CRE_DATE     -- 생성일
+		          FROM CO_BUGT_TANG_ASSET_HEAD B
+		          WHERE 1=1
+		          <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+		            AND B.COMP_CD   = #{SB_COMP_CD}
+		          </if>
+		          <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+		            AND B.CRTN_YY   = #{TB_CRTN_YY}
+		          </if>
+		          <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+		            AND B.CCTR_CD   = #{SB_CCTR_CD}
+		          </if>
+		          <if test="SB_SAP_SEND_YN != null and SB_SAP_SEND_YN != ''">
+		            AND NVL(B.SAP_SEND_YN, 'N') = #{SB_SAP_SEND_YN}
+		          </if>		          
+				 <if test="SB_STATUS_CD != null and SB_STATUS_CD != ''">
+				   AND B.STATUS  = #{SB_STATUS_CD}
+				 </if>
+				   AND NVL(B.DEL_FLAG, 'O') = 'O'   
+		       ) A
+		 WHERE 1 = 1
+		 ORDER BY A.DATA_GUBN
+		         ,A.COMP_CD    
+		         ,A.CRTN_YY  
+		         ,A.CCTR_CD     
+		         ,A.INVEST_NO
+	</select>
+	
+	<select id="selectTangAssetDetailList" parameterType="Map" resultType="Map">
+		--com.bdg.TangAsset.selectTangAssetDetailList
+	    SELECT A.COMP_CD       AS COMP_CD
+              ,A.CRTN_YY       AS CRTN_YY
+              ,A.CCTR_CD       AS CCTR_CD
+              ,A.INVEST_NO     AS INVEST_NO
+              ,A.HJ_GUBUN      AS HJ_GUBUN
+              ,CASE
+                 WHEN A.HJ_GUBUN = 'H' THEN '회계'
+                 WHEN A.HJ_GUBUN = 'J' THEN '자금'
+                 ELSE ''
+               END HJ_GUBUN_NM
+              ,A.WK_M01        AS WK_M01
+              ,A.WK_M02        AS WK_M02
+              ,A.WK_M03        AS WK_M03
+              ,A.WK_M04        AS WK_M04
+              ,A.WK_M05        AS WK_M05
+              ,A.WK_M06        AS WK_M06
+              ,(SELECT SUM( NVL(B.WK_M01, 0) 
+                          + NVL(B.WK_M02, 0)
+                          + NVL(B.WK_M03, 0)
+                          + NVL(B.WK_M04, 0) 
+                          + NVL(B.WK_M05, 0) 
+                          + NVL(B.WK_M06, 0)) 
+                  FROM CO_BUGT_TANG_ASSET_DETAIL B 
+                 WHERE B.COMP_CD   = A.COMP_CD
+                   AND B.CRTN_YY   = A.CRTN_YY
+                   AND B.CCTR_CD   = A.CCTR_CD
+                   AND B.INVEST_NO = A.INVEST_NO
+                   AND B.HJ_GUBUN  = A.HJ_GUBUN) AS SUM_HALF1
+              ,A.WK_M07        AS WK_M07
+              ,A.WK_M08        AS WK_M08
+              ,A.WK_M09        AS WK_M09
+              ,A.WK_M10        AS WK_M10
+              ,A.WK_M11        AS WK_M11
+              ,A.WK_M12        AS WK_M12
+              ,(SELECT SUM(NVL(B.WK_M07, 0) 
+                         + NVL(B.WK_M08, 0) 
+                         + NVL(B.WK_M09, 0) 
+                         + NVL(B.WK_M10, 0) 
+                         + NVL(B.WK_M11, 0) 
+                         + NVL(B.WK_M12, 0)) 
+                  FROM CO_BUGT_TANG_ASSET_DETAIL B 
+                 WHERE B.COMP_CD   = A.COMP_CD
+                   AND B.CRTN_YY   = A.CRTN_YY
+                   AND B.CCTR_CD   = A.CCTR_CD
+                   AND B.INVEST_NO = A.INVEST_NO
+                   AND B.HJ_GUBUN  = A.HJ_GUBUN) AS SUM_HALF2
+              ,(SELECT SUM(NVL(B.WK_M07, 0) 
+                         + NVL(B.WK_M08, 0) 
+                         + NVL(B.WK_M09, 0) 
+                         + NVL(B.WK_M10, 0) 
+                         + NVL(B.WK_M11, 0) 
+                         + NVL(B.WK_M12, 0) 
+                         + NVL(B.WK_M01, 0) 
+                         + NVL(B.WK_M02, 0) 
+                         + NVL(B.WK_M03, 0) 
+                         + NVL(B.WK_M04, 0) 
+                         + NVL(B.WK_M05, 0) 
+                         + NVL(B.WK_M06, 0)) 
+                  FROM CO_BUGT_TANG_ASSET_DETAIL B 
+                 WHERE B.COMP_CD   = A.COMP_CD
+                   AND B.CRTN_YY   = A.CRTN_YY
+                   AND B.CCTR_CD   = A.CCTR_CD
+                   AND B.INVEST_NO = A.INVEST_NO
+                   AND B.HJ_GUBUN  = A.HJ_GUBUN) AS SUM_TOTAL  
+              ,A.CRE_DATE      AS CRE_DATE
+              ,A.CRE_USER      AS CRE_USER
+              ,A.MOD_DATE      AS MOD_DATE
+              ,A.MOD_USER      AS MOD_USER
+              ,B.BFR_CRTN_YN   AS BFR_CRTN_YN
+              ,'R'             AS CRUD
+              ,B.STATUS        AS STATUS
+		  FROM CO_BUGT_TANG_ASSET_DETAIL A
+		      LEFT OUTER JOIN
+		       CO_BUGT_TANG_ASSET_HEAD B
+		      ON    B.COMP_CD   = A.COMP_CD
+		        AND B.CRTN_YY   = A.CRTN_YY
+		        AND B.CCTR_CD   = A.CCTR_CD
+		        AND B.INVEST_NO = A.INVEST_NO
+		 WHERE 1 = 1
+		   AND A.COMP_CD   = #{COMP_CD}
+           AND A.CRTN_YY   = #{CRTN_YY}
+           AND A.CCTR_CD   = #{CCTR_CD}
+           AND A.INVEST_NO = #{INVEST_NO}
+         ORDER BY A.HJ_GUBUN
+	</select>
+	
+	<select id="selectTangAssetTotalList" parameterType="Map" resultType="Map">
+		--com.bdg.TangAsset.selectTangAssetTotalList
+		SELECT A.*
+              ,CASE
+                 WHEN A.HJ_GUBUN = 'H' THEN '회계'
+                 WHEN A.HJ_GUBUN = 'J' THEN '자금'
+                 ELSE ''
+               END AS HJ_GUBUN_NM
+          FROM (
+                SELECT A.COMP_CD              AS COMP_CD
+                      ,A.CRTN_YY              AS CRTN_YY
+                      ,A.HJ_GUBUN             AS HJ_GUBUN
+                      ,SUM(A.WK_M01)          AS WK_M01
+                      ,SUM(A.WK_M02)          AS WK_M02
+                      ,SUM(A.WK_M03)          AS WK_M03
+                      ,SUM(A.WK_M04)          AS WK_M04
+                      ,SUM(A.WK_M05)          AS WK_M05
+                      ,SUM(A.WK_M06)          AS WK_M06
+                      ,SUM (NVL(A.WK_M01, 0) 
+                          + NVL(A.WK_M02, 0) 
+                          + NVL(A.WK_M03, 0) 
+                          + NVL(A.WK_M04, 0) 
+                          + NVL(A.WK_M05, 0) 
+                          + NVL(A.WK_M06, 0)) AS SUM_HALF1
+                      ,SUM(A.WK_M07)          AS WK_M07
+                      ,SUM(A.WK_M08)          AS WK_M08
+                      ,SUM(A.WK_M09)          AS WK_M09
+                      ,SUM(A.WK_M10)          AS WK_M10
+                      ,SUM(A.WK_M11)          AS WK_M11
+                      ,SUM(A.WK_M12)          AS WK_M12
+                      ,SUM (NVL(A.WK_M07, 0) 
+                          + NVL(A.WK_M08, 0) 
+                          + NVL(A.WK_M09, 0) 
+                          + NVL(A.WK_M10, 0) 
+                          + NVL(A.WK_M11, 0) 
+                          + NVL(A.WK_M12, 0)) AS SUM_HALF2
+                      ,SUM (NVL(A.WK_M01, 0) 
+                          + NVL(A.WK_M02, 0) 
+                          + NVL(A.WK_M03, 0) 
+                          + NVL(A.WK_M04, 0) 
+                          + NVL(A.WK_M05, 0) 
+                          + NVL(A.WK_M06, 0)
+                          + NVL(A.WK_M07, 0) 
+                          + NVL(A.WK_M08, 0) 
+                          + NVL(A.WK_M09, 0) 
+                          + NVL(A.WK_M10, 0) 
+                          + NVL(A.WK_M11, 0) 
+                          + NVL(A.WK_M12, 0)) AS SUM_TOTAL                         
+                  FROM CO_BUGT_TANG_ASSET_DETAIL A
+		              LEFT OUTER JOIN
+		               CO_BUGT_TANG_ASSET_HEAD B
+		              ON    B.COMP_CD   = A.COMP_CD
+		                AND B.CRTN_YY   = A.CRTN_YY
+		                AND B.CCTR_CD   = A.CCTR_CD
+		                AND B.INVEST_NO = A.INVEST_NO                  
+                  WHERE 1 = 1
+                  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+                    AND A.COMP_CD   = #{SB_COMP_CD}
+                  </if>
+                  <if test="TB_CRTN_YY != null and TB_CRTN_YY != ''">
+                    AND A.CRTN_YY   = #{TB_CRTN_YY}
+                  </if>
+                  <if test="SB_CCTR_CD != null and SB_CCTR_CD != ''">
+                    AND A.CCTR_CD   = #{SB_CCTR_CD}
+                  </if>
+		          <if test="SB_SAP_SEND_YN != null and SB_SAP_SEND_YN != ''">
+		            AND NVL(B.SAP_SEND_YN, 'N') = #{SB_SAP_SEND_YN}
+		          </if>
+		            AND NVL(B.DEL_FLAG, 'O') = 'O'                  
+                  GROUP BY A.COMP_CD
+                          ,A.CRTN_YY
+                          ,A.HJ_GUBUN
+             ) A
+     ORDER BY A.HJ_GUBUN
+	</select>
+	
+	<select id="selectInvestNo" parameterType="Map" resultType="Map">
+		--com.bdg.TangAsset.selectInvestNo
+        SELECT CASE WHEN #{BFR_CRTN_YN} = 'Y' THEN FUNC_GET_INVEST_NO(TO_CHAR(TO_NUMBER(SUBSTR(#{CRTN_YY},3)) - 1), 'Y')
+                    ELSE FUNC_GET_INVEST_NO(SUBSTR(#{CRTN_YY},3), 'N')
+               END AS INVEST_NO                   
+          FROM DUAL
+	</select>
+	
+	<select id="selectCapitalDate" parameterType="Map" resultType="Map">
+		--com.bdg.TangAsset.selectCapitalDate
+        SELECT FUNC_GET_CAPITAL_DATE(#{COMP_CD}, #{CRTN_YY}, #{CCTR_CD}, #{INVEST_NO}) AS CAPITAL_DATE                   
+          FROM DUAL
+	</select>
+	
+	<select id="selectStatusHeader" parameterType="Map" resultType="Map">
+	    --com.bdg.TangAsset.selectStatusHeader
+		SELECT MAX(STATUS) STATUS
+		  FROM CO_BUGT_TANG_ASSET_HEAD
+		 WHERE 1 = 1
+		   AND COMP_CD = #{SB_COMP_CD}
+	       AND CRTN_YY = #{TB_CRTN_YY}
+	       AND CCTR_CD = #{SB_CCTR_CD} 		
+	</select>	
+	
+    <insert id="saveTangAssetMgtHead" parameterType="Map">
+		--com.bdg.TangAsset.saveTangAssetMgtHead
+	    MERGE INTO CO_BUGT_TANG_ASSET_HEAD A 
+	    USING (
+	        SELECT #{COMP_CD}                  AS COMP_CD
+                  ,#{CRTN_YY}                  AS CRTN_YY
+                  ,#{CCTR_CD}                  AS CCTR_CD
+                  ,#{INVEST_NO}                AS INVEST_NO
+                  ,#{STATUS}                   AS STATUS
+                  ,#{SAP_SEND_YN}              AS SAP_SEND_YN
+                  ,#{INVEST_GOAL}              AS INVEST_GOAL
+                  ,#{BUSIN_TITLE}              AS BUSIN_TITLE
+                  ,#{ASSET_CLASS}              AS ASSET_CLASS
+                  ,#{CAPITAL_DATE}             AS CAPITAL_DATE
+                  ,#{FUND_GUBUN}               AS FUND_GUBUN
+                  ,#{CONST_ACC_YN}             AS CONST_ACC_YN
+                  ,#{TERM_YN}                  AS TERM_YN
+                  ,#{EPS_DOC_NO}               AS EPS_DOC_NO
+                  ,#{BFR_CRTN_YN}              AS BFR_CRTN_YN
+                  ,#{CRE_USER}                 AS CRE_USER
+                  ,#{MOD_USER}                 AS MOD_USER
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD') AS CRE_DATE
+                  ,TO_CHAR(SYSDATE,'YYYYMMDD') AS MOD_DATE
+	          FROM DUAL
+	          ) B
+	    ON (
+	            A.COMP_CD   = B.COMP_CD
+            AND A.CRTN_YY   = B.CRTN_YY
+            AND A.CCTR_CD   = B.CCTR_CD
+            AND A.INVEST_NO = B.INVEST_NO
+	       )
+	    WHEN MATCHED THEN
+	        UPDATE
+	           SET A.STATUS       = B.STATUS
+                  ,A.INVEST_GOAL  = B.INVEST_GOAL
+                  ,A.BUSIN_TITLE  = B.BUSIN_TITLE
+                  ,A.ASSET_CLASS  = B.ASSET_CLASS
+                  ,A.CAPITAL_DATE = B.CAPITAL_DATE
+                  ,A.FUND_GUBUN   = B.FUND_GUBUN
+                  ,A.CONST_ACC_YN = B.CONST_ACC_YN
+                  ,A.BFR_CRTN_YN  = B.BFR_CRTN_YN
+                  ,A.TERM_YN      = B.TERM_YN
+                  ,A.MOD_DATE     = B.MOD_DATE 
+                  ,A.MOD_USER     = B.MOD_USER
+	    WHEN NOT MATCHED THEN
+	            INSERT 
+	            ( 
+	              A.COMP_CD
+                 ,A.CRTN_YY
+                 ,A.CCTR_CD
+                 ,A.INVEST_NO
+                 ,A.STATUS
+                 ,A.SAP_SEND_YN
+                 ,A.INVEST_GOAL
+                 ,A.BUSIN_TITLE
+                 ,A.ASSET_CLASS
+                 ,A.CAPITAL_DATE
+                 ,A.FUND_GUBUN
+                 ,A.CONST_ACC_YN
+                 ,A.TERM_YN
+                 ,A.EPS_DOC_NO
+                 ,A.BFR_CRTN_YN
+                 ,A.CRE_DATE
+                 ,A.CRE_USER
+                 ,A.MOD_DATE
+                 ,A.MOD_USER
+	            ) VALUES ( B.COMP_CD
+                          ,B.CRTN_YY
+                          ,B.CCTR_CD
+                          ,B.INVEST_NO
+                          ,B.STATUS
+                          ,B.SAP_SEND_YN
+                          ,B.INVEST_GOAL
+                          ,B.BUSIN_TITLE
+                          ,B.ASSET_CLASS
+                          ,B.CAPITAL_DATE
+                          ,B.FUND_GUBUN
+                          ,B.CONST_ACC_YN
+                          ,B.TERM_YN
+                          ,B.EPS_DOC_NO
+                          ,B.BFR_CRTN_YN
+                          ,B.CRE_DATE
+                          ,B.CRE_USER
+                          ,B.MOD_DATE
+                          ,B.MOD_USER
+	                     )	
+
+    </insert>
+    
+    <insert id="saveTangAssetMgtDetail" parameterType="Map">
+		--com.bdg.TangAsset.saveTangAssetMgtDetail
+		    MERGE INTO CO_BUGT_TANG_ASSET_DETAIL A 
+		    USING (
+		        SELECT #{COMP_CD}                  AS COMP_CD
+	                  ,#{CRTN_YY}                  AS CRTN_YY
+	                  ,#{CCTR_CD}                  AS CCTR_CD
+	                  ,#{INVEST_NO}                AS INVEST_NO
+	                  ,#{HJ_GUBUN}                 AS HJ_GUBUN
+	                  ,#{WK_M01}                   AS WK_M01
+	                  ,#{WK_M02}                   AS WK_M02
+	                  ,#{WK_M03}                   AS WK_M03
+	                  ,#{WK_M04}                   AS WK_M04
+	                  ,#{WK_M05}                   AS WK_M05
+	                  ,#{WK_M06}                   AS WK_M06
+	                  ,#{WK_M07}                   AS WK_M07
+	                  ,#{WK_M08}                   AS WK_M08
+	                  ,#{WK_M09}                   AS WK_M09
+	                  ,#{WK_M10}                   AS WK_M10
+	                  ,#{WK_M11}                   AS WK_M11
+	                  ,#{WK_M12}                   AS WK_M12
+	                  ,#{CRE_USER}                 AS CRE_USER
+	                  ,#{MOD_USER}                 AS MOD_USER
+	                  ,TO_CHAR(SYSDATE,'YYYYMMDD') AS CRE_DATE
+	                  ,TO_CHAR(SYSDATE,'YYYYMMDD') AS MOD_DATE
+		          FROM DUAL
+		          ) B
+		    ON (
+		            A.COMP_CD   = B.COMP_CD
+	            AND A.CRTN_YY   = B.CRTN_YY
+	            AND A.CCTR_CD   = B.CCTR_CD
+	            AND A.INVEST_NO = B.INVEST_NO
+	            AND A.HJ_GUBUN  = B.HJ_GUBUN
+		       )
+		    WHEN MATCHED THEN
+		        UPDATE
+		           SET A.WK_M01   = B.WK_M01
+	                  ,A.WK_M02   = B.WK_M02
+	                  ,A.WK_M03   = B.WK_M03
+	                  ,A.WK_M04   = B.WK_M04
+	                  ,A.WK_M05   = B.WK_M05
+	                  ,A.WK_M06   = B.WK_M06
+	                  ,A.WK_M07   = B.WK_M07
+	                  ,A.WK_M08   = B.WK_M08
+	                  ,A.WK_M09   = B.WK_M09
+	                  ,A.WK_M10   = B.WK_M10
+	                  ,A.WK_M11   = B.WK_M11
+	                  ,A.WK_M12   = B.WK_M12
+	                  ,A.MOD_DATE = B.MOD_DATE 
+	                  ,A.MOD_USER = B.MOD_USER
+		    WHEN NOT MATCHED THEN
+		            INSERT 
+		            ( 
+		              A.COMP_CD
+	                 ,A.CRTN_YY
+	                 ,A.CCTR_CD
+	                 ,A.INVEST_NO
+	                 ,A.HJ_GUBUN
+	                 ,A.WK_M01
+	                 ,A.WK_M02
+	                 ,A.WK_M03
+	                 ,A.WK_M04
+	                 ,A.WK_M05
+	                 ,A.WK_M06
+	                 ,A.WK_M07
+	                 ,A.WK_M08
+	                 ,A.WK_M09
+	                 ,A.WK_M10
+	                 ,A.WK_M11
+	                 ,A.WK_M12
+	                 ,A.CRE_DATE
+	                 ,A.CRE_USER
+	                 ,A.MOD_DATE
+	                 ,A.MOD_USER
+		            ) VALUES ( B.COMP_CD
+	                          ,B.CRTN_YY
+	                          ,B.CCTR_CD
+	                          ,B.INVEST_NO
+	                          ,B.HJ_GUBUN
+	                          ,B.WK_M01
+	                          ,B.WK_M02
+	                          ,B.WK_M03
+	                          ,B.WK_M04
+	                          ,B.WK_M05
+	                          ,B.WK_M06
+	                          ,B.WK_M07
+	                          ,B.WK_M08
+	                          ,B.WK_M09
+	                          ,B.WK_M10
+	                          ,B.WK_M11
+	                          ,B.WK_M12
+	                          ,B.CRE_DATE
+	                          ,B.CRE_USER
+	                          ,B.MOD_DATE
+	                          ,B.MOD_USER
+		                     )
+    </insert>    
+    
+    <update id="updateTangAssetMgtStatus" parameterType="Map">
+		--com.bdg.TangAsset.updateTangAssetMgtStatus(ROW 건별 삭제처리)
+		UPDATE CO_BUGT_TANG_ASSET_HEAD
+		   SET STATUS     = #{STATUS}
+		      ,MOD_USER   = #{MOD_USER}
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')         
+		 WHERE COMP_CD    = #{COMP_CD}
+		   AND CRTN_YY    = #{CRTN_YY}
+		   AND CCTR_CD    = #{CCTR_CD}
+		   AND INVEST_NO  = #{INVEST_NO}
+    </update>
+    
+    <update id="rejectTangAssetMgtStatus" parameterType="Map">
+		--com.bdg.TangAsset.rejectTangAssetMgtStatus(부서단위 반려처리)
+		UPDATE CO_BUGT_TANG_ASSET_HEAD
+		   SET STATUS     = '1'
+		      ,EPS_DOC_NO = ''
+		      ,MOD_USER   = #{MOD_USER}
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')         
+		 WHERE COMP_CD    = #{SB_COMP_CD}
+		   AND CRTN_YY    = #{TB_CRTN_YY}
+		   AND CCTR_CD    = #{SB_CCTR_CD}
+    </update>    
+    
+	<update id="apprTangAssetMgt" parameterType="map">
+	    --com.bdg.TangAsset.apprTangAssetMgt
+		UPDATE CO_BUGT_TANG_ASSET_HEAD
+		   SET STATUS      = '2'
+		      ,EPS_DOC_NO  = #{EPS_DOC_NO}
+		      ,MOD_DATE    = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER    = #{MOD_USER}
+		 WHERE COMP_CD     = #{SB_COMP_CD}
+		   AND CRTN_YY     = #{TB_CRTN_YY}
+		   AND CCTR_CD     = #{SB_CCTR_CD}
+	</update>
+	
+	<update id="updateHeader" parameterType="Map">
+	--com.bdg.TangAsset.updateHeader
+		UPDATE CO_BUGT_TANG_ASSET_HEAD
+		   SET STATUS     = #{STATUS}
+		      ,EPS_DOC_NO = CASE WHEN #{STATUS} = '1' THEN ''
+		                         ELSE EPS_DOC_NO
+		                    END
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')
+		      ,MOD_USER   = #{APPROVAL_ID}
+		 WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+	</update>
+    
+    <update id="updateTangAssetHeadDate" parameterType="Map">
+		--com.bdg.TangAsset.updateTangAssetHeadDate(ROW 건별 삭제처리)
+		UPDATE CO_BUGT_TANG_ASSET_HEAD
+		   SET CAPITAL_DATE = #{CAPITAL_DATE}
+		      ,MOD_USER     = #{MOD_USER}
+		      ,MOD_DATE     = TO_CHAR(SYSDATE,'YYYYMMDD')         
+		 WHERE COMP_CD      = #{COMP_CD}
+		   AND CRTN_YY      = #{CRTN_YY}
+		   AND CCTR_CD      = #{CCTR_CD}
+		   AND INVEST_NO    = #{INVEST_NO}
+    </update>
+    
+    <update id="updateTangAssetHeadDelFlag" parameterType="Map">
+		--com.bdg.TangAsset.updateTangAssetHeadDelFlag(전송된 건 삭제시 삭제 플래그 처리)
+		UPDATE CO_BUGT_TANG_ASSET_HEAD
+		   SET DEL_FLAG     = 'X'
+		      ,MOD_USER     = #{MOD_USER}
+		      ,MOD_DATE     = TO_CHAR(SYSDATE,'YYYYMMDD')         
+		 WHERE COMP_CD      = #{COMP_CD}
+		   AND CRTN_YY      = #{CRTN_YY}
+		   AND CCTR_CD      = #{CCTR_CD}
+		   AND INVEST_NO    = #{INVEST_NO}
+    </update>    
+    
+    <update id="sendSapTangAssetData" parameterType="Map">
+		--com.bdg.TangAsset.sendSapTangAssetData(ROW 건별 삭제처리)
+		--AND CCTR_CD    = #{CCTR_CD}
+		--AND INVEST_NO  = #{INVEST_NO}
+		UPDATE CO_BUGT_TANG_ASSET_HEAD
+		   SET SAP_SEND_YN = 'Y'
+		      ,MOD_USER   = #{MOD_USER}
+		      ,MOD_DATE   = TO_CHAR(SYSDATE,'YYYYMMDD')         
+		 WHERE COMP_CD    = #{SB_COMP_CD}
+		   AND CRTN_YY    = #{TB_CRTN_YY}
+    </update>    
+    
+    <delete id="deletTangAssetMgtHead" parameterType="Map">
+		--com.bdg.TangAsset.deletTangAssetMgtHead(ROW 건별 삭제처리)
+		DELETE FROM CO_BUGT_TANG_ASSET_HEAD
+		 WHERE COMP_CD   = #{COMP_CD}     
+		   AND CRTN_YY   = #{CRTN_YY}
+		   AND CCTR_CD   = #{CCTR_CD}
+           AND INVEST_NO = #{INVEST_NO}
+    </delete>
+    
+    <delete id="deletTangAssetMgtDeatil" parameterType="Map">
+		--com.bdg.TangAsset.deletTangAssetMgtDeatil(INVEST_NO로 회계/자금 모두 삭제처리)
+		DELETE FROM CO_BUGT_TANG_ASSET_DETAIL
+		 WHERE COMP_CD   = #{COMP_CD}     
+		   AND CRTN_YY   = #{CRTN_YY}
+		   AND CCTR_CD   = #{CCTR_CD}
+           AND INVEST_NO = #{INVEST_NO}
+    </delete>
+    
+    <select id="selectSendList" parameterType="Map" resultType="Map">
+	    --com.bdg.TangAsset.selectSendList
+		SELECT A.COMP_CD
+              ,A.CRTN_YY
+			  ,A.CCTR_CD
+			  ,A.INVEST_NO 
+		  FROM CO_BUGT_TANG_ASSET_HEAD A
+         WHERE 1 = 1
+           AND A.COMP_CD   = #{SB_COMP_CD}
+           AND A.CRTN_YY   = #{TB_CRTN_YY}
+    </select>    
+    
+    <select id="selectSendAssetData" parameterType="Map" resultType="Map">
+	    --com.bdg.TangAsset.selectSendAssetData(상단조회조건으로 전체 전송으로 변경)
+	            SELECT A.COMP_CD        AS BUKRS
+	                  ,A.INVEST_NO      AS ZINVNR
+	                  ,CASE WHEN NVL(A.BFR_CRTN_YN, 'N') = 'Y' THEN TO_CHAR(TO_NUMBER(A.CRTN_YY) - 1)
+	                        ELSE A.CRTN_YY
+	                   END              AS GJAHR
+	                  ,A.BUSIN_TITLE    AS KTEXT
+	                  ,A.CCTR_CD        AS KOSTV
+	                  ,A.ASSET_CLASS    AS ANLKL
+	                  ,A.CAPITAL_DATE   AS AKTIV
+		              ,B.WK_M01         AS WKG001
+		              ,B.WK_M02         AS WKG002
+		              ,B.WK_M03         AS WKG003
+		              ,B.WK_M04         AS WKG004
+		              ,B.WK_M05         AS WKG005
+		              ,B.WK_M06         AS WKG006
+		              ,B.WK_M07         AS WKG007
+		              ,B.WK_M08         AS WKG008
+		              ,B.WK_M09         AS WKG009
+		              ,B.WK_M10         AS WKG010
+		              ,B.WK_M11         AS WKG011
+		              ,B.WK_M12         AS WKG012
+		              ,A.DEL_FLAG       AS DEL
+	              FROM CO_BUGT_TANG_ASSET_HEAD A
+	                  INNER JOIN 
+	                   CO_BUGT_TANG_ASSET_DETAIL B
+	                  ON    B.COMP_CD   = A.COMP_CD
+                        AND B.CRTN_YY   = A.CRTN_YY
+                        AND B.CCTR_CD   = A.CCTR_CD
+                        AND B.INVEST_NO = A.INVEST_NO
+                        AND B.HJ_GUBUN  = 'H'
+	             WHERE 1 = 1
+	               AND A.COMP_CD   = #{SB_COMP_CD}
+                   AND A.CRTN_YY   = #{TB_CRTN_YY}
+    </select>
+    
+    <select id="selectTangAssetMgtHeadListPop" parameterType="Map" resultType="Map">
+		--com.bdg.TangAsset.selectTangAssetMgtHeadListPop
+		SELECT A.*
+		      ,FUNC_GET_COST_NAME(A.COMP_CD, A.CCTR_CD, A.CRE_DATE)      AS CCTR_NM       -- 코스트명
+		      ,FUNC_GET_CODE_NAME('YS001', A.STATUS)                     AS STATUS_NM     -- 승인상태
+		      ,'R'                                                       AS CRUD
+		  FROM (
+		        SELECT 'D0'                                              AS DATA_GUBN      -- 구분(직전년도 당기미완료처리분)
+		              ,A.COMP_CD                                         AS COMP_CD      -- 회사코드
+                      ,A.CRTN_YY                                         AS CRTN_YY      -- 기준년도
+                      ,A.CCTR_CD                                         AS CCTR_CD      -- 코스트코드
+                      ,A.INVEST_NO                                       AS INVEST_NO    -- 투자번호
+                      ,A.STATUS                                          AS STATUS       -- 승인상태
+                      ,NVL(A.SAP_SEND_YN, 'N')                           AS SAP_SEND_YN  -- SAP전송여부
+                      ,A.INVEST_GOAL                                     AS INVEST_GOAL  -- 투자목적
+                      ,A.BUSIN_TITLE                                     AS BUSIN_TITLE  -- 사업명
+                      ,A.ASSET_CLASS                                     AS ASSET_CLASS  -- 자산유형(자산클래스)
+                      ,A.CAPITAL_DATE                                    AS CAPITAL_DATE -- 자본화일자
+                      ,A.FUND_GUBUN                                      AS FUND_GUBUN   -- 자금유형
+                      ,A.CONST_ACC_YN                                    AS CONST_ACC_YN -- 건설가계정
+                      ,A.TERM_YN                                         AS TERM_YN      -- 당기완료
+                      ,A.EPS_DOC_NO                                      AS EPS_DOC_NO   -- 전자결재문서번호
+                      ,A.BFR_CRTN_YN                                     AS BFR_CRTN_YN  -- 전년도 유형자산여부
+                      ,A.CRE_DATE                                        AS CRE_DATE     -- 생성일           
+		          FROM CO_BUGT_TANG_ASSET_HEAD A
+		          WHERE 1=1
+		            AND (A.COMP_CD, A.CRTN_YY, A.CCTR_CD) IN (
+		                                                     SELECT COMP_CD
+		                                                           ,CRTN_YY
+		                                                           ,CCTR_CD
+		                                                       FROM CO_BUGT_TANG_ASSET_HEAD
+		                                                      WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+		                                                    )
+		            AND A.TERM_YN = 'N'
+		            AND NVL(A.DEL_FLAG, 'O') = 'O'
+		        UNION ALL
+		        SELECT 'D1'                                              AS DATA_GUBN      -- 구분(당해년도 정보)
+		              ,B.COMP_CD                                         AS COMP_CD      -- 회사코드
+                      ,B.CRTN_YY                                         AS CRTN_YY      -- 기준년도
+                      ,B.CCTR_CD                                         AS CCTR_CD      -- 코스트코드
+                      ,B.INVEST_NO                                       AS INVEST_NO    -- 투자번호
+                      ,B.STATUS                                          AS STATUS       -- 승인상태
+                      ,NVL(B.SAP_SEND_YN, 'N')                           AS SAP_SEND_YN  -- SAP전송여부
+                      ,B.INVEST_GOAL                                     AS INVEST_GOAL  -- 투자목적
+                      ,B.BUSIN_TITLE                                     AS BUSIN_TITLE  -- 사업명
+                      ,B.ASSET_CLASS                                     AS ASSET_CLASS  -- 자산유형(자산클래스)
+                      ,B.CAPITAL_DATE                                    AS CAPITAL_DATE -- 자본화일자
+                      ,B.FUND_GUBUN                                      AS FUND_GUBUN   -- 자금유형
+                      ,B.CONST_ACC_YN                                    AS CONST_ACC_YN -- 건설가계정
+                      ,B.TERM_YN                                         AS TERM_YN      -- 당기완료
+                      ,B.EPS_DOC_NO                                      AS EPS_DOC_NO   -- 전자결재문서번호
+                      ,B.BFR_CRTN_YN                                     AS BFR_CRTN_YN  -- 전년도 유형자산여부
+                      ,B.CRE_DATE                                        AS CRE_DATE     -- 생성일
+		          FROM CO_BUGT_TANG_ASSET_HEAD B
+		          WHERE 1=1
+		            AND (B.COMP_CD, B.CRTN_YY, B.CCTR_CD) IN (
+		                                                     SELECT COMP_CD
+		                                                           ,CRTN_YY
+		                                                           ,CCTR_CD
+		                                                       FROM CO_BUGT_TANG_ASSET_HEAD
+		                                                      WHERE EPS_DOC_NO = #{EPS_DOC_NO}
+		                                                    )
+		            AND NVL(B.DEL_FLAG, 'O') = 'O'
+		       ) A
+		 WHERE 1 = 1
+		 ORDER BY A.DATA_GUBN
+		         ,A.COMP_CD    
+		         ,A.CRTN_YY  
+		         ,A.CCTR_CD     
+		         ,A.INVEST_NO
+	</select>
+
+	<select id="selectEpsInfoData" parameterType="Map" resultType="Map">
+	    --com.bdg.TangAsset.selectEpsInfoData
+		SELECT COUNT(*) CNT
+		  FROM CO_BUGT_TANG_ASSET_HEAD 
+		 WHERE 1 = 1
+		   AND EPS_DOC_NO = #{EPS_DOC_NO}
+	</select>
+	
+		<select id="selectApprList" parameterType="Map" resultType="Map">
+		--com.bdg.TangAsset.selectApprList
+	    SELECT A.COMP_CD       AS COMP_CD
+              ,A.CRTN_YY       AS CRTN_YY
+              ,A.CCTR_CD       AS CCTR_CD
+              ,A.INVEST_NO     AS INVEST_NO
+              ,MAX(B.BUSIN_TITLE) AS BUSIN_TITLE
+              ,MAX(FUNC_GET_CODE_NAME('YS003', B.ASSET_CLASS)) AS ASSET_CLASS
+              ,SUM( NVL(A.WK_M01, 0) 
+                  + NVL(A.WK_M02, 0)
+                  + NVL(A.WK_M03, 0)
+                  + NVL(A.WK_M04, 0) 
+                  + NVL(A.WK_M05, 0) 
+                  + NVL(A.WK_M06, 0)
+               ) AS SUM_HALF1
+              ,SUM(NVL(A.WK_M07, 0) 
+                 + NVL(A.WK_M08, 0) 
+                 + NVL(A.WK_M09, 0) 
+                 + NVL(A.WK_M10, 0) 
+                 + NVL(A.WK_M11, 0) 
+                 + NVL(A.WK_M12, 0) 
+               ) AS SUM_HALF2
+              ,SUM(NVL(A.WK_M07, 0) 
+                 + NVL(A.WK_M08, 0) 
+                 + NVL(A.WK_M09, 0) 
+                 + NVL(A.WK_M10, 0) 
+                 + NVL(A.WK_M11, 0) 
+                 + NVL(A.WK_M12, 0) 
+                 + NVL(A.WK_M01, 0) 
+                 + NVL(A.WK_M02, 0) 
+                 + NVL(A.WK_M03, 0) 
+                 + NVL(A.WK_M04, 0) 
+                 + NVL(A.WK_M05, 0) 
+                 + NVL(A.WK_M06, 0) 
+               ) AS SUM_TOTAL  
+		  FROM CO_BUGT_TANG_ASSET_DETAIL A
+		      LEFT OUTER JOIN
+		       CO_BUGT_TANG_ASSET_HEAD B
+		      ON    B.COMP_CD   = A.COMP_CD
+		        AND B.CRTN_YY   = A.CRTN_YY
+		        AND B.CCTR_CD   = A.CCTR_CD
+		        AND B.INVEST_NO = A.INVEST_NO
+		        AND A.HJ_GUBUN  = 'H'
+		 WHERE 1 = 1
+		   AND A.COMP_CD   = #{SB_COMP_CD}
+           AND A.CRTN_YY   = #{TB_CRTN_YY}
+           AND A.CCTR_CD   = #{SB_CCTR_CD}
+         GROUP BY A.COMP_CD
+                 ,A.CRTN_YY
+                 ,A.CCTR_CD
+                 ,A.INVEST_NO
+	</select>	
+	
+	
+</mapper>

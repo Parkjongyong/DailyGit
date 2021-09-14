@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.VendorScheduled">
+
+	<select id="selectVendorScheduled" parameterType="Map" resultType="Map">
+--com.wrh.VendorScheduled.selectVendorScheduled
+SELECT TO_CHAR(TO_DATE(B.GR_DELY_DATE,'YYYYMMDD'),'WW') WEEK               -- 주차
+      ,TO_CHAR(TO_DATE(B.GR_DELY_DATE),'YYYY.MM.DD')    GR_DELY_DATE       -- 입고예정일
+      ,B.VENDOR_CD                                      VENDOR_CD          -- 공급업체
+      ,B.VENDOR_NM                                      VENDOR_NM          -- 공급업체명
+      ,A.MAT_NUMBER                                     MAT_NUMBER         -- 자재
+      ,A.MAT_DESC                                       MAT_DESC           -- 자재내역
+      ,A.ITEM_QTY                                       ITEM_QTY           -- 입고예정수량
+      ,A.PLT_QTY                                        PLT_QTY            -- PLT예상공간
+      ,D.SUM_PLT_QTY || ' / ' || C.STORAGE_SPACE        USE_PLT            -- PLT사용현황
+      ,A.UNIT_PRICE                                     UNIT_PRICE         -- 단가
+      ,ROUND(NVL(A.ITEM_QTY,0) * NVL(A.UNIT_PRICE,0),0) UNIT_AMT           -- 금액
+      ,B.PLANT_CODE                                     PLANT_CODE         -- 플랜트
+      ,FUNC_GET_PLANT_NAME(B.COMP_CD, B.PLANT_CODE)     PLANT_NM           -- 플랜트명
+      ,B.LOCATION                                       LOCATION           -- 저장위치
+      ,B.LOCATION_TXT                                   LOCATION_TXT       -- 저장위치명
+      ,A.PO_NUMBER                                      PO_NUMBER          -- 구매오더번호
+      ,A.PO_SEQ                                         PO_SEQ             -- 구매오더항번
+      ,B.PO_ORG                                         PO_ORG             -- 구매그룹
+      ,B.PO_ORG_NM                                      PO_ORG_NM          -- 구매그룹명
+      ,A.PO_ITEM_QTY                                    PO_ITEM_QTY        -- 구매오더수량
+      ,A.ADD_GR_QTY                                     ADD_GR_QTY         -- 現입고완료수량
+      ,A.UNIT_MEASURE                                   UNIT_MEASURE       -- 구매오더단위
+      ,A.UNIT_PER_MEASURE                               UNIT_PER_MEASURE   -- PER
+  FROM GR_DELIVERY_ITEM A
+      LEFT OUTER JOIN
+       GR_DELIVERY_HEAD B
+      ON B.DOC_NO = A.DOC_NO
+      LEFT OUTER JOIN
+       STORAGE_SPACE C
+      ON    C.COMP_CD    = B.COMP_CD
+        AND C.PLANT_CD   = B.PLANT_CODE
+        AND C.STORAGE_CD = B.LOCATION
+        AND C.STRD_DATE  = B.GR_DELY_DATE
+              LEFT OUTER JOIN 
+      (
+	   SELECT SUM(CASE WHEN NVL(B.PLT_QTY, 0) = 0 THEN 0
+                         ELSE CEIL(B.ITEM_QTY/B.PLT_QTY)
+                     END
+	          ) AS SUM_PLT_QTY
+	         ,A.COMP_CD
+	         ,A.PLANT_CODE
+	         ,A.LOCATION
+	         ,A.GR_DELY_DATE
+	     FROM GR_DELIVERY_HEAD A
+	         LEFT OUTER JOIN
+	          GR_DELIVERY_ITEM B
+	         ON  B.DOC_NO = A.DOC_NO
+	    GROUP BY A.COMP_CD
+	            ,A.PLANT_CODE
+	            ,A.LOCATION
+	            ,A.GR_DELY_DATE
+	  ) D
+      ON    D.COMP_CD      = B.COMP_CD
+        AND D.PLANT_CODE   = B.PLANT_CODE
+        AND D.LOCATION     = B.LOCATION
+        AND D.GR_DELY_DATE = B.GR_DELY_DATE
+ WHERE 1 = 1
+  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+    AND B.COMP_CD = #{SB_COMP_CD}
+  </if>
+  <if test="SB_PLANT_CD != null and SB_PLANT_CD != ''">
+    AND B.PLANT_CODE = #{SB_PLANT_CD}
+  </if>
+  <if test="SB_STORAGE_CD != null and SB_STORAGE_CD != ''">
+    AND B.LOCATION = #{SB_STORAGE_CD}
+  </if>
+  <if test="TB_VENDOR_CD != null and TB_VENDOR_CD != ''">
+    AND B.VENDOR_CD = #{TB_VENDOR_CD}
+  </if>
+  <if test="TB_START_DATE != null and TB_START_DATE != ''">
+  	<![CDATA[AND B.GR_DELY_DATE >= REPLACE(#{TB_START_DATE},'-','')]]>
+  </if>
+  <if test="TB_END_DATE != null and TB_END_DATE != ''">
+  	<![CDATA[AND B.GR_DELY_DATE <= REPLACE(#{TB_END_DATE},'-','')]]>
+  </if>
+  <if test="TB_START_NO != null and TB_START_NO != ''">
+  	<![CDATA[AND A.PO_NUMBER   >= #{TB_START_NO}]]>
+  </if>
+  <if test="TB_END_NO != null and TB_END_NO != ''">
+  	<![CDATA[AND A.PO_NUMBER   <= #{TB_END_NO}]]>
+  </if>
+  <if test="TB_MAT_DESC != null and TB_MAT_DESC != ''">
+    AND A.MAT_DESC LIKE '%' || #{TB_MAT_DESC} || '%'
+  </if>
+  <if test="SB_PO_ORG != null and SB_PO_ORG != ''">
+  	AND B.PO_ORG   = #{SB_PO_ORG}
+  </if>
+    AND B.DOC_STATUS = '5'
+  ORDER BY B.GR_DELY_DATE
+  </select>
+
+</mapper>

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.cmn.User">
+
+	<select id="selectUserList" parameterType="Map" resultType="Map">
+--com.cmn.UserMapper.selectUserList
+WITH DEPT_LIST AS (
+	SELECT A.COMP_CD
+	      ,A.DEPT_CD
+	      ,A.PRIOR_ORG
+	  FROM DEPT A
+	 WHERE A.COMP_CD = #{TB_COMP_CD}
+	   AND A.EDATE   = '99991231'
+	   AND A.SDATE   = (
+	                   SELECT MAX(B.SDATE) 
+	                     FROM DEPT B
+	                    WHERE 1 = 1
+	                      AND B.COMP_CD = A.COMP_CD
+	                      AND B.DEPT_CD = A.DEPT_CD
+	                      AND B.EDATE   = A.EDATE
+	                   )
+)	
+SELECT A.COMP_CD                                                             COMP_CD   -- 회사
+      ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD)                               COMP_NM
+      ,A.DEPT_CD                                                             DEPT_CD   -- 부서코드
+      ,FUNC_GET_DEPT_NAME(A.COMP_CD, A.DEPT_CD, TO_CHAR(SYSDATE,'YYYYMMDD')) DEPT_NM
+      ,A.DUTY_CODE                                                           DUTY_CODE -- 직급코드
+      ,A.DUTY_NAME                                                           DUTY_NAME -- 직급
+      ,A.USER_ID                                                             USER_ID   -- 담당자ID
+      ,A.USER_NM                                                             USER_NM   -- 담당자명
+      ,A.MOBILE_NO                                                           MOBILE_NO -- 연락처
+      ,A.EMAIL_ID                                                            EMAIL_ID  -- EMAIL
+      ,FUNC_GET_COST_CODE(A.COMP_CD, A.DEPT_CD, '')                          COST_CD
+      ,A.DESIGNATION_N                                                       DESIGNATION_N
+      ,A.DESIGNATION                                                         DESIGNATION
+  FROM SYS_USER A
+      LEFT OUTER JOIN
+       DEPT_LIST B
+      ON    B.COMP_CD = A.COMP_CD
+        AND B.DEPT_CD = A.DEPT_CD
+ WHERE 1 = 1
+   AND RET_YMD IS NULL
+   <![CDATA[AND USER_CLS <> 'S']]>	
+	<if test="TB_COMP_CD != null and TB_COMP_CD != ''">
+   AND A.COMP_CD  = #{TB_COMP_CD}
+    </if>
+	<if test="TB_DEPT_NM != null and TB_DEPT_NM != ''">
+   AND FUNC_GET_DEPT_NAME(A.COMP_CD, A.DEPT_CD, TO_CHAR(SYSDATE,'YYYYMMDD')) LIKE  '%' || REPLACE(UPPER(#{TB_DEPT_NM}),' ','') || '%'
+    </if>
+	<if test="TB_USER_NM != null and TB_USER_NM != ''">
+   AND A.USER_NM  LIKE '%' || #{TB_USER_NM} || '%'
+    </if>
+	<if test="JICK_GUBN != null and JICK_GUBN != ''">
+   AND A.GRADE_CODE NOT IN ('C2', 'J2', 'C6')
+   AND B.PRIOR_ORG = #{CHC_ETC_GBN}
+    </if>
+        
+	</select>
+	
+	<select id="selectUserListCount" parameterType="Map" resultType="int">
+	    SELECT COUNT(1)	AS	TOT_CNT
+		  FROM SYS_USER USR, DEPT DEPT
+         WHERE 1=1
+           AND USR.DEPT_CD = DEPT.DEPT_CD(+)
+           AND USR.USG_YN = 'Y'
+      	   AND DEPT.DEL_YN = 'N'
+			<if test="S_USER_ID != null and S_USER_ID != ''">
+				AND	UPPER(USR.USER_ID) LIKE  '%' || REPLACE(UPPER(#{S_USER_ID}),' ','') || '%'
+			</if>
+			<if test="S_USER_NM != null and S_USER_NM != ''">
+				AND	UPPER(USR.USER_NM) LIKE  '%' || REPLACE(UPPER(#{S_USER_NM}),' ','') || '%'
+			</if>
+			<if test="S_DEPT_NM != null and S_DEPT_NM != ''">
+				AND	UPPER(DEPT.DEPT_NM) LIKE  '%' || REPLACE(UPPER(#{S_DEPT_NM}),' ','') || '%'
+			</if>
+	</select>
+	
+	<select id="selectUsersList" parameterType="Map" resultType="Map">
+	--UserMapper.selectUsersList
+		SELECT A.USER_ID 
+		       ,A.USER_NM AS USER_NAME
+		       ,B.DEPT_CD 
+		       ,B.DEPT_NM AS DEPT_NAME
+		       ,A.TEL_NO 
+		       ,A.EMAIL_ID
+		  FROM SYS_USER A 
+		  LEFT OUTER JOIN DEPT B ON A.DEPT_CD = B.DEPT_CD
+		 WHERE 1=1
+		   AND A.USER_ID LIKE  '%' || NVL(#{USER_ID},'') || '%'
+		   AND A.USER_NM LIKE  '%' || NVL(#{USER_NAME},'') || '%'
+		   AND NVL(B.DEPT_NM,'') LIKE  '%' || NVL(#{DEPT_NAME},'') || '%'
+		<if test="SRCH_ROLE != null and SRCH_ROLE !=''">
+		   AND (EXISTS (SELECT * FROM SYS_USER_ROLE C WHERE A.USER_ID = C.USER_ID AND C.ROLE_CD IN
+								<foreach item="item" index="index" collection="ROLE_LIST" open="(" close=")" separator=",">
+									#{item}
+								</foreach>
+		   						) 
+		   	  OR EXISTS (SELECT * FROM SYS_DEPT_ROLE D WHERE A.DEPT_CD = D.DEPT_CD AND D.ROLE_CD IN 
+								<foreach item="item" index="index" collection="ROLE_LIST" open="(" close=")" separator=",">
+									#{item}
+								</foreach>
+		   	 					) 
+    		)
+		</if>
+	</select>
+	
+	<select id="selectPerUsersList" parameterType="Map" resultType="Map">
+    --UserMapper.selectPerUsersList
+        SELECT A.USER_ID 
+               ,A.USER_NM AS USER_NAME
+               ,B.DEPT_CD 
+               ,B.DEPT_NM AS DEPT_NAME
+               ,A.TEL_NO 
+               ,A.EMAIL_ID
+          FROM SYS_USER A 
+          LEFT OUTER JOIN DEPT B ON A.DEPT_CD = B.DEPT_CD
+         WHERE 1=1
+           AND A.USER_ID LIKE  '%' || NVL(#{USER_ID},'') || '%'
+           AND A.USER_NM LIKE  '%' || NVL(#{USER_NAME},'') || '%'
+           AND NVL(B.DEPT_NM,'') LIKE  '%' || NVL(#{DEPT_NAME},'') || '%'
+        <if test="SRCH_CODE != null and SRCH_CODE !=''">
+           AND ( A.DEPT_CD IN ( SELECT CODE FROM COM_CODE WHERE CODE_GRP = #{SRCH_CODE} )
+               OR
+                  -- IT INFRA 구매 담당
+                EXISTS (
+                  SELECT 'X'
+                    FROM SYS_USER_ROLE SUR
+                   WHERE SUR.ROLE_CD = 'PUR003'
+                     AND SUR.USER_ID = A.USER_ID
+                )
+               ) 
+        </if>
+    </select>
+    
+    <select id="sendUserInfo" parameterType="Map" resultType="Map">
+    --UserMapper.sendUserInfo
+        SELECT USER_ID
+		     , USER_NM
+		     , EMAIL_ID
+		     , MOBILE_NO
+		FROM SYS_USER
+		WHERE USER_ID = #{USER_ID}
+    </select>
+	
+</mapper>

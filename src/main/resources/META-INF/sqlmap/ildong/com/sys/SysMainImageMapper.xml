@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.sys.MainImage">
+
+    <select id="selectMainImageList" parameterType="Map" resultType="Map">
+		--com.sys.MainImage.selectMainImageList
+		SELECT A.CODE        AS CODE
+		      ,A.CODE_NM     AS CODE_NM
+		      ,A.ATTH_SEQ    AS ATTH_SEQ
+		      ,'/' || B.FILE_PATH || '/' || B.FILE_NM AS FILE_PATH
+		  FROM MAIN_IMG_MGMT A
+              LEFT OUTER JOIN
+               COM_ATTACH B
+              ON    B.APP_SEQ = A.ATTH_SEQ
+                AND B.DEL_YN ='N'
+		 WHERE 1=1
+		 ORDER BY A.CODE
+    </select>
+    
+    <select id="selectInImageList" parameterType="Map" resultType="Map">
+		--com.sys.MainImage.selectInImageList
+		SELECT B.FILE_NM
+		  FROM MAIN_IMG_MGMT A
+              LEFT OUTER JOIN
+               COM_ATTACH B
+              ON B.APP_SEQ = A.ATTH_SEQ
+		 WHERE 1=1
+		   AND CODE LIKE 'I%'
+		   AND B.DEL_YN ='N'
+		 ORDER BY A.CODE
+    </select>
+    
+    <select id="selectOutImageList" parameterType="Map" resultType="Map">
+		--com.sys.MainImage.selectOutImageList
+		SELECT B.FILE_NM
+		  FROM MAIN_IMG_MGMT A
+              LEFT OUTER JOIN
+               COM_ATTACH B
+              ON B.APP_SEQ = A.ATTH_SEQ
+		 WHERE 1=1
+		   AND CODE LIKE 'V%'
+		   AND B.DEL_YN ='N'
+		 ORDER BY A.CODE
+    </select>
+    
+    <insert id="saveMainImage" parameterType="Map">
+    	--com.sys.MainImage.saveMainImage
+		MERGE INTO MAIN_IMG_MGMT A
+		USING (
+		       SELECT #{CODE}       CODE
+		             ,#{CODE_NM}    CODE_NM
+		             ,#{APP_SEQ}    ATTH_SEQ
+		         FROM DUAL
+		      ) B
+		ON (
+		        A.CODE      = B.CODE
+		   )
+		WHEN MATCHED THEN
+		    UPDATE
+		       SET A.ATTH_SEQ = B.ATTH_SEQ
+		WHEN NOT MATCHED THEN
+		        INSERT
+		        (
+		          A.CODE
+		         ,A.CODE_NM
+		         ,A.ATTH_SEQ
+		        ) VALUES (
+		                   B.CODE
+		                  ,B.CODE_NM
+		                  ,B.ATTH_SEQ
+		                 )
+    
+    </insert>
+
+</mapper>

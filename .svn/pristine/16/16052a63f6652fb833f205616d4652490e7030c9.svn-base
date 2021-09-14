@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.ApmCancel">
+    <insert id="updateBugtApmData">
+    <![CDATA[
+	    --com.bat.ApmCancel.updateBugtApmData
+	    UPDATE FI_BUGT_APM A
+	       SET STATUS = '9'
+	          ,CANCEL_REASON = (
+	                            SELECT ZDELTXT
+	                              FROM FI_BUGT_APM_CANCEL_IF B
+	                             WHERE B.BUKRS    = A.COMP_CD
+	                               AND B.ZMONTH   = A.CRTN_YYMM
+	                               AND B.LEGACYNO = A.SYS_MGMT_NO
+	                               AND B.ZBUGTYPE = 'B'
+	                               AND B.ZCHANN   = A.CHC_ETC_GBN
+	                           )
+	          ,MOD_DATE = (
+	                       SELECT ZCRDATE
+	                         FROM FI_BUGT_APM_CANCEL_IF B
+	                        WHERE B.BUKRS    = A.COMP_CD
+	                          AND B.ZMONTH   = A.CRTN_YYMM
+	                          AND B.LEGACYNO = A.SYS_MGMT_NO
+	                          AND B.ZBUGTYPE = 'B'
+	                          AND B.ZCHANN   = A.CHC_ETC_GBN
+	                       )
+	          ,MOD_USER = (
+	                       SELECT ZLIFNR
+	                         FROM FI_BUGT_APM_CANCEL_IF B
+	                        WHERE B.BUKRS    = A.COMP_CD
+	                          AND B.ZMONTH   = A.CRTN_YYMM
+	                          AND B.LEGACYNO = A.SYS_MGMT_NO
+	                          AND B.ZBUGTYPE = 'B'
+	                          AND B.ZCHANN   = A.CHC_ETC_GBN
+	                       )
+	    WHERE 1 = 1
+	      AND ( A.COMP_CD
+	           ,A.CRTN_YYMM
+	           ,A.CHC_ETC_GBN
+	           ,A.SYS_MGMT_NO ) IN (
+	                                SELECT BUKRS    AS COMP_CD
+	                                      ,ZMONTH   AS CRTN_YYMM
+	                                      ,ZCHANN   AS CHC_ETC_GBN
+	                                      ,LEGACYNO AS SYS_MGMT_NO
+	                                  FROM FI_BUGT_APM_CANCEL_IF
+	                                 WHERE ZBUGTYPE = 'B'
+	                               )                  
+     ]]>
+    </insert>
+    
+    <insert id="updateBugtApmTransData">
+    <![CDATA[
+	    --com.bat.ApmCancel.updateBugtApmTransData
+	    UPDATE FI_BUGT_APM_TRANS_HEAD A
+	       SET STATUS = '9'
+	          ,CANCEL_REASON = (
+	                            SELECT ZDELTXT
+	                              FROM FI_BUGT_APM_CANCEL_IF B
+	                             WHERE B.BUKRS    = A.COMP_CD
+	                               AND B.ZMONTH   = A.CRTN_YYMM
+	                               AND B.LEGACYNO = A.SYS_MGMT_NO
+	                               AND B.ZBUGTYPE = 'T'
+	                               AND B.ZCHANN   = A.CHC_ETC_GBN
+	                           )
+	          ,MOD_DATE = (
+	                       SELECT ZCRDATE
+	                         FROM FI_BUGT_APM_CANCEL_IF B
+	                        WHERE B.BUKRS    = A.COMP_CD
+	                          AND B.ZMONTH   = A.CRTN_YYMM
+	                          AND B.LEGACYNO = A.SYS_MGMT_NO
+	                          AND B.ZBUGTYPE = 'T'
+	                          AND B.ZCHANN   = A.CHC_ETC_GBN
+	                       )
+	          ,MOD_USER = (
+	                       SELECT ZLIFNR
+	                         FROM FI_BUGT_APM_CANCEL_IF B
+	                        WHERE B.BUKRS    = A.COMP_CD
+	                          AND B.ZMONTH   = A.CRTN_YYMM
+	                          AND B.LEGACYNO = A.SYS_MGMT_NO
+	                          AND B.ZBUGTYPE = 'T'
+	                          AND B.ZCHANN   = A.CHC_ETC_GBN
+	                       )
+	    WHERE 1 = 1
+	      AND ( A.COMP_CD
+	           ,A.CRTN_YYMM
+	           ,A.CHC_ETC_GBN
+	           ,A.SYS_MGMT_NO ) IN (
+	                                SELECT BUKRS    AS COMP_CD
+	                                      ,ZMONTH   AS CRTN_YYMM
+	                                      ,ZCHANN   AS CHC_ETC_GBN
+	                                      ,LEGACYNO AS SYS_MGMT_NO
+	                                  FROM FI_BUGT_APM_CANCEL_IF
+	                                 WHERE ZBUGTYPE = 'T'
+	                               )
+     ]]>
+    </insert>    
+   
+</mapper>

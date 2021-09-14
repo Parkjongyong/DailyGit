@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <!-- 부서정보 I/F -->
+    <bean id="makeDeptDataController" class="com.app.ildong.bat.controller.makeDeptDataController" />
+    <bean id="MAKE_DEPT_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeDeptDataController" />
+        <property name="targetMethod"   value="makeDeptDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_DEPT_DATA" />
+            </map>
+        </property>
+    </bean>    
+    
+    <!-- 사용자정보  -->
+    <bean id="makeUserDataController" class="com.app.ildong.bat.controller.makeUserDataController" />
+    <bean id="MAKE_USER_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeUserDataController" />
+        <property name="targetMethod"   value="makeUserDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_USER_DATA" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 사용자정보 I/F -->
+    <bean id="makeUserInterfaceController" class="com.app.ildong.bat.controller.makeUserInterfaceController" />
+    <bean id="MAKE_USER_IF" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeUserInterfaceController" />
+        <property name="targetMethod"   value="makeUserInterfaceJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_USER_IF" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- HR 인건비정보 -->
+    <bean id="makeHRBugtDataController" class="com.app.ildong.bat.controller.makeHRBugtDataController" />
+    <bean id="MAKE_HR_BUGT_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeHRBugtDataController" />
+        <property name="targetMethod"   value="makeHRBugtDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_HR_BUGT_DATA" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- HR 인건비정보 I/F -->
+    <bean id="makeHRBugtInterfaceController" class="com.app.ildong.bat.controller.makeHRBugtInterfaceController" />
+    <bean id="MAKE_HR_BUGT_IF" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeHRBugtInterfaceController" />
+        <property name="targetMethod"   value="makeHRBugtInterfaceJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_HR_BUGT_IF" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- HR 영업사원휴가일수 I/F -->
+    <bean id="makeHRVacatInterfaceController" class="com.app.ildong.bat.controller.makeHRVacatInterfaceController" />
+    <bean id="MAKE_HR_VACAT_IF" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeHRVacatInterfaceController" />
+        <property name="targetMethod"   value="makeHRVacatInterfaceJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_HR_VACAT_IF" />
+            </map>
+        </property>
+    </bean> 
+    
+    <!-- 공급업체 기본정보 I/F -->
+    <bean id="makeVendorInterfaceController" class="com.app.ildong.bat.controller.makeVendorInterfaceController" />
+    <bean id="MAKE_VENDOR_IF" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeVendorInterfaceController" />
+        <property name="targetMethod"   value="makeVendorInterfaceJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_VENDOR_IF" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 공급업체 기본정보 -->
+    <bean id="makeVendorDataController" class="com.app.ildong.bat.controller.makeVendorDataController" />
+    <bean id="MAKE_VENDOR_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeVendorDataController" />
+        <property name="targetMethod"   value="makeVendorDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_VENDOR_DATA" />
+            </map>
+        </property>
+    </bean>    
+    
+    <!-- 발주 정보 -->
+    <bean id="makePurchOrderDataController" class="com.app.ildong.bat.controller.makePurchOrderDataController" />
+    <bean id="MAKE_PURCH_ORDER_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makePurchOrderDataController" />
+        <property name="targetMethod"   value="makePurchOrderDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_PURCH_ORDER_DATA" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 발주 정보 I/F -->
+    <bean id="makePurchOrderInterfaceController" class="com.app.ildong.bat.controller.makePurchOrderInterfaceController" />
+    <bean id="MAKE_PURCH_ORDER_IF" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makePurchOrderInterfaceController" />
+        <property name="targetMethod"   value="makePurchOrderInterfaceJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_PURCH_ORDER_IF" />
+            </map>
+        </property>
+    </bean>    
+    
+     
+    
+    <!--입고수량 I/F -->
+    <bean id="makeGRItemDataController" class="com.app.ildong.bat.controller.makeGRItemDataController" />
+    <bean id="MAKE_GR_ITEM_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeGRItemDataController" />
+        <property name="targetMethod"   value="makeGRItemDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_GR_ITEM_DATA" />
+            </map>
+        </property>
+    </bean>    
+     
+    <!-- 송장 정보 I/F -->
+    <bean id="makeInvoiceDataController" class="com.app.ildong.bat.controller.makeInvoiceDataController" />
+    <bean id="MAKE_INVOICE_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeInvoiceDataController" />
+        <property name="targetMethod"   value="makeInvoiceDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_INVOICE_DATA" />
+            </map>
+        </property>
+    </bean> 
+    
+    <!-- 자재 마스터 I/F -->
+    <bean id="makeMaterialsDataController" class="com.app.ildong.bat.controller.makeMaterialsDataController" />
+    <bean id="MAKE_MATERIALS_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeMaterialsDataController" />
+        <property name="targetMethod"   value="makeMaterialsDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_MATERIALS_DATA" />
+            </map>
+        </property>
+    </bean> 
+    
+    <!-- 전표 I/F -->
+    <bean id="makePostingDataController" class="com.app.ildong.bat.controller.makePostingDataController" />
+    <bean id="MAKE_POSTING_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makePostingDataController" />
+        <property name="targetMethod"   value="makePostingDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_POSTING_DATA" />
+            </map>
+        </property>
+    </bean>  
+     
+    <!-- 입고예정일 Clear -->
+    <bean id="clearDeliveryDataController" class="com.app.ildong.bat.controller.clearDeliveryDataController" />
+    <bean id="CLEAR_DELIVERY_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="clearDeliveryDataController" />
+        <property name="targetMethod"   value="clearDeliveryDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="CLEAR_DELIVERY_DATA" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 원가요소(계정정보) I/F -->
+    <bean id="makeAccountNoInterfaceController" class="com.app.ildong.bat.controller.makeAccountNoInterfaceController" />
+    <bean id="MAKE_ACCOUNT_NO_IF" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeAccountNoInterfaceController" />
+        <property name="targetMethod"   value="makeAccountNoInterfaceJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_ACCOUNT_NO_IF" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 내부오더 관리(프로젝트오더) I/F -->
+    <bean id="makeOrderMstInterfaceController" class="com.app.ildong.bat.controller.makeOrderMstInterfaceController" />
+    <bean id="MAKE_ORDER_MST_IF" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeOrderMstInterfaceController" />
+        <property name="targetMethod"   value="makeOrderMstInterfaceJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_ORDER_MST_IF" />
+            </map>
+        </property>
+    </bean> 
+    
+    <!-- 감가상각비 I/F -->
+    <bean id="makeDepreAccountInterfaceController" class="com.app.ildong.bat.controller.makeDepreAccountInterfaceController" />
+    <bean id="MAKE_DEPRE_ACCOUNT_IF" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeDepreAccountInterfaceController" />
+        <property name="targetMethod"   value="makeDepreAccountInterfaceJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_DEPRE_ACCOUNT_IF" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 승인예산정보  SAP 전송 I/F -->
+    <bean id="makeSendBugtDataController" class="com.app.ildong.bat.controller.makeSendBugtDataController" />
+    <bean id="MAKE_SEND_BUGT_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeSendBugtDataController" />
+        <property name="targetMethod"   value="makeSendBugtDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_SEND_BUGT_DATA" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 승인예산정보  SAP 전송 I/F -->
+    <bean id="makeBugtResultInterfaceController" class="com.app.ildong.bat.controller.makeBugtResultInterfaceController" />
+    <bean id="MAKE_BUGT_RESULT_IF" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeBugtResultInterfaceController" />
+        <property name="targetMethod"   value="makeBugtResultInterfaceJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_BUGT_RESULT_IF" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 투자오더(내부오더) - 유형자산  SAP 전송 I/F -->
+    <bean id="makeSendInvestDataController" class="com.app.ildong.bat.controller.makeSendInvestDataController" />
+    <bean id="MAKE_SEND_INVEST_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeSendInvestDataController" />
+        <property name="targetMethod"   value="makeSendInvestDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_SEND_INVEST_DATA" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 제품정보 - SD I/F -->
+    <bean id="makeItemDataController" class="com.app.ildong.bat.controller.makeItemDataController" />
+    <bean id="MAKE_ITEM_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeItemDataController" />
+        <property name="targetMethod"   value="makeItemDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_ITEM_DATA" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- APM카드영업사원예산취소 I/F -->
+    <bean id="makeApmCancelDataController" class="com.app.ildong.bat.controller.makeApmCancelDataController" />
+    <bean id="MAKE_APM_CANCEL_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeApmCancelDataController" />
+        <property name="targetMethod"   value="makeApmCancelDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_APM_CANCEL_DATA" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- BP공급처마스터 I/F -->
+    <bean id="makePurchOrderMasterDataController" class="com.app.ildong.bat.controller.makePurchOrderMasterDataController" />
+    <bean id="MAKE_PURCH_ORDER_MASTER_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makePurchOrderMasterDataController" />
+        <property name="targetMethod"   value="makePurchOrderMasterDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_PURCH_ORDER_MASTER_DATA" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 거래처 정보 -->
+    <bean id="makeCustomerInfoDataController" class="com.app.ildong.bat.controller.makeCustomerInfoDataController" />
+    <bean id="MAKE_CUSTOMER_INFO_DATA" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeCustomerInfoDataController" />
+        <property name="targetMethod"   value="makeCustomerInfoDataJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_CUSTOMER_INFO_DATA" />
+            </map>
+        </property>
+    </bean>
+    
+    <!-- 거래처 정보 I/F -->
+    <bean id="makeCustomerInfoInterfaceController" class="com.app.ildong.bat.controller.makeCustomerInfoInterfaceController" />
+    <bean id="MAKE_CUSTOMER_INFO_IF" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject"   ref="makeCustomerInfoInterfaceController" />
+        <property name="targetMethod"   value="makeCustomerInfoInterfaceJobRun" />
+        <property name="concurrent"     value="false" />
+        <property name="arguments">
+            <map>
+                <entry key="batchCd"    value="MAKE_CUSTOMER_INFO_IF" />
+            </map>
+        </property>
+    </bean>  
+    
+     
+    <!-- 초 분 시 일 월 요일 연도 -->
+    <!-- 부서정보 I/F 데이터 생성  매일 5시 주기-->
+    <bean id="makeDeptDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_DEPT_DATA" />
+        <!-- 1시간 마다. -->
+        <property name="cronExpression" value="0 30 2 * * ? *" />
+    </bean>
+    
+    <!-- 사용자정보  데이터 생성  매일 5시 20분 주기-->
+    <bean id="makeUserDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_USER_DATA" />
+        <!-- 1시간 마다. -->
+        <property name="cronExpression" value="0 0 3 * * ? *" />
+    </bean>
+    
+    <!-- 사용자정보 I/F 데이터 생성  매일 5시 10분 주기-->
+    <bean id="makeUserInterfaceJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_USER_IF" />
+        <!-- 1시간 마다. -->
+        <property name="cronExpression" value="0 30 2 * * ? *" />
+    </bean>
+    
+    <!-- 인건비정보 I/F 데이터 생성  매일 5시 10분 주기-->
+    <bean id="makeHRBugtInterfaceJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_HR_BUGT_IF" />
+        <!-- 1시간 마다. -->
+        <property name="cronExpression" value="0 10 5 * * ? *" />
+    </bean>
+    
+    <!-- 인건비정보 데이터 생성  매일 5시 10분 주기-->
+    <bean id="makeHRBugtDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_HR_BUGT_DATA" />
+        <!-- 1시간 마다. -->
+        <property name="cronExpression" value="0 10 5 * * ? *" />
+    </bean>
+    
+    <!-- 엽업사원휴가일수 I/F 데이터 생성  매일 5시 10분 주기-->
+    <bean id="makeHTVacatInterfaceJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_HR_VACAT_IF" />
+        <!-- 1시간 마다. -->
+        <property name="cronExpression" value="0 10 5 * * ? *" />
+    </bean>    
+    
+    <!-- 공급업체 정보  데이터 생성  매일 5시 30분 주기-->
+    <bean id="makeVendorDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_VENDOR_DATA" />
+        <property name="cronExpression" value="0 30 5 * * ? *" />
+    </bean>
+    
+    <!-- 공급업체 정보 I/F 데이터 생성  매일 5시 20분 주기-->
+    <bean id="makeVendorInterfaceJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_VENDOR_IF" />
+        <property name="cronExpression" value="0 0 5 * * ? *" />
+    </bean>     
+    
+    <!-- 발주 정보  데이터 생성  매일 5시 40분 주기-->
+    <bean id="makePurchOrderDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_PURCH_ORDER_DATA" />
+        <property name="cronExpression" value="0 10 0/1 * * ? *" />
+    </bean>
+    
+    <!-- 발주 정보 I/F 데이터 생성  매일 5시 30분 주기-->
+    <bean id="makePurchOrderInterfaceJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_PURCH_ORDER_IF" />
+        <property name="cronExpression" value="0 0 0/1 * * ? *" />
+    </bean>    
+    
+     
+    
+    <!-- 입고 정보 I/F 데이터 생성  매일 5시 30분 주기-->
+    <bean id="makeGRItemDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_GR_ITEM_DATA" />
+        <!-- 1시간 마다. -->
+        <property name="cronExpression" value="0 0 0/2 * * ? *" />
+    </bean> 
+   
+    <!-- 송장 정보 I/F 데이터 생성  매일 5시 30분 주기-->
+    <bean id="makeInvoiceDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_INVOICE_DATA" />
+        <!-- 1시간 마다. -->
+        <property name="cronExpression" value="0 0 0/2 * * ? *" />
+    </bean>
+    
+    <!-- 자재마스터 정보 I/F 데이터 생성  매일 5시 30분 주기-->
+    <bean id="makeMaterialsDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_MATERIALS_DATA" />
+        <!-- 1시간 마다. -->
+        <property name="cronExpression" value="0 0 6 * * ? *" />
+    </bean>
+    
+    <!-- 전표 I/F 데이터 생성  매일 5시 30분 주기-->
+    <bean id="makePostingDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_POSTING_DATA" />
+        <!-- 1시간 마다. -->
+        <property name="cronExpression" value="0 0 6 * * ? *" />
+    </bean>    
+    
+    <!-- 입고정보 예정일 클리어 매일 01시 주기-->
+    <bean id="deliveryDateClearJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="CLEAR_DELIVERY_DATA" />
+        <property name="cronExpression" value="0 0 2 * * ? *" />
+    </bean>
+    
+    <!-- 원가요소(계정정보) I/F 주기-->
+    <bean id="makeAccountNoDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_ACCOUNT_NO_IF" />
+        <property name="cronExpression" value="0 0 2 * * ? *" />
+    </bean>
+    
+    <!-- 내부오더 관리(프로젝트오더) I/F 주기-->
+    <bean id="makeOrderMstJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_ORDER_MST_IF" />
+        <property name="cronExpression" value="0 0 4 * * ? *" />
+    </bean>
+    
+    <!-- 내부오더 관리(프로젝트오더) I/F 주기-->
+    <bean id="makeDepreAccountJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_DEPRE_ACCOUNT_IF" />
+        <property name="cronExpression" value="0 0 2 * * ? *" />
+    </bean>
+    
+    <!-- 승인예산 SAP 전송 주기-->
+    <bean id="makeSendBugtJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_SEND_BUGT_DATA" />
+        <property name="cronExpression" value="0 0 6 * * ? *" />
+    </bean>
+    
+    <!-- 부서별 실적정보  I/F 주기-->
+    <bean id="makeBugtResultJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_BUGT_RESULT_IF" />
+        <property name="cronExpression" value="0 0/10 * * * ? *" />
+    </bean>
+    
+    <!-- 투자오더(내부오더) - 유형자산  SAP 전송 I/F 주기-->
+    <bean id="makeSendInvestJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_SEND_INVEST_DATA" />
+        <property name="cronExpression" value="0 0 6 * * ? *" />
+    </bean> 
+    
+    <!-- 품목정보   I/F 주기-->
+    <bean id="makeItemDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_ITEM_DATA" />
+        <property name="cronExpression" value="0 0 3 * * ? *" />
+    </bean>
+    
+    <!-- APM카드 취소   I/F 주기-->
+    <bean id="makeApmCancelDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_APM_CANCEL_DATA" />
+        <property name="cronExpression" value="0 0 6 * * ? *" />
+    </bean>
+    
+    <!-- 발주정보   I/F 주기-->
+    <bean id="makePurchOrderMasterDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_PURCH_ORDER_MASTER_DATA" />
+        <property name="cronExpression" value="0 0 6 * * ? *" />
+    </bean>
+    
+    <!-- 거래처 정보  데이터 생성  매일 5시 40분 주기-->
+    <bean id="makeCustomerInfoDataJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_CUSTOMER_INFO_DATA" />
+        <property name="cronExpression" value="0 30 3 * * ? *" />
+    </bean>
+    
+    <!-- 거래처 정보 I/F 데이터 생성  매일 5시 30분 주기-->
+    <bean id="makeCustomerInfoInterfaceJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="MAKE_CUSTOMER_INFO_IF" />
+        <property name="cronExpression" value="0 0 3 * * ? *" />
+    </bean>   
+    
+    
+    
+    
+    <bean id="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="makeDeptDataJobTrigger"/>
+                <ref bean="makeUserDataJobTrigger"/>
+                <ref bean="makeUserInterfaceJobTrigger"/>
+                <ref bean="makeVendorDataJobTrigger"/>
+                <ref bean="makeVendorInterfaceJobTrigger"/>
+                <ref bean="makePurchOrderDataJobTrigger"/>
+                <ref bean="makePurchOrderInterfaceJobTrigger"/>
+                <ref bean="makeGRItemDataJobTrigger"/>
+                <ref bean="makeInvoiceDataJobTrigger"/>
+                <ref bean="makeMaterialsDataJobTrigger"/>
+<!--   온라인으로 구현!!!!   <ref bean="makePostingDataJobTrigger"/> -->
+                <ref bean="deliveryDateClearJobTrigger"/>
+                <ref bean="makeAccountNoDataJobTrigger"/>
+                <ref bean="makeHRBugtInterfaceJobTrigger"/>
+                <ref bean="makeHRBugtDataJobTrigger"/>
+                <ref bean="makeHTVacatInterfaceJobTrigger"/>
+                <ref bean="makeOrderMstJobTrigger"/>
+                <ref bean="makeDepreAccountJobTrigger"/>
+                <ref bean="makeSendBugtJobTrigger"/>
+                <ref bean="makeBugtResultJobTrigger"/>
+<!--  온라인으로 구현!!!!    <ref bean="makeSendInvestJobTrigger"/> -->
+                <ref bean="makeItemDataJobTrigger"/>
+                <ref bean="makeApmCancelDataJobTrigger"/>
+                <ref bean="makePurchOrderMasterDataJobTrigger"/>
+                <ref bean="makeCustomerInfoInterfaceJobTrigger"/>
+                <ref bean="makeCustomerInfoDataJobTrigger"/>
+                
+            </list>
+        </property>
+    </bean>
+ 
+</beans>

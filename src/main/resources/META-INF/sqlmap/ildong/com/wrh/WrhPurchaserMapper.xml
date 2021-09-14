@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.Purchaser">
+
+	<select id="selectPurchaserList" parameterType="Map" resultType="Map">
+--. 구매담당자 조회
+SELECT A.COMP_CD                                           COMP_CD        -- 회사    
+      ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD)             COMP_NM        -- 회사명  
+      ,A.PO_ORG                                            PO_ORG         -- 구매그룹  
+      ,FUNC_GET_CODE_NAME('IG001', A.PO_ORG)               PO_ORG_NM      -- 구매그룹명   
+      ,A.ORG_CD                                            ORG_CD         -- 부서코드  
+      ,FUNC_GET_DEPT_NAME(FUNC_GET_COMP_CD(A.PURCHASER_ID), A.ORG_CD, A.CRE_DATE) ORG_NM         -- 부서코드명    
+      ,B.DUTY_CODE                                         DUTY_CODE      -- 직급코드 
+      ,B.DUTY_NAME                                         DUTY_NAME      -- 직급   
+      ,A.PURCHASER_ID                                      PURCHASER_ID   -- 담당자ID
+      ,B.USER_NM                                           PURCHASER_NAME -- 담당자명
+      ,'1'                                                 CODEMAPPING
+      ,B.MOBILE_NO                                         MOBILE_NO      -- 연락처
+      ,B.EMAIL_ID                                          EMAIL_ID       -- EMAIL
+      ,A.CRE_DATE                                          CRE_DATE       -- 등록일자
+      ,A.CRE_USER                                          CRE_USER       -- 등록자ID
+      ,A.MOD_DATE                                          MOD_DATE       -- 수정일자
+      ,A.MOD_USER                                          MOD_USER       -- 수정자ID
+      ,'R'                                                 CRUD 
+  FROM PURCHASER_INFO A
+      LEFT OUTER JOIN
+       SYS_USER B
+      ON    B.USER_ID = A.PURCHASER_ID
+        AND B.COMP_CD = FUNC_GET_COMP_CD(A.PURCHASER_ID)
+  WHERE 1=1
+  <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+    AND A.COMP_CD   = #{SB_COMP_CD}
+  </if>
+  <if test="SB_PO_ORG != null and SB_PO_ORG != ''">
+    AND A.PO_ORG LIKE '%' || #{SB_PO_ORG} || '%'
+  </if>
+	</select>
+	
+	
+    <insert id="insertPurchaser" parameterType="Map">
+--. 구매담당자 추가
+INSERT INTO PURCHASER_INFO (
+       COMP_CD
+      ,PO_ORG
+      ,ORG_CD
+      ,PURCHASER_ID
+      ,CRE_DATE
+      ,CRE_USER
+      ,MOD_DATE
+      ,MOD_USER
+      ) VALUES (
+                 #{COMP_NM}
+                ,#{PO_ORG}
+                ,#{ORG_CD}
+                ,#{PURCHASER_ID}
+                ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                ,#{CRE_USER}
+                ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                ,#{MOD_USER}
+               )
+    </insert>
+	
+    <delete id="deletePurchaser" parameterType="Map">
+--. 구매담당자 삭제
+DELETE FROM PURCHASER_INFO
+ WHERE COMP_CD      = #{COMP_CD}     
+   AND PO_ORG       = #{PO_ORG}      
+   AND ORG_CD       = #{ORG_CD}      
+   AND PURCHASER_ID = #{PURCHASER_ID}
+    </delete>
+</mapper>

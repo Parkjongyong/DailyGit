@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.cmn.Customer">
+
+	<select id="selectCustomerList" parameterType="Map" resultType="Map">
+	--com.cmn.Customer.selectCustomerList
+	    SELECT A.*
+	      FROM (	
+                SELECT A.COMP_CD                                                          COMP_CD       
+                      ,FUNC_GET_CODE_NAME('SYS001', A.COMP_CD)                            COMP_NM
+                      ,A.CUST_CD                                                          CUST_CD
+                      ,A.DISTRIB_CD                                                       DISTRIB_CD
+                      ,FUNC_GET_CODE_NAME('YS008', A.DISTRIB_CD)                          DISTRIB_NM
+                      ,A.CUST_NAME1                                                       CUST_NAME1
+                      ,A.CUST_NAME2                                                       CUST_NAME2
+                      ,ROW_NUMBER() OVER(ORDER BY A.COMP_CD, A.CUST_CD, A.DISTRIB_CD)     RNUM
+                      ,COUNT(0) OVER() TOT_CNT -- 건수                      
+                  FROM SD_CUSTOMER_INFO A
+                 WHERE 1 = 1
+		        <if test="SB_COMP_CD != null and SB_COMP_CD != ''">
+   		           AND A.COMP_CD = #{SB_COMP_CD}
+    	        </if>
+		        <if test="TB_CUST_NAME1 != null and TB_CUST_NAME1 != ''">
+   		           AND A.CUST_NAME1 LIKE '%' || #{TB_CUST_NAME1} || '%'
+    	        </if>
+    	        
+		        <if test="TB_DISTRIB_CD != null and TB_DISTRIB_CD != ''">
+   		           AND A.DISTRIB_CD = #{TB_DISTRIB_CD}
+    	        </if>
+    	       ) A 
+<![CDATA[WHERE RNUM BETWEEN NVL(#{page}, 1) AND NVL(#{pageSize}, 50)]]>
+    	 ORDER BY A.COMP_CD
+                 ,A.CUST_CD
+                 ,A.DISTRIB_CD
+	</select>
+</mapper>

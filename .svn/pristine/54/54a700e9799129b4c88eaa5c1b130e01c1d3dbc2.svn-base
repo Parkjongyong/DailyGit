@@ -1,0 +1,300 @@
+<%@ page language="java" contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page import="java.util.*"%>
+<%@page import="com.google.gson.JsonObject"%>
+<%@page import="com.app.common.util.StringUtil"%>
+<%@page import="org.apache.commons.collections.MapUtils"%>
+<%@page import="org.apache.commons.lang.*"%>
+<%@page import="com.app.common.util.StringUtilEx"%>
+<%@page import="com.app.common.util.PropertiesUtil"%>
+
+<%@ taglib prefix="c"       uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="spring"  uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="sec"     uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="fmt"    uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%
+/*******************************************************************/
+// 사전견적요청 결재폼.
+/*******************************************************************/
+String URL_IN = PropertiesUtil.getProperty("HTTP.SERVER.URL.IN");
+request.setAttribute("URL_IN" ,  URL_IN);
+/*******************************************************************
+  httpclient 호출로 파라미터 전송시 object 전송 불가
+  list,map => json string 유형으로 변환 전송 됨
+  json string 유형 데이터를 jstl 사용 가능하도록 object로 변경
+*******************************************************************/
+String PRE_RFQ_HD = request.getParameter("preRfqHd");
+String ITEM_LIST  = request.getParameter("itemList");
+String BP_LIST    = request.getParameter("bpList");
+String SPEC_LIST  = request.getParameter("specList");
+String FILE_LIST  = request.getParameter("fileList");
+
+request.setAttribute("PRE_RFQ_HD" ,  com.app.common.util.JsonUtil.getMapFromJsonString(PRE_RFQ_HD)); //MAP
+request.setAttribute("ITEM_LIST" ,   com.app.common.util.JsonUtil.getListFromJsonString(ITEM_LIST)); //LISTMAP
+request.setAttribute("BP_LIST" ,     com.app.common.util.JsonUtil.getListFromJsonString(BP_LIST));   //LISTMAP
+request.setAttribute("SPEC_LIST" ,   com.app.common.util.JsonUtil.getListFromJsonString(SPEC_LIST)); //LISTMAP
+//첨부파일
+request.setAttribute("FILE_LIST" ,  com.app.common.util.JsonUtil.getListFromJsonString(FILE_LIST)); //LISTMAP
+
+List<Map<String, Object>> itemList = (List<Map<String, Object>>)request.getAttribute("ITEM_LIST");
+for(Map<String, Object> item : itemList){
+	item.put("QTY",  StringUtilEx.digitFormat(MapUtils.getDoubleValue(item, "QTY") ) );
+}
+
+List<Map<String, Object>> specList = (List<Map<String, Object>>)request.getAttribute("SPEC_LIST");
+for(Map<String, Object> spec : specList){
+	spec.put("REQ_DATE",      StringUtilEx.substring(MapUtils.getString(spec, "REQ_DATE"),0,10) );
+	spec.put("RECEIPT_DATE",  StringUtilEx.substring(MapUtils.getString(spec, "RECEIPT_DATE"),0,10) );
+	spec.put("SUBMIT_DATE",   StringUtilEx.substring(MapUtils.getString(spec, "SUBMIT_DATE"),0,10) );
+	spec.put("CONFIRM_DATE",  StringUtilEx.substring(MapUtils.getString(spec, "CONFIRM_DATE"),0,10) );
+}
+
+%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<head>
+<link href="<c:url value='/resources/plugin/jquery-ui-1.12.1/jquery-ui.min.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_reset.css'/>" rel="stylesheet"/>
+<link href="<c:url value='/resources/css/wf_common.css'/>" rel="stylesheet"/>
+<!-- jquery -->
+<script type="text/javascript" src="<c:url value='/resources/plugin/jquery-1.12.3/jquery-1.12.3.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/resources/js/attach.js'/>"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	//fnInitFileUpload();
+
+	//전자결재 페이지에서 창에 높이 확인 가능하도록 수정
+    document.domain="parucnc.com";
+    //전자결재 부모창으로 높이 전송
+    var maxHeight = Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,document.body.offsetHeight,document.documentElement.offsetHeight);
+    window.parent.postMessage(maxHeight, '*');	
+	
+});
+</script>
+</head>
+<body>
+    <div class="pop-wrap">
+        <div class="pop-cont link">
+            <div class="section1 scrolls">
+                <div class="sub-tit first" id="section1">
+                    <h4>기본정보</h4>
+                </div>
+                <table  id="basicInfo" class="table-style">
+                    <colgroup>
+                        <col style="width: 15%;">
+                        <col>
+                        <col style="width: 15%;">
+                        <col>
+                    </colgroup>
+                    <tbody>
+	                    <tr>
+	                        <th style="text-align: left;"><span>투자번호</span></th>
+	                        <td>${PRE_RFQ_HD.INVEST_SEQ}</td>
+	                        <th style="text-align: left;"><span>투자건명</span></th>
+	                        <td>${PRE_RFQ_HD.INVEST_NM}</td>
+	                    </tr>
+	                    <tr>
+	                        <th style="text-align: left;"><span>견적요청번호</span></th>
+	                        <td>${PRE_RFQ_HD.PRE_SEQ}</td>
+	                        <th style="text-align: left;"><span>견적요청건명</span></th>
+	                        <td>${PRE_RFQ_HD.PRE_NM}</td>
+	                    </tr>
+	                    <tr>
+	                        <th style="text-align: left;"><span>요청부서</span></th>
+	                        <td>${PRE_RFQ_HD.REQ_DEPT_NM}</td>
+	                        <th style="text-align: left;"><span>요청자</span></th>
+	                        <td>${PRE_RFQ_HD.REQ_USER_NM}</td>
+	                    </tr>
+	                    <tr>
+	                        <th style="text-align: left;"><span>요청일</span></th>
+	                        <td>${PRE_RFQ_HD.REQ_YMD}</td>
+	                        <th style="text-align: left;"></th>
+	                        <td></td>
+	                    </tr>
+	                </tbody>
+                </table>
+                <div class="sub-tit">
+	                <h4>견적요청 개요 및 특이사항</h4>
+	            </div>
+                <table class="table-style">
+                    <tbody>
+                        <tr>
+                            <td colspan="4">
+                                <pre>${PRE_RFQ_HD.REMARK}</pre>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section3 scrolls">
+                <div class="sub-tit"  id="section3">
+                    <h4>품목정보</h4>
+                </div>
+                <div>
+                    <table class="table-style">
+                        <colgroup>
+            				<col style="width:5%">
+            				<col style="width:10%">
+            				<col style="width:10%">
+            				<col>
+            				<col style="width:12%">
+            				<col style="width:7%">
+            				<col style="width:7%">
+            				<col style="width:10%">
+            				<col style="width:12%">
+        				</colgroup>
+                        <thead>
+                            <tr>
+                				<th>순번</th>
+                				<th>SG</th>
+                				<th>품목코드</th>
+                				<th>품목명</th>
+                				<th>Sub투자번호</th>
+                				<th>수량</th>
+                				<th>단위</th>
+                				<th>구매담당자</th>
+                				<th>품목Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="ITEM" items="${ITEM_LIST}" varStatus="status">
+            				<tr>
+                				<td style="text-align: center;">${ITEM.PRE_ITEM_NO}</td>
+                				<td>${ITEM.SRC_GRP_NM}</td>
+                				<td style="text-align: center;">${ITEM.ITEM_CD}</td>
+                				<td align="left">${ITEM.ITEM_NM}</td>
+                				<td style="text-align: center;">${ITEM.SUB_INVEST_SEQ}</td>
+                				<td style="text-align: right;">${ITEM.QTY}</td>
+                				<td style="text-align: center;">${ITEM.UNIT}</td>
+                				<td style="text-align: center;">${ITEM.PUR_USER_NM}</td>
+                				<td align="left">${ITEM.ITEM_NOTE}</td>
+            				</tr>
+            				</c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section4 scrolls">
+	            <div class="sub-tit"  id="section4">
+	                <h4>공급업체</h4>
+	            </div>
+	            <div>
+                    <table class="table-style">
+                        <colgroup>
+                            <col style="width:5%">
+                            <col>
+                            <col style="width:15%">
+                            <col style="width:10%">
+                            <col style="width:10%">
+                            <col style="width:10%">
+                            <col style="width:10%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>순번</th>
+                                <th>품목명</th>
+                                <th>BP명</th>
+                                <th>담당자</th>
+                                <th>휴대전화</th>
+                                <th>이메일</th>
+                                <th>비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="BP" items="${BP_LIST}" varStatus="status">
+                            <tr>
+                                <td style="text-align: center;">${BP.PRE_ITEM_NO}</td>
+                                <td align="left">${BP.ITEM_NM}</td>
+                                <td>${BP.VENDOR_NM}</td>
+                                <td>${BP.VENDOR_USER_NM}</td>
+                                <td style="text-align: center;">${BP.VENDOR_MOBILE_NO}</td>
+                                <td>${BP.VENDOR_EMAIL}</td>
+                                <td align="left">${BP.REMARK}</td>
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+	        </div>
+	        
+	        <div class="section5 scrolls">
+                <div class="sub-tit"  id="section5">
+                    <h4>사양서 이력</h4>
+                </div>
+                <div>
+                    <table class="table-style">
+                        <colgroup>
+                            <col style="width:5%">
+                            <col>
+                            <col style="width:10%">
+                            <col style="width:10%">
+                            <col style="width:15%">
+                            <col style="width:10%">
+                            <col style="width:15%">
+                            <col style="width:10%">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>순번</th>
+                                <th>BP명</th>
+                                <th>요청일</th>
+                                <th>BP담당자</th>
+                                <th>요청사유</th>
+                                <th>제출일</th>
+                                <th>제출Comment</th>
+                                <th>사양확인일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="SPEC" items="${SPEC_LIST}" varStatus="status">
+                            <tr>
+                                <td style="text-align: center;">${SPEC.PRE_ITEM_NO}</td>
+                                <td align="left">${SPEC.VENDOR_NM}</td>
+                                <td style="text-align: center;">${SPEC.REQ_DATE}</td>
+                                <td style="text-align: center;">${SPEC.VENDOR_USER_NM}</td>
+                                <td align="left">${SPEC.REQ_REMARK}</td>
+                                <td style="text-align: center;">${SPEC.SUBMIT_DATE}</td>
+                                <td align="left">${SPEC.SUBMIT_REMARK}</td>
+                                <td style="text-align: center;">${SPEC.CONFIRM_DATE}</td>
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <c:if test="${PRE_RFQ_HD.APP_SEQ != null and PRE_RFQ_HD.APP_SEQ != ''}">
+            <div class="section6 scrolls">
+                <div class="sub-tit" id="section6">
+                    <h4>사전견적요청 첨부파일</h4>
+                    <input type="hidden" id="APP_SEQ" name="APP_SEQ_EPR" value="${PRE_RFQ_HD.APP_SEQ}">
+                </div>
+
+                <div id="fileUploadTableEpr">
+                    <table class="table-style">
+                        <tbody>
+                            <tr>
+                                <th style="text-align: center;" width="10%">No</th>
+                                <th style="text-align: center;">파일명</th>
+                                <!-- <th class="center">등록일자</th>
+                                <th class="center">파일크기</th> -->
+                            </tr>
+                            <c:forEach var="FILE" items="${FILE_LIST}" varStatus="status">
+                            <tr class="F_File_ROW">
+                                <td style="text-align: center;">${status.count}</td>
+                                <td class="t_left">
+                                <a href="${URL_IN}/download.do?APP_SEQ=${FILE.APP_SEQ}&amp;ATTACHMENT_SEQ=${FILE.ATTACHMENT_SEQ}" title="${FILE.FILE_NAME}" style="color:blue;" download="${FILE.FILE_NAME}">${FILE.FILE_NAME}</a></td>
+                                <!-- <td class="t_center">2019-12-12</td>
+                                <td class="t_right">0.06 KB</td> -->
+                            </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </c:if>
+        </div>
+        <!-- //popCont -->
+    </div>
+</body>

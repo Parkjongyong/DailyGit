@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.usr.UsrUserSearchDAO">
+
+	<select id="selectUsrUserSearchInList" parameterType="Map" resultType="Map">
+	--UsrUserSearchMapper.selectUsrUserSearchInList
+	SELECT
+		 A.USER_ID 
+		,A.USER_NM AS USER_NAME
+		,(SELECT DEPT_NM FROM DEPT WHERE DEPT_CD = A.DEPT_CD) AS DEPT_NAME
+		,A.TEL_NO 
+		,A.MOBILE_NO 
+		,A.EMAIL_ID 
+	FROM SYS_USER A
+    WHERE 1=1
+		AND A.DEL_YN = 'N'
+		AND A.USG_YN = 'Y'
+    <if test="USER_NAME != null and USER_NAME != ''">
+    	AND A.USER_NM	LIKE  '%' ||  NVL(TRIM(#{USER_NAME}), '') ||  '%'
+    </if>
+    <if test="EMP_NO != null and EMP_NO != ''">
+    	AND A.EMP_NO	LIKE '%', NVL(TRIM(#{USER_ID}), '') || '%'
+    </if>
+    ORDER BY LOGIN_CNT DESC
+	</select>
+	
+	<select id="selectUsrUserSearchOutList" parameterType="Map" resultType="Map">
+	--UsrUserSearchMapper.selectUsrUserSearchOutList
+	SELECT
+		 A.USER_ID
+		,A.USER_NM AS USER_NAME
+		,B.VENDOR_NM AS POBUSI_NM
+		,B.REG_NO AS POBUSI_REG_NO
+		,(CASE A.BIZ_ID_TYPE
+			WHEN 'S' THEN '대표ID'
+			WHEN 'I' THEN '일반ID'
+		 END	
+		) AS BIZ_ID_TYPE
+		,B.REPRE_NM
+		
+	FROM VENDOR_USERS A, VENDOR_MASTER B
+	WHERE 1=1
+		AND A.VENDOR_ID = B.VENDOR_ID
+		AND A.DEL_YN = 'N'
+		AND A.USG_YN = 'Y'
+    <if test="POBUSI_NM != null and POBUSI_NM != ''">
+    	AND B.VENDOR_NM	LIKE  '%' ||  NVL(TRIM(#{POBUSI_NM}), '') ||  '%'
+    </if>
+    <if test="POBUSI_REG_NO != null and POBUSI_REG_NO != ''">
+    	AND B.REG_NO	LIKE  '%' ||  NVL(TRIM(#{POBUSI_REG_NO}), '') ||  '%'
+    </if>
+		
+	ORDER BY LOGIN_CNT DESC
+	</select>
+	
+	
+	<!-- 기본패스워드(아이디와 동일)로 바꾸기 위한 사용자 조회 -->
+	<select id="selectUserIdAll" parameterType="Map" resultType="Map">
+	--UsrUserSearchMapper.selectUserIdAll
+		SELECT  VND_USR.USER_ID 
+		       ,VND.REG_NO AS POBUSI_REG_NO
+		  FROM  VENDOR_MASTER AS VND
+		       ,VENDOR_USERS AS VND_USR
+	 	 WHERE  1=1
+ 		   AND  VND.VENDOR_ID = VND_USR.VENDOR_ID
+ 		   
+ 		   
+ 		   
+	</select>
+	
+	
+	<!-- 사용자 비밀번호 수정 -->
+	<update id="updateUserPwdChg" parameterType="Map" >
+	--UsrUserSearchMapper.updateUserPwdChg
+		UPDATE  VENDOR_USERS VND_USR
+		   SET  VND_USR.PASSWORD		= #{T_PASSWORD}							/* 비밀번호 */
+		 WHERE  1=1
+		   AND  VND_USR.USER_ID  		= #{T_USER_ID}
+	</update>
+
+
+	<!-- 내부 기본패스워드(아이디와 동일)로 바꾸기 위한 사용자 조회 -->
+	<select id="selectInUserIdAll" parameterType="Map" resultType="Map">
+	--UsrUserSearchMapper.selectInUserIdAll
+		SELECT  USER_ID
+		  FROM  SYS_USER
+	 	 WHERE  1=1
+ 		   
+	</select>
+	
+	
+	<!-- 내부 사용자 비밀번호 수정 -->
+	<update id="updateInUserPwdChg" parameterType="Map" >
+	--UsrUserSearchMapper.updateInUserPwdChg
+		UPDATE  SYS_USER
+		   SET  PWD		= #{T_PASSWORD}							/* 비밀번호 */
+		 WHERE  1=1
+		   AND  USER_ID  		= #{T_USER_ID}
+	</update>
+
+
+</mapper>

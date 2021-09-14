@@ -1,0 +1,698 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.bat.BatchSendBugt">
+
+    <select id="selectSendBasicBugtList" parameterType="Map" resultType="Map">
+    <![CDATA[
+	    --com.bat.BatchSendBugt.selectSendBasicBugtList
+	    SELECT A.BUKRS         AS BUKRS 
+              ,A.ZBUDCA        AS ZBUDCA
+              ,A.ZSERIA        AS ZSERIA
+              ,A.ZOTYPE        AS ZOTYPE
+              ,A.AKOSTL        AS AKOSTL
+              ,A.BKOSTL        AS BKOSTL
+              ,A.AUFNR         AS AUFNR 
+              ,A.KSTAR         AS KSTAR 
+              ,A.GJAHR         AS GJAHR 
+              ,MAX(A.ZSALES)   AS ZSALES
+              ,A.ZSATYP        AS ZSATYP
+              ,A.ZDATE         AS ZDATE
+              ,SUM(A.WKG001)   AS WKG001
+              ,SUM(A.WKG002)   AS WKG002
+              ,SUM(A.WKG003)   AS WKG003
+              ,SUM(A.WKG004)   AS WKG004
+              ,SUM(A.WKG005)   AS WKG005
+              ,SUM(A.WKG006)   AS WKG006
+              ,SUM(A.WKG007)   AS WKG007
+              ,SUM(A.WKG008)   AS WKG008
+              ,SUM(A.WKG009)   AS WKG009
+              ,SUM(A.WKG010)   AS WKG010
+              ,SUM(A.WKG011)   AS WKG011
+              ,SUM(A.WKG012)   AS WKG012
+          FROM (
+	            SELECT A.COMP_CD        AS BUKRS
+	                  ,'A'              AS ZBUDCA
+	                  ,C.SEND_CHASU     AS ZSERIA
+		              ,CASE
+		                 WHEN A.PROCESS_TYPE = '1' THEN 'CCTR'
+		                 WHEN A.PROCESS_TYPE = '2' AND A.DISTR_TYPE IS NULL THEN 'CCTR'
+		                 ELSE 'OR'
+		               END ZOTYPE	                  
+	                  ,A.CCTR_CD        AS AKOSTL
+	                  ,B.BELONG_CCTR_CD AS BKOSTL
+	                  ,B.PROJECT_CD     AS AUFNR
+	                  ,A.ACCOUNT_NO     AS KSTAR
+	                  ,A.CRTN_YY        AS GJAHR
+		              ,CASE
+		                 WHEN A.PROCESS_TYPE = '2' AND NVL(B.PROJECT_CD, ' ') <> ' ' THEN 'X'
+		                 ELSE ''
+		               END ZSALES
+		              ,A.DISTR_TYPE     AS ZSATYP
+		              ,C.SEND_YMD       AS ZDATE		       
+		              ,B.WK_M01         AS WKG001
+		              ,B.WK_M02         AS WKG002
+		              ,B.WK_M03         AS WKG003
+		              ,B.WK_M04         AS WKG004
+		              ,B.WK_M05         AS WKG005
+		              ,B.WK_M06         AS WKG006
+		              ,B.WK_M07         AS WKG007
+		              ,B.WK_M08         AS WKG008
+		              ,B.WK_M09         AS WKG009
+		              ,B.WK_M10         AS WKG010
+		              ,B.WK_M11         AS WKG011
+		              ,B.WK_M12         AS WKG012
+	              FROM CO_BUGT_BASIC_HEAD A
+	                  INNER JOIN 
+	                   CO_BUGT_BASIC_DETAIL B
+	                  ON    B.COMP_CD      = A.COMP_CD     
+                        AND B.CRTN_YY      = A.CRTN_YY     
+                        AND B.CCTR_CD      = A.CCTR_CD      
+                        AND B.ACCOUNT_NO   = A.ACCOUNT_NO  
+                        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+	                  LEFT OUTER JOIN
+	                   CO_BUGT_BASIC_MASTER C
+	                  ON    C.COMP_CD = A.COMP_CD
+                        AND C.CRTN_YY = B.CRTN_YY
+	             WHERE 1 = 1
+	               AND A.COMP_CD = #{SB_COMP_CD}
+                   AND A.CRTN_YY = #{TB_CRTN_YY}
+               ) A
+         WHERE 1 = 1
+         GROUP BY A.BUKRS 
+                 ,A.ZBUDCA
+                 ,A.ZSERIA
+                 ,A.ZOTYPE
+                 ,A.AKOSTL
+                 ,A.BKOSTL
+                 ,A.AUFNR 
+                 ,A.KSTAR 
+                 ,A.GJAHR 
+                 ,A.ZSATYP
+                 ,A.ZDATE               
+
+	]]>
+    </select>
+    
+    <select id="selectSendBugtBasicMgmtList" parameterType="Map" resultType="Map">
+	    --com.bat.BatchSendBugt.selectSendBugtBasicMgmtList
+	    
+	            SELECT A.COMP_CD        AS BUKRS
+	                  ,'A'              AS ZBUDCA
+	                  ,A.BELONG_CCTR_CD AS KOSTL
+	                  ,A.DISTRIB_CD     AS VTWEG
+	                  ,A.LEVEL_CD       AS ZLEVEL
+	                  ,A.ITEM_CD        AS ZPRODH
+	                  ,A.ACCOUNT_NO     AS KSTAR
+	                  ,A.CRTN_YY        AS GJAHR
+	                  ,SUBSTR(A.PROJECT_CD, 4) AS ZSATYP
+		              ,SUM(A.WK_M01)    AS WKG001
+		              ,SUM(A.WK_M02)    AS WKG002
+		              ,SUM(A.WK_M03)    AS WKG003
+		              ,SUM(A.WK_M04)    AS WKG004
+		              ,SUM(A.WK_M05)    AS WKG005
+		              ,SUM(A.WK_M06)    AS WKG006
+		              ,SUM(A.WK_M07)    AS WKG007
+		              ,SUM(A.WK_M08)    AS WKG008
+		              ,SUM(A.WK_M09)    AS WKG009
+		              ,SUM(A.WK_M10)    AS WKG010
+		              ,SUM(A.WK_M11)    AS WKG011
+		              ,SUM(A.WK_M12)    AS WKG012
+	              FROM CO_BUGT_BASIC_MGMT A
+	             WHERE 1 = 1
+	               AND A.COMP_CD = #{SB_COMP_CD}
+                   AND A.CRTN_YY = #{TB_CRTN_YY}
+                 GROUP BY A.COMP_CD 
+                         ,A.BELONG_CCTR_CD
+                         ,A.DISTRIB_CD
+                         ,A.LEVEL_CD   
+                         ,A.ITEM_CD
+                         ,A.ACCOUNT_NO
+                         ,A.CRTN_YY
+                         ,SUBSTR(A.PROJECT_CD, 4)     
+
+    </select>    
+    
+    <select id="selectSendModifyBugtList" parameterType="Map" resultType="Map">
+    <![CDATA[
+	    --com.bat.BatchSendBugt.selectSendModifyBugtList
+	    SELECT A.BUKRS         AS BUKRS 
+              ,A.ZBUDCA        AS ZBUDCA
+              ,A.ZSERIA        AS ZSERIA
+              ,A.ZOTYPE        AS ZOTYPE
+              ,A.AKOSTL        AS AKOSTL
+              ,A.BKOSTL        AS BKOSTL
+              ,A.AUFNR         AS AUFNR 
+              ,A.KSTAR         AS KSTAR 
+              ,A.GJAHR         AS GJAHR 
+              ,MAX(A.ZSALES)   AS ZSALES
+              ,A.ZSATYP        AS ZSATYP
+              ,A.ZDATE         AS ZDATE
+              ,SUM(A.WKG001)   AS WKG001
+              ,SUM(A.WKG002)   AS WKG002
+              ,SUM(A.WKG003)   AS WKG003
+              ,SUM(A.WKG004)   AS WKG004
+              ,SUM(A.WKG005)   AS WKG005
+              ,SUM(A.WKG006)   AS WKG006
+              ,SUM(A.WKG007)   AS WKG007
+              ,SUM(A.WKG008)   AS WKG008
+              ,SUM(A.WKG009)   AS WKG009
+              ,SUM(A.WKG010)   AS WKG010
+              ,SUM(A.WKG011)   AS WKG011
+              ,SUM(A.WKG012)   AS WKG012
+          FROM (
+	            SELECT A.COMP_CD        AS BUKRS
+	                  ,'B'              AS ZBUDCA
+	                  ,'00'             AS ZSERIA
+		              ,CASE
+		                 WHEN A.PROCESS_TYPE = '1' THEN 'CCTR'
+		                 WHEN A.PROCESS_TYPE = '2' AND A.DISTR_TYPE IS NULL THEN 'CCTR'
+		                 ELSE 'OR'
+		               END ZOTYPE	                  
+	                  ,A.CCTR_CD        AS AKOSTL
+	                  ,B.BELONG_CCTR_CD AS BKOSTL
+	                  ,B.PROJECT_CD     AS AUFNR
+	                  ,A.ACCOUNT_NO     AS KSTAR
+	                  ,A.CRTN_YY        AS GJAHR
+		              ,CASE
+		                 WHEN A.PROCESS_TYPE = '2' AND NVL(B.PROJECT_CD, ' ') <> ' ' THEN 'X'
+		                 ELSE ''
+		               END ZSALES	
+		              ,A.DISTR_TYPE     AS ZSATYP
+		              ,C.SEND_YMD       AS ZDATE		       
+		              ,B.WK_M01         AS WKG001
+		              ,B.WK_M02         AS WKG002
+		              ,B.WK_M03         AS WKG003
+		              ,B.WK_M04         AS WKG004
+		              ,B.WK_M05         AS WKG005
+		              ,B.WK_M06         AS WKG006
+		              ,B.WK_M07         AS WKG007
+		              ,B.WK_M08         AS WKG008
+		              ,B.WK_M09         AS WKG009
+		              ,B.WK_M10         AS WKG010
+		              ,B.WK_M11         AS WKG011
+		              ,B.WK_M12         AS WKG012
+	              FROM CO_BUGT_MODIFY_HEAD A
+	                  INNER JOIN 
+	                   CO_BUGT_MODIFY_DETAIL B
+	                  ON    B.COMP_CD      = A.COMP_CD     
+                        AND B.CRTN_YY      = A.CRTN_YY     
+                        AND B.CCTR_CD      = A.CCTR_CD      
+                        AND B.ACCOUNT_NO   = A.ACCOUNT_NO  
+                        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+	                  LEFT OUTER JOIN
+	                   CO_BUGT_MODIFY_MASTER C
+	                  ON    C.COMP_CD = A.COMP_CD
+                        AND C.CRTN_YY = B.CRTN_YY
+	             WHERE 1 = 1
+	               AND A.COMP_CD = #{SB_COMP_CD}
+                   AND A.CRTN_YY = #{TB_CRTN_YY}
+               ) A
+         WHERE 1 = 1
+         GROUP BY A.BUKRS 
+                 ,A.ZBUDCA
+                 ,A.ZSERIA
+                 ,A.ZOTYPE
+                 ,A.AKOSTL
+                 ,A.BKOSTL
+                 ,A.AUFNR 
+                 ,A.KSTAR 
+                 ,A.GJAHR 
+                 ,A.ZSATYP
+                 ,A.ZDATE               
+
+	]]>
+    </select>
+    
+    <select id="selectSendBugtModifyBasicMgmtList" parameterType="Map" resultType="Map">
+	    --com.bat.BatchSendBugt.selectSendBugtModifyBasicMgmtList
+	    
+	            SELECT A.COMP_CD               AS BUKRS
+	                  ,'B'                     AS ZBUDCA
+	                  ,A.BELONG_CCTR_CD        AS KOSTL
+	                  ,A.DISTRIB_CD            AS VTWEG
+	                  ,A.LEVEL_CD              AS ZLEVEL
+	                  ,A.ITEM_CD               AS ZPRODH
+	                  ,A.ACCOUNT_NO            AS KSTAR
+	                  ,A.CRTN_YY               AS GJAHR
+	                  ,SUBSTR(A.PROJECT_CD, 4) AS ZSATYP
+		              ,SUM(A.WK_M01)           AS WKG001
+		              ,SUM(A.WK_M02)           AS WKG002
+		              ,SUM(A.WK_M03)           AS WKG003
+		              ,SUM(A.WK_M04)           AS WKG004
+		              ,SUM(A.WK_M05)           AS WKG005
+		              ,SUM(A.WK_M06)           AS WKG006
+		              ,SUM(A.WK_M07)           AS WKG007
+		              ,SUM(A.WK_M08)           AS WKG008
+		              ,SUM(A.WK_M09)           AS WKG009
+		              ,SUM(A.WK_M10)           AS WKG010
+		              ,SUM(A.WK_M11)           AS WKG011
+		              ,SUM(A.WK_M12)           AS WKG012
+	              FROM CO_BUGT_MODIFY_MGMT A
+	             WHERE 1 = 1
+	               AND A.COMP_CD = #{SB_COMP_CD}
+                   AND A.CRTN_YY = #{TB_CRTN_YY}
+                 GROUP BY A.COMP_CD 
+                         ,A.BELONG_CCTR_CD
+                         ,A.DISTRIB_CD
+                         ,A.LEVEL_CD   
+                         ,A.ITEM_CD
+                         ,A.ACCOUNT_NO
+                         ,A.CRTN_YY
+                         ,SUBSTR(A.PROJECT_CD, 4)    
+
+    </select>
+    
+    <select id="selectSendExecBugtList" parameterType="Map" resultType="Map">
+    <![CDATA[
+	    --com.bat.BatchSendBugt.selectSendExecBugtList
+	    SELECT A.BUKRS                 AS BUKRS 
+              ,A.ZBUDCA                AS ZBUDCA
+              ,A.ZSERIA                AS ZSERIA
+              ,A.ZOTYPE                AS ZOTYPE
+              ,A.AKOSTL                AS AKOSTL
+              ,A.BKOSTL                AS BKOSTL
+              ,A.AUFNR                 AS AUFNR 
+              ,A.KSTAR                 AS KSTAR 
+              ,SUBSTR(A.GJAHR,0,4)     AS GJAHR 
+              ,MAX(A.ZSALES)           AS ZSALES
+              ,A.ZSATYP                AS ZSATYP
+              ,A.ZDATE                 AS ZDATE
+              ,SUM(A.WKG001)           AS WKG001
+              ,SUM(A.WKG002)           AS WKG002
+              ,SUM(A.WKG003)           AS WKG003
+              ,SUM(A.WKG004)           AS WKG004
+              ,SUM(A.WKG005)           AS WKG005
+              ,SUM(A.WKG006)           AS WKG006
+              ,SUM(A.WKG007)           AS WKG007
+              ,SUM(A.WKG008)           AS WKG008
+              ,SUM(A.WKG009)           AS WKG009
+              ,SUM(A.WKG010)           AS WKG010
+              ,SUM(A.WKG011)           AS WKG011
+              ,SUM(A.WKG012)           AS WKG012
+          FROM (
+	            SELECT A.COMP_CD        AS BUKRS
+	                  ,'C'              AS ZBUDCA
+	                  ,SUBSTR(REPLACE(#{TB_CRTN_YYMM}, '-', ''),5)        AS ZSERIA
+		              ,CASE
+		                 WHEN A.PROCESS_TYPE = '1' THEN 'CCTR'
+		                 WHEN A.PROCESS_TYPE = '2' AND A.DISTR_TYPE IS NULL THEN 'CCTR'
+		                 ELSE 'OR'
+		               END ZOTYPE	                  
+	                  ,A.CCTR_CD        AS AKOSTL
+	                  ,B.BELONG_CCTR_CD AS BKOSTL	                   
+	                  ,B.PROJECT_CD     AS AUFNR
+	                  ,A.ACCOUNT_NO     AS KSTAR
+	                  ,A.CRTN_YYMM      AS GJAHR
+		              ,CASE
+		                 WHEN A.PROCESS_TYPE = '2' AND NVL(B.PROJECT_CD, ' ') <> ' ' THEN 'X'
+		                 ELSE ''
+		               END ZSALES
+		              ,A.DISTR_TYPE     AS ZSATYP
+		              ,C.SEND_YMD       AS ZDATE		       
+		              ,B.WK_M01         AS WKG001
+		              ,B.WK_M02         AS WKG002
+		              ,B.WK_M03         AS WKG003
+		              ,B.WK_M04         AS WKG004
+		              ,B.WK_M05         AS WKG005
+		              ,B.WK_M06         AS WKG006
+		              ,B.WK_M07         AS WKG007
+		              ,B.WK_M08         AS WKG008
+		              ,B.WK_M09         AS WKG009
+		              ,B.WK_M10         AS WKG010
+		              ,B.WK_M11         AS WKG011
+		              ,B.WK_M12         AS WKG012
+	              FROM CO_BUGT_EXEC_HEAD A
+	                  INNER JOIN 
+	                   CO_BUGT_EXEC_DETAIL B
+	                  ON    B.COMP_CD      = A.COMP_CD     
+                        AND B.CRTN_YYMM    = A.CRTN_YYMM  
+                        AND B.CCTR_CD      = A.CCTR_CD      
+                        AND B.ACCOUNT_NO   = A.ACCOUNT_NO  
+                        AND B.PROCESS_TYPE = A.PROCESS_TYPE
+	                  LEFT OUTER JOIN
+	                   CO_BUGT_EXEC_MASTER C
+	                  ON    C.COMP_CD   = A.COMP_CD
+                        AND C.CRTN_YYMM = A.CRTN_YYMM
+	             WHERE 1 = 1
+	               AND A.COMP_CD   = #{SB_COMP_CD}
+                   AND A.CRTN_YYMM = REPLACE(#{TB_CRTN_YYMM}, '-', '')
+               ) A
+         WHERE 1 = 1
+         GROUP BY A.BUKRS 
+                 ,A.ZBUDCA
+                 ,A.ZSERIA
+                 ,A.ZOTYPE
+                 ,A.AKOSTL
+                 ,A.BKOSTL
+                 ,A.AUFNR 
+                 ,A.KSTAR 
+                 ,A.GJAHR 
+                 ,A.ZSATYP
+                 ,A.ZDATE             
+
+	]]>
+    </select>
+    
+    <select id="selectSendBugtExecBasicMgmtList" parameterType="Map" resultType="Map">
+	    --com.bat.BatchSendBugt.selectSendBugtExecBasicMgmtList
+	    
+	            SELECT A.COMP_CD                  BUKRS
+	                  ,'C'                        ZBUDCA
+	                  ,SUBSTR(A.CRTN_YYMM,4,2)    ZSERIA
+	                  ,A.BELONG_CCTR_CD           KOSTL
+	                  ,A.DISTRIB_CD               VTWEG
+	                  ,A.LEVEL_CD                 ZLEVEL
+	                  ,A.ITEM_CD                  ZPRODH
+	                  ,A.ACCOUNT_NO               KSTAR
+	                  ,SUBSTR(A.CRTN_YYMM,0,4)    GJAHR
+	                  ,SUBSTR(A.PROJECT_CD, 4)    ZSATYP
+		              ,SUM(A.WK_M01)              WKG001
+		              ,SUM(A.WK_M02)              WKG002
+		              ,SUM(A.WK_M03)              WKG003
+		              ,SUM(A.WK_M04)              WKG004
+		              ,SUM(A.WK_M05)              WKG005
+		              ,SUM(A.WK_M06)              WKG006
+		              ,SUM(A.WK_M07)              WKG007
+		              ,SUM(A.WK_M08)              WKG008
+		              ,SUM(A.WK_M09)              WKG009
+		              ,SUM(A.WK_M10)              WKG010
+		              ,SUM(A.WK_M11)              WKG011
+		              ,SUM(A.WK_M12)              WKG012
+	              FROM CO_BUGT_EXEC_MGMT A
+	             WHERE 1 = 1
+	               AND A.COMP_CD                  = #{SB_COMP_CD}
+                   AND SUBSTR(A.CRTN_YYMM,0,4) = SUBSTR(#{TB_CRTN_YYMM},0,4)
+                 GROUP BY A.COMP_CD 
+                         ,A.BELONG_CCTR_CD
+                         ,A.DISTRIB_CD
+                         ,A.LEVEL_CD   
+                         ,A.ITEM_CD
+                         ,A.ACCOUNT_NO
+                         ,A.CRTN_YYMM
+                         ,SUBSTR(A.PROJECT_CD, 4)      
+
+    </select>
+    
+	    
+    <select id="selectSendSupplementList" parameterType="Map" resultType="Map">
+    <![CDATA[
+	    --com.bat.BatchSendBugt.selectSendSupplementList
+	            SELECT A.COMP_CD                                    BUKRS
+	                  ,'E'                                          ZBUDCA
+	                  ,'00'                                         ZSERIA
+		              ,CASE
+		                 WHEN A.PROCESS_TYPE = '1' THEN 'CCTR'
+		                 ELSE 'OR'
+		               END ZOTYPE	                  
+	                  ,A.CCTR_CD  AKOSTL
+	                  ,A.CCTR_CD  BKOSTL
+		              ,CASE
+		                 WHEN A.PROCESS_TYPE = '1' THEN ''
+		                 ELSE (SELECT CASE WHEN FUNC_GET_ETC_CHC_GUBN(A.COMP_CD, A.CCTR_CD, '') = 'ETC' THEN B.ETC_ORDER_NO
+		                                   WHEN FUNC_GET_ETC_CHC_GUBN(A.COMP_CD, A.CCTR_CD, '') = 'CHC' THEN B.CHC_ORDER_NO
+		                                   ELSE ''
+		                              END
+		                         FROM CO_ACCOUNT_MGMT B
+		                        WHERE B.COMP_CD    = A.COMP_CD
+                                  AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                        )
+		               END                                          AUFNR
+	                  ,A.ACCOUNT_NO                                 KSTAR
+	                  ,SUBSTR(A.CRTN_YMD,0,4)                       GJAHR
+		              ,CASE
+		                 WHEN A.PROCESS_TYPE = '2' THEN 'X'
+		                 ELSE ''
+		               END ZSALES
+		              ,CASE
+		                 WHEN A.PROCESS_TYPE = '1' THEN ''
+		                 ELSE (SELECT CASE WHEN FUNC_GET_ETC_CHC_GUBN(A.COMP_CD, A.CCTR_CD, '') = 'ETC' THEN SUBSTR(B.ETC_ORDER_NO, 4,2)
+		                                   WHEN FUNC_GET_ETC_CHC_GUBN(A.COMP_CD, A.CCTR_CD, '') = 'CHC' THEN SUBSTR(B.CHC_ORDER_NO, 4,2)
+		                                   ELSE ''
+		                              END
+		                         FROM CO_ACCOUNT_MGMT B
+		                        WHERE B.COMP_CD    = A.COMP_CD
+                                  AND B.ACCOUNT_NO = A.ACCOUNT_NO
+		                        )
+		               END                                          ZSATYP		               	                  
+		              ,A.CRTN_YMD                                   ZDATE
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '01' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '01'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG001
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '02' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '02'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG002
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '03' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '03'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG003
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '04' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '04'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG004
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '05' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '05'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG005
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '06' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '06'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG006
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '07' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '07'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG007
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '08' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '08'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG008
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '09' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '09'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG009
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '10' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '10'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG010
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '11' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '11'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG011
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '12' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '12'
+                        		                                                                   AND B.CCTR_CD = A.CCTR_CD
+                        		                                                                   AND B.ACCOUNT_NO = A.ACCOUNT_NO
+                        		                                                                   AND B.PROCESS_TYPE = A.PROCESS_TYPE                        		                                                                   
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG012
+	              FROM CO_BUGT_SUPPLEMENT A
+	             WHERE 1 = 1
+	               AND A.COMP_CD              = #{COMP_CD}
+                   AND SUBSTR(A.CRTN_YMD,0,4) = SUBSTR(#{TB_CRTN_YMD},0,4)
+                   AND A.CCTR_CD              = #{CCTR_CD}
+                   AND ACCOUNT_NO             = #{ACCOUNT_NO}
+	]]>
+    </select>
+    
+    <select id="selectSendSupplementMgmtList" parameterType="Map" resultType="Map">
+	    --com.bat.BatchSendBugt.selectSendSupplementMgmtList
+	    
+	            SELECT A.COMP_CD                 AS BUKRS
+	                  ,'E'                       AS ZBUDCA
+	                  ,A.CCTR_CD                 AS KOSTL
+	                  ,''                        AS VTWEG
+	                  ,''                        AS ZLEVEL
+	                  ,''                        AS ZPRODH
+	                  ,A.ACCOUNT_NO              AS KSTAR
+	                  ,SUBSTR(A.CRTN_YMD,0,4)    AS GJAHR
+	                  ,''                        AS ZSATYP
+	                  ,A.CRTN_YMD                AS ZDATE
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '01' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '01'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG001
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '02' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '02'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG002
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '03' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '03'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG003
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '04' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '04'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG004
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '05' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '05'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG005
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '06' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '06'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG006
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '07' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '07'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG007
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '08' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '08'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG008
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '09' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '09'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG009
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '10' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '10'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG010
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '11' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '11'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG011
+		              ,CASE WHEN SUBSTR(A.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '12' THEN (
+                        		                                                                SELECT SUM(REQUEST_AMT) REQUEST_AMT
+                        		                                                                  FROM CO_BUGT_SUPPLEMENT B
+                        		                                                                 WHERE B.COMP_CD = A.COMP_CD
+                        		                                                                   AND SUBSTR(B.CRTN_YMD,0,6) = SUBSTR(#{TB_CRTN_YMD},0,4) || '12'
+                        		                                                               )
+		                    ELSE NULL
+		               END                                                                                             WKG012
+	              FROM CO_BUGT_SUPPLE_MGMT A
+	             WHERE 1 = 1
+	               AND A.COMP_CD              = #{COMP_CD}
+                   AND SUBSTR(A.CRTN_YMD,0,4) = SUBSTR(#{TB_CRTN_YMD},0,4)
+                   AND CCTR_CD                = #{CCTR_CD}
+                   AND ACCOUNT_NO             = #{ACCOUNT_NO}
+
+    </select>
+    
+	    
+</mapper>

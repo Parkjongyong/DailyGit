@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.wrh.DelyDate">
+
+	<select id="selectDelyDateList" parameterType="Map" resultType="Map">
+		--com.wrh.DelyDate.selectDelyDateList
+		WITH DATE_TIME AS (
+		SELECT '10:00' AS DELY_TIME_GRID, '1000' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '10:30' AS DELY_TIME_GRID, '1030' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '11:00' AS DELY_TIME_GRID, '1100' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '11:30' AS DELY_TIME_GRID, '1130' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '12:00' AS DELY_TIME_GRID, '1200' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '12:30' AS DELY_TIME_GRID, '1230' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '13:30' AS DELY_TIME_GRID, '1330' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '14:00' AS DELY_TIME_GRID, '1400' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '14:30' AS DELY_TIME_GRID, '1430' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '15:00' AS DELY_TIME_GRID, '1500' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '15:30' AS DELY_TIME_GRID, '1530' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL UNION ALL
+		SELECT '16:00' AS DELY_TIME_GRID, '1600' AS DELY_TIME, '예약하기' AS DELY_RESV FROM DUAL
+		)
+		SELECT A.*
+     <![CDATA[,CASE WHEN A.STORAGE_SPACE - NVL(A.SUM_PLT_QTY, 0) <= 0 THEN 'X']]>		
+		            ELSE CASE WHEN A.DOC_NO IS NOT NULL THEN 'X'
+		                      ELSE 'O'
+		                 END 
+		       END DELY_RESV_YN
+		      ,A.STORAGE_SPACE - A.SUM_PLT_QTY  AS STRG_SPCE
+		  FROM (
+		        SELECT A.*
+		              ,NVL(SUM_QTY.SUM_PLT_QTY, 0)  AS SUM_PLT_QTY
+		              ,B.DOC_NO
+		              ,NVL(C.STORAGE_SPACE, 50)                AS STORAGE_SPACE
+		              ,DELY_DATE_GRID || ' ' || DELY_TIME_GRID AS DELY_DATE_TIME
+		          FROM (
+		                SELECT A.*
+		                      ,REPLACE(#{TB_GR_DELY_DATE}, '-', '') AS DELY_DATE
+		                      ,#{TB_GR_DELY_DATE}                   AS DELY_DATE_GRID
+		                  FROM DATE_TIME A
+		               ) A
+		              LEFT OUTER JOIN
+		               GR_DELIVERY_HEAD B
+		              ON    B.GR_DELY_DATE = A.DELY_DATE
+		                AND B.GR_DELY_TIME = A.DELY_TIME
+		                AND B.COMP_CD      = #{TB_COMP_CD}
+		                AND B.PLANT_CODE   = #{TB_PLANT_CODE}
+		                AND B.LOCATION     = #{TB_LOCATION}
+		              LEFT OUTER JOIN
+		              (
+		               SELECT SUM(CASE WHEN NVL(B.PLT_QTY, 0) = 0 THEN 0
+                                       ELSE CEIL(B.ITEM_QTY/B.PLT_QTY)
+                                   END
+		                      ) AS SUM_PLT_QTY
+		                     ,A.GR_DELY_DATE
+		                 FROM GR_DELIVERY_HEAD A
+		                     LEFT OUTER JOIN
+		                      GR_DELIVERY_ITEM B
+		                     ON  B.DOC_NO = A.DOC_NO
+		                WHERE 1 = 1
+		                  AND A.COMP_CD      = #{TB_COMP_CD}
+		                  AND A.PLANT_CODE   = #{TB_PLANT_CODE}
+		                  AND A.LOCATION     = #{TB_LOCATION}
+		                  AND A.GR_DELY_DATE = REPLACE(#{TB_GR_DELY_DATE}, '-', '')
+		                GROUP BY A.GR_DELY_DATE
+		              )	 SUM_QTY
+		              ON SUM_QTY.GR_DELY_DATE = A.DELY_DATE	              
+		              LEFT OUTER JOIN
+                       STORAGE_SPACE C
+                      ON    C.COMP_CD    = B.COMP_CD
+		                AND C.PLANT_CD   = B.PLANT_CODE
+		                AND C.STORAGE_CD = B.LOCATION
+		                AND C.STRD_DATE  = B.GR_DELY_DATE
+		        ) A
+		   WHERE 1 = 1
+		     AND NOT EXISTS (
+		                     SELECT 1
+		                       FROM COM_CODE C
+                              WHERE CODE_GRP = 'SYS002'
+                                AND C.CODE   = A.DELY_DATE
+		                     )            
+		   ORDER BY A.DELY_TIME
+	</select>
+	
+</mapper>
